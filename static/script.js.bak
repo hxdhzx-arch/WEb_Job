@@ -1,0 +1,310 @@
+/* ══════════════════════════════════════
+   script.js — 前端交互逻辑
+   ══════════════════════════════════════ */
+
+// ══════════════════════════════════════
+// 行业 → 岗位 → JD 数据
+// ══════════════════════════════════════
+
+var JD_DATA = {
+  "互联网/IT": {
+    "前端开发工程师": "岗位职责：\n1. 负责公司产品的前端开发与优化\n2. 参与技术方案设计与评审\n3. 与后端工程师协作完成接口对接\n4. 持续优化页面性能和用户体验\n\n任职要求：\n1. 3年以上前端开发经验\n2. 精通HTML/CSS/JavaScript\n3. 熟练使用React或Vue等主流框架\n4. 了解Node.js和前端工程化工具\n5. 良好的沟通能力和团队协作精神",
+    "后端开发工程师": "岗位职责：\n1. 负责服务端架构设计与核心代码开发\n2. 设计并优化数据库结构\n3. 开发RESTful API接口\n4. 保障系统高可用性和安全性\n\n任职要求：\n1. 3年以上后端开发经验\n2. 精通Java/Python/Go中的至少一种\n3. 熟悉MySQL/Redis/MongoDB等数据库\n4. 了解微服务架构和容器化部署\n5. 有高并发系统开发经验优先",
+    "产品经理": "岗位职责：\n1. 负责产品需求分析、功能规划与原型设计\n2. 撰写产品需求文档(PRD)\n3. 跟进开发进度，协调各方资源\n4. 分析用户数据，持续优化产品\n\n任职要求：\n1. 2年以上互联网产品经验\n2. 熟练使用Axure/Figma等原型工具\n3. 具备数据分析能力\n4. 优秀的逻辑思维和沟通表达能力\n5. 有B端或C端产品经验优先",
+    "UI/UX设计师": "岗位职责：\n1. 负责产品界面视觉设计\n2. 制定设计规范和组件库\n3. 参与用户研究和可用性测试\n4. 与产品和开发团队紧密协作\n\n任职要求：\n1. 3年以上UI/UX设计经验\n2. 精通Figma/Sketch等设计工具\n3. 具备良好的审美和设计理论基础\n4. 了解前端实现原理\n5. 有完整项目作品集",
+    "数据分析师": "岗位职责：\n1. 搭建数据分析体系和报表\n2. 通过数据挖掘发现业务增长机会\n3. 为产品和运营提供数据支持\n4. 制作可视化数据报告\n\n任职要求：\n1. 2年以上数据分析经验\n2. 精通SQL，熟练使用Python/R\n3. 熟悉Tableau/PowerBI等可视化工具\n4. 具备统计学基础\n5. 良好的逻辑思维和汇报能力"
+  },
+  "金融/银行": {
+    "风控分析师": "岗位职责：\n1. 建立和优化风险评估模型\n2. 监控风险指标，预警异常交易\n3. 撰写风险分析报告\n4. 参与风控策略制定\n\n任职要求：\n1. 金融、统计、数学相关专业本科以上\n2. 2年以上风控或数据分析经验\n3. 熟练使用Python/SAS进行数据建模\n4. 了解信贷/支付风控业务流程\n5. 持有FRM/CFA证书优先",
+    "投资顾问": "岗位职责：\n1. 为客户提供专业的投资建议\n2. 分析市场行情和投资产品\n3. 维护客户关系，拓展新客户\n4. 完成业绩指标\n\n任职要求：\n1. 金融相关专业本科以上\n2. 持有证券/基金从业资格\n3. 2年以上投资顾问或理财经验\n4. 优秀的沟通能力和抗压能力\n5. 有高净值客户服务经验优先",
+    "客户经理": "岗位职责：\n1. 拓展和维护银行对公/个人客户\n2. 推荐金融产品和解决方案\n3. 完成存贷款等业务指标\n4. 做好客户关系管理\n\n任职要求：\n1. 金融、经济相关专业本科以上\n2. 1年以上银行或金融机构工作经验\n3. 良好的营销意识和客户服务能力\n4. 较强的沟通协调能力\n5. 有相关从业资格证书优先",
+    "合规专员": "岗位职责：\n1. 负责公司合规审查和风险排查\n2. 跟踪最新法律法规变化\n3. 制定和更新内部合规制度\n4. 开展合规培训\n\n任职要求：\n1. 法律或金融相关专业本科以上\n2. 2年以上金融合规工作经验\n3. 熟悉银保监会等监管政策\n4. 持有法律职业资格证优先\n5. 细致严谨，责任心强"
+  },
+  "教育/培训": {
+    "课程设计师": "岗位职责：\n1. 根据用户需求设计课程体系\n2. 编写课程大纲和教学内容\n3. 开发配套练习和评估方案\n4. 持续优化课程质量\n\n任职要求：\n1. 教育学相关专业本科以上\n2. 2年以上课程设计或教学经验\n3. 了解教学设计理论(ADDIE等)\n4. 熟练使用课件制作工具\n5. 优秀的文字表达能力",
+    "学科教师": "岗位职责：\n1. 负责学科教学工作\n2. 制定教学计划和备课\n3. 关注学生学习情况，因材施教\n4. 参与教研活动和考试命题\n\n任职要求：\n1. 相关学科本科以上学历\n2. 持有教师资格证\n3. 1年以上教学经验\n4. 热爱教育事业，有耐心\n5. 良好的课堂管控能力",
+    "教育运营": "岗位职责：\n1. 负责教育产品的用户增长和留存\n2. 策划运营活动，提升转化率\n3. 管理社群和用户社区\n4. 分析运营数据，优化策略\n\n任职要求：\n1. 2年以上教育行业运营经验\n2. 熟悉在线教育业务模式\n3. 具备数据分析能力\n4. 优秀的文案策划能力\n5. 有社群运营经验优先",
+    "培训讲师": "岗位职责：\n1. 开发和讲授培训课程\n2. 制作培训教材和课件\n3. 评估培训效果并持续改进\n4. 根据企业需求定制培训方案\n\n任职要求：\n1. 本科以上学历\n2. 3年以上培训授课经验\n3. 优秀的表达和演讲能力\n4. 熟练使用PPT等演示工具\n5. 有TTT认证或行业认证优先"
+  },
+  "医疗/健康": {
+    "临床研究员": "岗位职责：\n1. 负责临床试验的方案设计和执行\n2. 管理临床试验数据和文档\n3. 协调研究中心和CRO公司\n4. 撰写临床研究报告\n\n任职要求：\n1. 医学/药学相关专业本科以上\n2. 2年以上临床研究经验\n3. 熟悉GCP和相关法规\n4. 良好的英文读写能力\n5. 有CRA/CRC经验优先",
+    "医药代表": "岗位职责：\n1. 负责区域内医院客户的开发和维护\n2. 推广公司医药产品\n3. 组织学术会议和科室会\n4. 收集市场信息和竞品动态\n\n任职要求：\n1. 医药相关专业大专以上\n2. 1年以上医药销售经验\n3. 具备良好的沟通和抗压能力\n4. 熟悉区域内医疗资源\n5. 有目标医院资源优先",
+    "健康管理师": "岗位职责：\n1. 为客户制定健康管理方案\n2. 进行健康评估和风险筛查\n3. 提供营养和运动指导\n4. 跟踪管理客户健康档案\n\n任职要求：\n1. 医学/营养学相关专业\n2. 持有健康管理师证书\n3. 1年以上健康管理经验\n4. 良好的沟通和服务意识\n5. 熟悉慢病管理流程优先",
+    "医疗器械工程师": "岗位职责：\n1. 负责医疗器械的研发和测试\n2. 编写技术文档和注册资料\n3. 跟进产品认证和审批流程\n4. 协助解决临床使用中的技术问题\n\n任职要求：\n1. 生物医学工程相关专业本科以上\n2. 2年以上医疗器械研发经验\n3. 熟悉医疗器械法规和标准\n4. 了解ISO13485质量体系\n5. 有NMPA注册经验优先"
+  }
+};
+
+// ══════════════════════════════════════
+// 行业岗位选择器
+// ══════════════════════════════════════
+
+function onIndustryChange(select) {
+  var industry = select.value;
+  var posSelect = document.getElementById("position-select");
+  var jdArea = document.getElementById("jd-input");
+
+  posSelect.innerHTML = '<option value="">-- 请选择岗位 --</option>';
+  if (jdArea) jdArea.value = "";
+
+  if (industry && JD_DATA[industry]) {
+    var positions = Object.keys(JD_DATA[industry]);
+    for (var i = 0; i < positions.length; i++) {
+      var opt = document.createElement("option");
+      opt.value = positions[i];
+      opt.textContent = positions[i];
+      posSelect.appendChild(opt);
+    }
+    posSelect.disabled = false;
+  } else {
+    posSelect.disabled = true;
+  }
+}
+
+function onPositionChange(select) {
+  var industry = document.getElementById("industry-select").value;
+  var position = select.value;
+  var jdArea = document.getElementById("jd-input");
+
+  if (industry && position && JD_DATA[industry] && JD_DATA[industry][position]) {
+    jdArea.value = "岗位：" + position + "\n行业：" + industry + "\n\n" + JD_DATA[industry][position];
+  }
+}
+
+// ══════════════════════════════════════
+// 简历模板
+// ══════════════════════════════════════
+
+function switchResumeMode(mode) {
+  var freeMode = document.getElementById("free-mode");
+  var templateMode = document.getElementById("template-mode");
+  var btnFree = document.getElementById("btn-mode-free");
+  var btnTemplate = document.getElementById("btn-mode-template");
+
+  if (mode === "template") {
+    freeMode.style.display = "none";
+    templateMode.style.display = "block";
+    btnFree.classList.remove("active");
+    btnTemplate.classList.add("active");
+  } else {
+    freeMode.style.display = "block";
+    templateMode.style.display = "none";
+    btnFree.classList.add("active");
+    btnTemplate.classList.remove("active");
+  }
+}
+
+function getResumeText() {
+  var freeMode = document.getElementById("free-mode");
+  if (freeMode && freeMode.style.display !== "none") {
+    return document.getElementById("resume-input").value.trim();
+  }
+
+  // 从模板收集
+  var name = document.getElementById("t-name").value.trim();
+  var phone = document.getElementById("t-phone").value.trim();
+  var email = document.getElementById("t-email").value.trim();
+  var education = document.getElementById("t-education").value.trim();
+  var school = document.getElementById("t-school").value.trim();
+  var major = document.getElementById("t-major").value.trim();
+  var gradYear = document.getElementById("t-grad-year").value.trim();
+  var experience = document.getElementById("t-experience").value.trim();
+  var skills = document.getElementById("t-skills").value.trim();
+  var selfIntro = document.getElementById("t-self-intro").value.trim();
+
+  var parts = [];
+  if (name) parts.push(name);
+  if (phone || email) parts.push("联系方式：" + [phone, email].filter(Boolean).join(" | "));
+  parts.push("");
+  if (education || school || major) {
+    parts.push("教育背景：");
+    parts.push([gradYear, school, major, education].filter(Boolean).join(" "));
+    parts.push("");
+  }
+  if (experience) {
+    parts.push("工作经历：");
+    parts.push(experience);
+    parts.push("");
+  }
+  if (skills) {
+    parts.push("技能：" + skills);
+    parts.push("");
+  }
+  if (selfIntro) {
+    parts.push("自我评价：");
+    parts.push(selfIntro);
+  }
+
+  return parts.join("\n");
+}
+
+// ══════════════════════════════════════
+// 通用工具
+// ══════════════════════════════════════
+
+function showError(msg) {
+  var toast = document.getElementById("error-toast");
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add("visible");
+  setTimeout(function () { toast.classList.remove("visible"); }, 4000);
+}
+
+function getScoreColor(score) {
+  if (score >= 80) return "#10B981";
+  if (score >= 60) return "#F59E0B";
+  return "#EF4444";
+}
+
+function renderScoreRing(containerId, score) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  var color = getScoreColor(score);
+  var c = 2 * Math.PI * 54;
+  var offset = c - (score / 100) * c;
+  container.innerHTML =
+    '<div class="score-ring"><svg viewBox="0 0 128 128"><circle class="bg-circle" cx="64" cy="64" r="54"/><circle class="score-circle" cx="64" cy="64" r="54" stroke="' + color + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + c + '"/></svg><div class="score-value" style="color:' + color + '">' + score + '</div></div><div class="score-label">综合评分</div>';
+  requestAnimationFrame(function () {
+    var circle = container.querySelector(".score-circle");
+    if (circle) circle.style.strokeDashoffset = offset;
+  });
+}
+
+function renderDimensions(containerId, dimensions) {
+  var container = document.getElementById(containerId);
+  if (!container || !dimensions || !dimensions.length) return;
+  var html = "<h3>维度评分</h3>";
+  for (var i = 0; i < dimensions.length; i++) {
+    var d = dimensions[i];
+    var pct = d.score * 10;
+    var color = getScoreColor(pct);
+    html += '<div class="dim-item"><div class="dim-header"><span class="dim-name">' + d.name + '</span><span class="dim-score" style="color:' + color + '">' + d.score + '/10</span></div><div class="dim-bar"><div class="dim-bar-fill" data-width="' + pct + '%" style="background:' + color + '"></div></div><div class="dim-comment">' + d.comment + '</div></div>';
+  }
+  container.innerHTML = html;
+  requestAnimationFrame(function () {
+    var fills = container.querySelectorAll(".dim-bar-fill");
+    for (var j = 0; j < fills.length; j++) fills[j].style.width = fills[j].getAttribute("data-width");
+  });
+}
+
+function renderList(containerId, title, items, iconClass, listClass) {
+  var container = document.getElementById(containerId);
+  if (!container || !items || !items.length) { if (container) container.style.display = "none"; return; }
+  var html = '<h3><span class="icon ' + iconClass + '"></span>' + title + '</h3><ul class="info-list ' + listClass + '">';
+  for (var i = 0; i < items.length; i++) html += "<li>" + items[i] + "</li>";
+  container.innerHTML = html + "</ul>";
+  container.style.display = "block";
+}
+
+function renderSummary(containerId, title, text) {
+  var container = document.getElementById(containerId);
+  if (!container || !text) { if (container) container.style.display = "none"; return; }
+  container.innerHTML = "<h3>" + title + "</h3><p>" + text + "</p>";
+  container.style.display = "block";
+}
+
+// ══════════════════════════════════════
+// 简历诊断
+// ══════════════════════════════════════
+
+function submitResume() {
+  var btn = document.getElementById("submit-btn");
+  var resultPanel = document.getElementById("result-panel");
+  var text = getResumeText();
+
+  if (!text) { showError("请先输入简历内容"); return; }
+  if (text.length < 20) { showError("简历内容过短，请输入更完整的内容"); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>AI 分析中，请稍候...';
+  resultPanel.classList.remove("visible");
+
+  fetch("/api/analyze-resume", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ resume_text: text }),
+  })
+    .then(function (res) { return res.json().then(function (data) { if (!res.ok) throw new Error(data.error || "请求失败"); return data; }); })
+    .then(function (data) {
+      renderScoreRing("score-container", data.overall_score || 0);
+      renderDimensions("dimensions-container", data.dimensions);
+      renderList("highlights-container", "亮点", data.highlights, "green", "green");
+      renderList("issues-container", "待改进", data.issues, "red", "red");
+      renderList("suggestions-container", "优化建议", data.suggestions, "blue", "blue");
+      renderSummary("summary-container", "AI 改写的个人简介", data.rewritten_summary);
+      resultPanel.classList.add("visible");
+      resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    })
+    .catch(function (err) { showError(err.message || "分析失败，请稍后重试"); })
+    .finally(function () { btn.disabled = false; btn.innerHTML = "开始诊断"; });
+}
+
+// ══════════════════════════════════════
+// JD 匹配
+// ══════════════════════════════════════
+
+function submitJdMatch() {
+  var btn = document.getElementById("submit-btn");
+  var resultPanel = document.getElementById("result-panel");
+  var resumeText = getResumeText();
+  var jdText = document.getElementById("jd-input").value.trim();
+
+  if (!resumeText) { showError("请先输入简历内容"); return; }
+  if (!jdText) { showError("请选择岗位或输入职位描述"); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>AI 匹配分析中...';
+  resultPanel.classList.remove("visible");
+
+  fetch("/api/match-jd", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ resume_text: resumeText, jd_text: jdText }),
+  })
+    .then(function (res) { return res.json().then(function (data) { if (!res.ok) throw new Error(data.error || "请求失败"); return data; }); })
+    .then(function (data) {
+      renderScoreRing("score-container", data.match_score || 0);
+      renderSubScores("sub-scores-container", data.sub_scores);
+      renderKeywords("keywords-container", data.matched_keywords, data.missing_keywords);
+      renderList("strengths-container", "匹配优势", data.strengths, "green", "green");
+      renderList("gaps-container", "差距分析", data.gaps, "red", "red");
+      renderList("suggestions-container", "定制化建议", data.suggestions, "blue", "blue");
+      renderSummary("summary-container", "针对该岗位的个人简介", data.tailored_summary);
+      resultPanel.classList.add("visible");
+      resultPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    })
+    .catch(function (err) { showError(err.message || "分析失败，请稍后重试"); })
+    .finally(function () { btn.disabled = false; btn.innerHTML = "开始匹配分析"; });
+}
+
+function renderSubScores(containerId, subScores) {
+  var container = document.getElementById(containerId);
+  if (!container || !subScores) return;
+  var labels = { skill_match: "技能匹配", experience_match: "经验匹配", education_match: "学历匹配", industry_match: "行业匹配" };
+  var html = "";
+  var keys = Object.keys(labels);
+  for (var i = 0; i < keys.length; i++) {
+    var val = subScores[keys[i]] || 0;
+    var color = getScoreColor(val);
+    html += '<div class="sub-score-item"><div class="sub-score-value" style="color:' + color + '">' + val + '</div><div class="sub-score-label">' + labels[keys[i]] + '</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function renderKeywords(containerId, matched, missing) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  if ((!matched || !matched.length) && (!missing || !missing.length)) { container.style.display = "none"; return; }
+  var html = "<h3>关键词匹配</h3>";
+  if (matched && matched.length) {
+    html += '<div class="keyword-group"><div class="keyword-group-label">已覆盖</div><div class="keyword-tags">';
+    for (var i = 0; i < matched.length; i++) html += '<span class="keyword-tag matched">' + matched[i] + '</span>';
+    html += "</div></div>";
+  }
+  if (missing && missing.length) {
+    html += '<div class="keyword-group"><div class="keyword-group-label">未覆盖（建议补充）</div><div class="keyword-tags">';
+    for (var j = 0; j < missing.length; j++) html += '<span class="keyword-tag missing">' + missing[j] + '</span>';
+    html += "</div></div>";
+  }
+  container.innerHTML = html;
+  container.style.display = "block";
+}

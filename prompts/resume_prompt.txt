@@ -1,0 +1,9 @@
+你是一位资深HR顾问。请分析下面的简历，然后只输出一个JSON对象，不要输出任何其他文字。
+
+JSON格式如下：
+{"overall_score": 75, "dimensions": [{"name": "整体印象", "score": 8, "comment": "评价"}, {"name": "内容质量", "score": 6, "comment": "评价"}, {"name": "关键词优化", "score": 7, "comment": "评价"}, {"name": "常见问题", "score": 8, "comment": "评价"}, {"name": "竞争力", "score": 7, "comment": "评价"}], "highlights": ["亮点1", "亮点2"], "issues": ["问题1", "问题2"], "suggestions": ["建议1", "建议2"], "rewritten_summary": "优化后的个人简介"}
+
+注意：overall_score是0-100分，每个dimension的score是1-10分。comment、highlights、issues、suggestions都用中文。只输出JSON，不要有其他文字。
+
+简历内容：
+{resume_text}

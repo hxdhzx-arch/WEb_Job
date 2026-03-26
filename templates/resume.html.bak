@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简历诊断 — AI 简历诊断</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- 导航栏 -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">简历 AI <span>BETA</span></a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">首页</a>
+        <a href="/resume" class="nav-link active">简历诊断</a>
+        <a href="/jd" class="nav-link">JD 匹配</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 错误提示 -->
+  <div id="error-toast" class="error-toast"></div>
+
+  <div class="container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h1>简历诊断</h1>
+      <p>粘贴你的简历内容，AI 将从 5 个维度为你全面评估</p>
+    </div>
+
+    <!-- 输入区域 -->
+    <div class="form-section">
+      <label for="resume-input">简历内容 <span class="required">*</span></label>
+      <div class="hint">请将简历的文字内容粘贴到下方，支持任意格式</div>
+      <textarea id="resume-input" placeholder="将你的简历内容粘贴到这里...&#10;&#10;例如：&#10;张三 | 前端开发工程师&#10;电话：138xxxx | 邮箱：zhangsan@email.com&#10;&#10;工作经历：&#10;2021-至今  ABC科技有限公司  高级前端开发&#10;- 负责公司核心产品的前端架构设计与开发..."></textarea>
+    </div>
+
+    <button id="submit-btn" class="btn btn-primary" onclick="submitResume()">开始诊断</button>
+
+    <!-- 结果区域 -->
+    <div id="result-panel" class="result-panel">
+      <div class="page-header">
+        <h1>诊断结果</h1>
+      </div>
+
+      <!-- 总分 -->
+      <div id="score-container" class="score-section"></div>
+
+      <!-- 维度评分 -->
+      <div id="dimensions-container" class="dimensions"></div>
+
+      <!-- 亮点 -->
+      <div id="highlights-container" class="info-card"></div>
+
+      <!-- 问题 -->
+      <div id="issues-container" class="info-card"></div>
+
+      <!-- 建议 -->
+      <div id="suggestions-container" class="info-card"></div>
+
+      <!-- AI 改写摘要 -->
+      <div id="summary-container" class="summary-card"></div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <!-- 广告位预留 -->
+      <p>简历 AI — 免费智能简历优化工具</p>
+    </div>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+"""
+app.py — Flask 主入口
+"""
+import time
+import threading
+from collections import defaultdict
+from flask import Flask, render_template, request, jsonify
+from config import PORT, DEBUG, RATE_LIMIT_PER_MINUTE
+from services.resume_analyzer import analyze_resume
+from services.jd_matcher import match_jd
+from services.gemini_client import call_gemini
+
+app = Flask(__name__)
+
+# ── 限流（带自动清理） ──
+_request_log = defaultdict(list)
+_log_lock = threading.Lock()
+
+def _cleanup_stale_ips():
+    """每 120 秒清理不活跃的 IP 记录，防止内存泄漏"""
+    while True:
+        time.sleep(120)
+        now = time.time()
+        with _log_lock:
+            stale = [ip for ip, ts in _request_log.items() if not ts or now - ts[-1] > 120]
+            for ip in stale:
+                del _request_log[ip]
+
+_cleaner = threading.Thread(target=_cleanup_stale_ips, daemon=True)
+_cleaner.start()
+
+def _is_rate_limited(ip):
+    now = time.time()
+    with _log_lock:
+        _request_log[ip] = [t for t in _request_log[ip] if now - t < 60]
+        if len(_request_log[ip]) >= RATE_LIMIT_PER_MINUTE:
+            return True
+        _request_log[ip].append(now)
+    return False
+
+# ── 页面路由 ──
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/resume")
+def resume_page():
+    return render_template("resume.html")
+
+@app.route("/jd")
+def jd_page():
+    return render_template("jd_match.html")
+
+@app.route("/builder")
+def builder_page():
+    return render_template("resume_builder.html")
+
+# ── API 路由 ──
+@app.route("/api/analyze-resume", methods=["POST"])
+def api_analyze_resume():
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json()
+    if not data or not data.get("resume_text"):
+        return jsonify({"error": "请输入简历内容"}), 400
+    try:
+        return jsonify(analyze_resume(data["resume_text"]))
+    except Exception as e:
+        return jsonify({"error": "分析失败: %s" % str(e)}), 500
+
+@app.route("/api/match-jd", methods=["POST"])
+def api_match_jd():
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json()
+    if not data or not data.get("resume_text") or not data.get("jd_text"):
+        return jsonify({"error": "请输入简历和职位描述"}), 400
+    try:
+        return jsonify(match_jd(data["resume_text"], data["jd_text"]))
+    except Exception as e:
+        return jsonify({"error": "分析失败: %s" % str(e)}), 500
+
+@app.route("/api/career-advisor", methods=["POST"])
+def api_career_advisor():
+    """AI 职业顾问"""
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json()
+    if not data or not data.get("user_query"):
+        return jsonify({"error": "请描述你的情况"}), 400
+    try:
+        prompt = '''你是一位资深职业规划顾问。根据用户描述，给出职业方向和薪资建议。
+你必须且只能输出以下JSON格式，不要输出任何其他文字：
+{
+  "salary_evaluation": "针对用户期望薪资的合理性评估（50字内）",
+  "recommended_roles": [
+    {"title": "推荐岗位1", "reason": "推荐理由（30字内）"},
+    {"title": "推荐岗位2", "reason": "推荐理由（30字内）"},
+    {"title": "推荐岗位3", "reason": "推荐理由（30字内）"}
+  ],
+  "best_match_jd": "根据用户特征生成的最匹配的一份详细岗位JD，包含岗位职责和任职要求，至少200字"
+}
+
+用户描述：
+''' + data["user_query"]
+        raw = call_gemini(prompt)
+        import json as _json
+        # Try parse JSON from response
+        text = raw.strip()
+        if text.startswith("```"):
+            text = text.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+        result = _json.loads(text)
+        return jsonify(result)
+    except (ValueError, _json.JSONDecodeError):
+        return jsonify({"error": "AI 返回格式异常，请重试"}), 500
+    except Exception as e:
+        return jsonify({"error": "咨询失败: %s" % str(e)}), 500
+
+@app.route("/api/inject-keywords", methods=["POST"])
+def api_inject_keywords():
+    """AI 智能融合缺失关键词"""
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json()
+    if not data or not data.get("resume_text") or not data.get("missing_keywords"):
+        return jsonify({"error": "参数不完整"}), 400
+    try:
+        keywords = ", ".join(data["missing_keywords"])
+        prompt = """你是一位专业的简历优化专家。请将以下缺失的关键词自然地融入简历中。
+严格要求：
+1. 不得捏造虚假经历或技能，只在合理的位置补充关键词
+2. 优先融入自我评价、技能特长和工作职责描述中
+3. 保持原文结构和真实信息不变
+4. 融入后的表述必须通顺自然，不能生硬堆砌
+5. 只输出修改后的完整简历文本，不要加任何解释
+
+需要融入的关键词：""" + keywords + """
+
+原始简历：
+""" + data["resume_text"]
+        result = call_gemini(prompt)
+        return jsonify({"enhanced_resume": result.strip()})
+    except Exception as e:
+        return jsonify({"error": "融合失败: %s" % str(e)}), 500
+
+@app.route("/api/parse-resume-pdf", methods=["POST"])
+def api_parse_resume_pdf():
+    """解析 PDF 简历并结构化为 JSON"""
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    if "file" not in request.files:
+        return jsonify({"error": "请上传文件"}), 400
+    f = request.files["file"]
+    if not f.filename:
+        return jsonify({"error": "文件为空"}), 400
+    try:
+        import fitz
+        pdf_bytes = f.read()
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        text = ""
+        for page in doc:
+            text += page.get_text()
+        doc.close()
+        if len(text.strip()) < 10:
+            return jsonify({"error": "PDF 内容为空或无法识别"}), 400
+
+        prompt = '''你是简历解析专家。请将以下简历纯文本严格解析为JSON格式。
+你必须且只能输出JSON，不要输出任何其他文字、解释或markdown标记。
+
+JSON格式要求：
+{
+  "basic": {"name":"姓名","age":"年龄","phone":"手机","email":"邮箱","city":"城市","years":"工作年限"},
+  "intent": {"job":"目标职位","salary":"期望薪资"},
+  "education": [{"school":"学校","major":"专业","degree":"学历","time":"时间"}],
+  "work": [{"company":"公司","title":"职位","time":"时间","duties":["工作成就1","工作成就2"]}],
+  "skills": "技能1、技能2、技能3",
+  "intro": "自我评价",
+  "certs": "证书"
+}
+
+注意：
+- 如果某个字段在简历中找不到，填空字符串
+- work.duties 必须是字符串数组，每条成就独立一项
+- education 和 work 都是数组，支持多段
+- skills 用顿号分隔
+
+简历原文：
+''' + text[:4000]
+        raw = call_gemini(prompt)
+        import json as _json
+        cleaned = raw.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+        result = _json.loads(cleaned)
+        # Ensure structure
+        if "basic" not in result:
+            result = {"basic": {}, "intent": {}, "education": [], "work": [], "skills": "", "intro": "", "certs": ""}
+        return jsonify({"resumeData": result})
+    except Exception as e:
+        return jsonify({"error": "解析失败: %s" % str(e)}), 500
+
+@app.route("/api/auto-fill", methods=["POST"])
+def api_auto_fill():
+    """AI 智能扩写"""
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json()
+    if not data or not data.get("text"):
+        return jsonify({"error": "请输入内容"}), 400
+    try:
+        context = data.get("context", "")
+        prompt = """你是一位世界500强企业的HRBP和简历撰写专家。
+请将用户的白话文/短句用STAR法则（情境Situation、任务Task、行动Action、结果Result）进行专业扩写。
+要求：
+1. 主动使用专业动词（主导、统筹、推动、优化、搭建、落地）
+2. 补充合理的量化数据（提升X%、降低X%、覆盖X+用户）
+3. 每条成就独立一行，不要编号，不要加任何前缀符号
+4. 输出3-5条扩写后的成就描述
+5. 只输出扩写结果，不要加任何解释文字
+
+""" + ("岗位背景：" + context + "\n\n" if context else "") + "用户原文：\n" + data["text"]
+        result = call_gemini(prompt)
+        return jsonify({"expanded": result.strip()})
+    except Exception as e:
+        return jsonify({"error": "扩写失败: %s" % str(e)}), 500
+
+@app.route("/api/polish-resume", methods=["POST"])
+def api_polish_resume():
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json()
+    if not data or not data.get("resume_text"):
+        return jsonify({"error": "请输入简历内容"}), 400
+    try:
+        prompt = "你是专业简历润色专家。请润色以下简历，要求：保持信息不变但优化表达，用STAR法则改写工作经历，突出量化成果，技能描述专业化，自我评价精炼有力。只输出润色后的完整简历文本，不要加任何解释。\n\n原始简历：\n" + data["resume_text"]
+        result = call_gemini(prompt)
+        return jsonify({"polished_text": result})
+    except Exception as e:
+        return jsonify({"error": "润色失败: %s" % str(e)}), 500
+
+if __name__ == "__main__":
+    print("服务启动于: http://localhost:%d" % PORT)
+    app.run(host="0.0.0.0", port=PORT, debug=DEBUG)

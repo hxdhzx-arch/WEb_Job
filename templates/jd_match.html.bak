@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JD 匹配分析 — AI 简历诊断</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- 导航栏 -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">简历 AI <span>BETA</span></a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">首页</a>
+        <a href="/resume" class="nav-link">简历诊断</a>
+        <a href="/jd" class="nav-link active">JD 匹配</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 错误提示 -->
+  <div id="error-toast" class="error-toast"></div>
+
+  <div class="container">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <h1>JD 匹配分析</h1>
+      <p>对比你的简历和目标岗位要求，精准找到差距和优化方向</p>
+    </div>
+
+    <!-- 简历输入 -->
+    <div class="form-section">
+      <label for="resume-input">简历内容 <span class="required">*</span></label>
+      <div class="hint">请将简历的文字内容粘贴到下方</div>
+      <textarea id="resume-input" placeholder="将你的简历内容粘贴到这里..."></textarea>
+    </div>
+
+    <!-- JD 输入 -->
+    <div class="form-section">
+      <label for="jd-input">职位描述 (JD) <span class="required">*</span></label>
+      <div class="hint">请将目标岗位的招聘要求粘贴到下方</div>
+      <textarea id="jd-input" placeholder="将目标岗位的 JD 粘贴到这里...&#10;&#10;例如：&#10;岗位名称：高级前端开发工程师&#10;&#10;岗位职责：&#10;1. 负责公司核心产品的前端开发与优化&#10;2. 参与技术方案设计与评审&#10;...&#10;&#10;任职要求：&#10;1. 3年以上前端开发经验&#10;2. 精通 React/Vue 等主流框架&#10;..."></textarea>
+    </div>
+
+    <button id="submit-btn" class="btn btn-primary" onclick="submitJdMatch()">开始匹配分析</button>
+
+    <!-- 结果区域 -->
+    <div id="result-panel" class="result-panel">
+      <div class="page-header">
+        <h1>匹配分析结果</h1>
+      </div>
+
+      <!-- 总匹配分 -->
+      <div id="score-container" class="score-section"></div>
+
+      <!-- 四维子分数 -->
+      <div id="sub-scores-container" class="sub-scores"></div>
+
+      <!-- 关键词匹配 -->
+      <div id="keywords-container" class="keywords-section"></div>
+
+      <!-- 优势 -->
+      <div id="strengths-container" class="info-card"></div>
+
+      <!-- 差距 -->
+      <div id="gaps-container" class="info-card"></div>
+
+      <!-- 建议 -->
+      <div id="suggestions-container" class="info-card"></div>
+
+      <!-- 定制简介 -->
+      <div id="summary-container" class="summary-card"></div>
+    </div>
+  </div>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <div class="container">
+      <!-- 广告位预留 -->
+      <p>简历 AI — 免费智能简历优化工具</p>
+    </div>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

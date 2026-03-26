@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>简历生成器 Pro</title>
+<link rel="stylesheet" href="/static/style.css">
+<!-- Web Fonts -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Merriweather:wght@300;400;700&family=Lora:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap">
+</head>
+<body>
+<nav class="nav"><div class="nav-inner" style="max-width:100%"><a href="/" class="nav-logo">简历 AI <span>PRO</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link">诊断</a><a href="/jd" class="nav-link">匹配</a><a href="/builder" class="nav-link active">生成</a></div></div></nav>
+
+<div class="editor-layout" id="editor-layout">
+<div class="editor-left">
+  <!-- Header -->
+  <div class="el-header">
+    <div><h2 class="el-title">简历编辑器</h2><p class="el-sub">左侧编辑 · 右侧实时预览</p></div>
+    <div class="el-actions">
+      <button class="toolbar-btn" onclick="exportJSON()" title="导出">↓导出</button>
+      <label class="toolbar-btn" title="导入">↑导入<input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+      <button class="toolbar-btn danger" onclick="resetAll()" title="重置">↺</button>
+    </div>
+  </div>
+
+  <!-- Mode Toggle -->
+  <div class="mode-toggle-wrapper">
+    <span class="mode-label" id="mode-label-rec">推荐模式</span>
+    <label class="switch"><input type="checkbox" id="custom-mode-toggle" onchange="toggleCustomMode()"><span class="slider round"></span></label>
+    <span class="mode-label" id="mode-label-cus">自定义模式</span>
+  </div>
+
+  <!-- PDF Upload Zone -->
+  <div class="upload-zone" id="upload-zone" ondrop="handlePdfDrop(event)" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')">
+    <div class="upload-icon">📥</div>
+    <div class="upload-text">拖拽旧简历 PDF 到这里，AI 自动解析填充</div>
+    <label class="upload-btn-inline">或者点此选择文件<input type="file" accept=".pdf" style="display:none" onchange="handlePdfSelect(this)"></label>
+    <div id="upload-status" class="upload-status"></div>
+  </div>
+
+  <!-- Template Picker -->
+  <div class="form-section" id="tpl-picker-section">
+    <h3 class="template-title">选择模板</h3>
+    <div class="tpl-categories">
+      <button class="tpl-cat active" onclick="filterTemplates('all',this)">全部</button>
+      <button class="tpl-cat" onclick="filterTemplates('campus',this)">校招</button>
+      <button class="tpl-cat" onclick="filterTemplates('elite',this)">外企</button>
+      <button class="tpl-cat" onclick="filterTemplates('tech',this)">科技</button>
+      <button class="tpl-cat" onclick="filterTemplates('creative',this)">创意</button>
+      <button class="tpl-cat" onclick="filterTemplates('academic',this)">学术</button>
+    </div>
+    <div class="tpl-grid-14" id="tpl-grid"></div>
+  </div>
+
+  <!-- Advanced Panel (hidden by default) -->
+  <div id="advanced-panel" class="advanced-panel" style="display:none">
+    <div class="form-section">
+      <h3 class="template-title">排版控制</h3>
+      <div class="adv-row"><label>正文字体</label><select id="ctrl-font" onchange="applyStyle()"></select></div>
+      <div class="adv-row"><label>姓名字号 <span class="adv-val" id="v-name">26</span></label><input type="range" id="ctrl-name-size" min="20" max="80" value="26" step="1" oninput="applyStyle()"></div>
+      <div class="adv-row"><label>姓名粗细 <span class="adv-val" id="v-nw">800</span></label><input type="range" id="ctrl-name-weight" min="300" max="900" value="800" step="100" oninput="applyStyle()"></div>
+      <div class="adv-row"><label>标题字号 <span class="adv-val" id="v-title">15</span></label><input type="range" id="ctrl-title-size" min="12" max="40" value="15" step="1" oninput="applyStyle()"></div>
+      <div class="adv-row"><label>正文字号 <span class="adv-val" id="v-base">13</span></label><input type="range" id="ctrl-base-size" min="10" max="24" value="13" step="0.5" oninput="applyStyle()"></div>
+      <div class="adv-row"><label>行距 <span class="adv-val" id="v-lh">1.55</span></label><input type="range" id="ctrl-lh" min="1.0" max="3.0" value="1.55" step="0.05" oninput="applyStyle()"></div>
+      <div class="adv-row"><label>模块间距 <span class="adv-val" id="v-gap">18</span></label><input type="range" id="ctrl-gap" min="0" max="60" value="18" step="2" oninput="applyStyle()"></div>
+      <div class="adv-row"><label>头像大小 <span class="adv-val" id="v-avatar">90</span></label><input type="range" id="ctrl-avatar-size" min="40" max="180" value="90" step="2" oninput="applyStyle()"></div>
+    </div>
+    <div class="form-section">
+      <h3 class="template-title">布局</h3>
+      <div class="adv-row"><label>姓名对齐</label>
+        <div class="seg-btns"><button class="seg-btn active" onclick="setLayout('nameAlign','center',this)">居中</button><button class="seg-btn" onclick="setLayout('nameAlign','left',this)">左对齐</button></div>
+      </div>
+      <div class="adv-row"><label>头像位置</label>
+        <div class="seg-btns"><button class="seg-btn" onclick="setLayout('avatarPosition','left',this)">左</button><button class="seg-btn active" onclick="setLayout('avatarPosition','right',this)">右</button><button class="seg-btn" onclick="setLayout('avatarPosition','hidden',this)">隐藏</button></div>
+      </div>
+      <div class="adv-row"><label>头像形状</label>
+        <div class="seg-btns"><button class="seg-btn" onclick="setLayout('avatarShape','square',this)">方形</button><button class="seg-btn active" onclick="setLayout('avatarShape','rounded',this)">圆角</button><button class="seg-btn" onclick="setLayout('avatarShape','circle',this)">圆形</button></div>
+      </div>
+      <div class="adv-row"><label>联系方式</label>
+        <div class="seg-btns"><button class="seg-btn active" onclick="setLayout('contactStyle','pipe',this)">一行管道</button><button class="seg-btn" onclick="setLayout('contactStyle','twoLine',this)">两行</button></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3 class="template-title">配色</h3>
+      <div class="color-row">
+        <div class="color-item"><label>主色</label><input type="color" id="ctrl-primary" value="#2D5AF0" oninput="applyStyle()"></div>
+        <div class="color-item"><label>副色</label><input type="color" id="ctrl-secondary" value="#475569" oninput="applyStyle()"></div>
+        <div class="color-item"><label>正文</label><input type="color" id="ctrl-text" value="#1C1C1E" oninput="applyStyle()"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3 class="template-title">模块显隐与排序</h3>
+      <p style="font-size:.72rem;color:var(--text-hint);margin-bottom:8px">拖拽调整顺序，开关控制显隐</p>
+      <div id="module-order-list" class="module-order-list"></div>
+    </div>
+  </div>
+
+  <!-- Quick Style Bar (shown in recommended mode) -->
+  <div id="quick-bar" class="editor-toolbar">
+    <div class="toolbar-group"><label>字体</label><select id="ctrl-font-quick" onchange="quickFont(this.value)"></select></div>
+    <div class="toolbar-group"><label>字号</label><input type="range" id="ctrl-size-quick" min="10" max="24" value="13" step="0.5" oninput="quickSize(this.value)"><span class="toolbar-val" id="qsize-val">13</span></div>
+    <div class="toolbar-group"><button class="btn-ai-expand" onclick="aiOptimalLayout()" style="padding:5px 12px">✨ AI 最优排版</button></div>
+    <div class="toolbar-group" style="gap:8px">
+      <button class="btn btn-primary" style="padding:7px 18px;font-size:.8rem;border-radius:8px" onclick="printResume()">导出 PDF</button>
+      <label class="bg-check" id="bg-check-label"><input type="checkbox" id="bg-check" checked disabled><span class="bg-check-text">含背景色</span></label>
+    </div>
+  </div>
+
+  <!-- Print Guide Overlay -->
+  <div id="print-guide" class="print-guide" style="display:none" onclick="this.style.display='none'">
+    <div class="pg-box" onclick="event.stopPropagation()">
+      <div class="pg-title">📋 导出 PDF 设置指南</div>
+      <div class="pg-steps">
+        <div class="pg-step">
+          <div class="pg-num">1</div>
+          <div class="pg-desc">目标打印机选择 <strong>「另存为 PDF」</strong></div>
+        </div>
+        <div class="pg-step">
+          <div class="pg-num">2</div>
+          <div class="pg-desc">找到 <strong>「更多设置」</strong> 或 <strong>「选项」</strong></div>
+        </div>
+        <div class="pg-step highlight">
+          <div class="pg-num">3</div>
+          <div class="pg-desc">✅ 勾选 <strong>「背景图形」</strong>（这样侧边栏颜色才会显示）</div>
+        </div>
+        <div class="pg-step">
+          <div class="pg-num">4</div>
+          <div class="pg-desc">边距选择 <strong>「无」</strong> 或 <strong>「最小值」</strong></div>
+        </div>
+      </div>
+      <div class="pg-visual">
+        <div class="pg-mock-row"><span class="pg-mock-label">背景图形</span><span class="pg-mock-check">☑</span><span class="pg-arrow">← 务必勾选这里！</span></div>
+      </div>
+      <button class="pg-btn" onclick="document.getElementById('print-guide').style.display='none';setTimeout(function(){window.print();},300)">我知道了，开始导出</button>
+      <div class="pg-skip" onclick="document.getElementById('print-guide').style.display='none';setTimeout(function(){window.print();},200)">跳过提示，直接导出</div>
+    </div>
+  </div>
+
+  <!-- Form Sections -->
+  <div class="form-section" id="basic-form">
+    <h3 class="template-title section-title" data-title-key="basic">基本信息</h3>
+    <div class="photo-upload"><div class="photo-preview" id="photo-preview"><span style="color:var(--text-hint);font-size:12px">照片</span></div><div><label class="photo-btn" for="photo-input">上传</label><input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhoto(this)"></div></div>
+    <div class="template-row" style="margin-top:10px"><div class="template-field"><label>姓名 *</label><input data-field="name" placeholder="姓名"></div><div class="template-field"><label>年龄</label><input data-field="age" placeholder="28"></div><div class="template-field"><label>手机</label><input data-field="phone" placeholder="138xxxx"></div></div>
+    <div class="template-row"><div class="template-field"><label>邮箱</label><input data-field="email" placeholder="you@email.com"></div><div class="template-field"><label>城市</label><input data-field="city" placeholder="北京"></div><div class="template-field"><label>经验</label><input data-field="years" placeholder="5年"></div></div>
+  </div>
+  <div class="form-section" id="intent-form">
+    <h3 class="template-title section-title" data-title-key="intent">求职意向</h3>
+    <div class="template-row"><div class="template-field"><label>目标职位</label><input data-field="job" placeholder="高级前端工程师"></div><div class="template-field"><label>期望薪资</label><input data-field="salary" placeholder="20K-25K"></div></div>
+  </div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="education">教育背景</h3><div id="edu-list"></div><button type="button" class="btn-add" onclick="addEducationEntry()">+ 添加教育经历</button></div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="work">工作经历</h3><div id="work-list"></div><button type="button" class="btn-add" onclick="addWorkEntry()">+ 添加工作经历</button></div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="skills">技能特长 <button class="btn-ai-mini" onclick="polishField('b-skills','技能描述')">✨ AI润色</button></h3><textarea id="b-skills" rows="3" placeholder="JavaScript, React, Vue.js..."></textarea></div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="intro">自我评价 <button class="btn-ai-mini" onclick="polishField('b-intro','自我评价')">✨ AI润色</button></h3><textarea id="b-intro" rows="3" placeholder="5年经验，擅长..."></textarea></div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="certs">证书</h3><input type="text" id="b-certs" placeholder="CPA、PMP..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.86rem;background:var(--bg)"></div>
+  <div style="height:60px"></div>
+</div>
+
+<!-- RIGHT: Preview -->
+<div class="editor-right"><div class="a4-paper" id="preview-area"><div style="display:flex;align-items:center;justify-content:center;height:400px;color:#9CA3AF;font-size:14px">输入姓名开始预览</div></div></div>
+</div>
+<button class="mobile-toggle" id="mobile-toggle" onclick="toggleMobileView()">预览</button>
+
+<!-- Templates -->
+<template id="tpl-work"><div class="entry-card"><div class="entry-header"><span class="entry-number">#1</span><button type="button" class="btn-remove-entry">删除</button></div><div class="template-row"><div class="template-field"><label>公司</label><input data-field="company" placeholder="ABC科技"></div><div class="template-field"><label>职位</label><input data-field="title" placeholder="高级前端"></div></div><div class="template-row"><div class="template-field"><label>时间</label><input data-field="time" placeholder="2022.06-至今"></div></div><div style="margin-top:8px"><label style="font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:6px;margin-bottom:5px">工作成就 <button type="button" class="btn-ai-expand" onclick="aiExpandDuties(this)">✨ AI 智能扩写</button></label><div class="duty-list"></div><button type="button" class="btn-add-duty">+ 添加</button></div></div></template>
+<template id="tpl-duty"><div class="duty-item"><input data-field="duty" placeholder="STAR法则描述" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.84rem"><button type="button" class="btn-remove-duty">×</button></div></template>
+<template id="tpl-edu"><div class="entry-card"><div class="entry-header"><span class="entry-number">#1</span><button type="button" class="btn-remove-entry">删除</button></div><div class="template-row"><div class="template-field"><label>学校</label><input data-field="school" placeholder="北京大学"></div><div class="template-field"><label>专业</label><input data-field="major" placeholder="计算机"></div></div><div class="template-row"><div class="template-field"><label>学历</label><select data-field="degree"><option value="">选择</option><option>大专</option><option>本科</option><option>硕士</option><option>博士</option></select></div><div class="template-field"><label>时间</label><input data-field="time" placeholder="2016-2020"></div></div></div></template>
+
+<script src="/static/script.js"></script>
+</body></html>

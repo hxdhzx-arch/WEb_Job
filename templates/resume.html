@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>简历诊断</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<nav class="nav"><div class="nav-inner"><a href="/" class="nav-logo">简历 AI <span>BETA</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link active">简历诊断</a><a href="/jd" class="nav-link">JD 匹配</a><a href="/builder" class="nav-link">生成简历</a></div></div></nav>
+<div id="error-toast" class="error-toast"></div>
+<div class="container">
+  <div class="page-header"><h1>简历诊断</h1><p>粘贴简历或填写模板，AI 从 5 个维度全面评估</p></div>
+  <div class="mode-switcher"><button id="btn-mode-free" class="mode-btn active" onclick="switchResumeMode('free')">粘贴文本</button><button id="btn-mode-template" class="mode-btn" onclick="switchResumeMode('template')">填写模板</button></div>
+  <div id="free-mode"><div class="form-section"><label for="resume-input">简历内容 <span class="required">*</span></label><div class="hint">请将简历的文字内容粘贴到下方</div><textarea id="resume-input" placeholder="将你的简历内容粘贴到这里..."></textarea></div></div>
+  <div id="template-mode" style="display:none">
+    <div class="form-section"><h3 class="template-title">基本信息</h3><div class="template-row"><div class="template-field"><label for="t-name">姓名 <span class="required">*</span></label><input type="text" id="t-name" placeholder="你的姓名"></div><div class="template-field"><label for="t-phone">手机号</label><input type="text" id="t-phone" placeholder="138xxxx"></div><div class="template-field"><label for="t-email">邮箱</label><input type="text" id="t-email" placeholder="you@email.com"></div></div></div>
+    <div class="form-section"><h3 class="template-title">教育背景</h3><div class="template-row"><div class="template-field"><label for="t-school">学校</label><input type="text" id="t-school" placeholder="学校名称"></div><div class="template-field"><label for="t-major">专业</label><input type="text" id="t-major" placeholder="专业名称"></div></div><div class="template-row"><div class="template-field"><label for="t-education">学历</label><select id="t-education"><option value="">请选择</option><option>大专</option><option>本科</option><option>硕士</option><option>博士</option></select></div><div class="template-field"><label for="t-grad-year">毕业年份</label><input type="text" id="t-grad-year" placeholder="2024"></div></div></div>
+    <div class="form-section"><h3 class="template-title">工作经历</h3><textarea id="t-experience" rows="6" placeholder="2022-至今 ABC科技 前端开发&#10;- 负责电商平台前端开发"></textarea></div>
+    <div class="form-section"><h3 class="template-title">技能</h3><input type="text" id="t-skills" placeholder="JavaScript, React, Python..." style="width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.92rem;background:var(--bg)"></div>
+    <div class="form-section"><h3 class="template-title">自我评价（选填）</h3><textarea id="t-self-intro" rows="3" placeholder="简短描述你的优势..."></textarea></div>
+  </div>
+  <button id="submit-btn" class="btn btn-primary" onclick="submitResume()">开始诊断</button>
+  <div id="result-panel" class="result-panel">
+    <div class="page-header"><h1>诊断结果</h1></div>
+    <div id="score-container" class="score-section"></div>
+    <div id="dimensions-container" class="dimensions"></div>
+    <div id="highlights-container" class="info-card"></div>
+    <div id="issues-container" class="info-card"></div>
+    <div id="suggestions-container" class="info-card"></div>
+    <div id="summary-container" class="summary-card"></div>
+    <div id="polish-section" style="display:none;margin-top:24px;text-align:center">
+      <p style="color:#8E8E93;margin-bottom:12px">对诊断结果满意吗？让 AI 帮你润色简历</p>
+      <button id="polish-btn" class="btn btn-primary" style="max-width:400px;margin:0 auto" onclick="polishResume()">AI 润色简历</button>
+      <div id="polish-result" class="summary-card" style="display:none;margin-top:20px;text-align:left"></div>
+    </div>
+  </div>
+</div>
+<footer class="footer"><div class="container"><p>简历 AI — 免费智能简历优化工具</p></div></footer>
+<script src="/static/script.js"></script>
+</body></html>

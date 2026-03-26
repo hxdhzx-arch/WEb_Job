@@ -1,0 +1,12 @@
+你是一位资深招聘顾问。请分析下面的简历和岗位JD的匹配度，然后只输出一个JSON对象，不要输出任何其他文字。
+
+JSON格式如下：
+{"match_score": 72, "sub_scores": {"skill_match": 80, "experience_match": 70, "education_match": 75, "industry_match": 65}, "matched_keywords": ["关键词1", "关键词2"], "missing_keywords": ["缺失1", "缺失2"], "strengths": ["优势1", "优势2"], "gaps": ["差距1", "差距2"], "suggestions": ["建议1", "建议2"], "tailored_summary": "针对该岗位优化的个人简介"}
+
+注意：所有分数0-100，所有文本用中文。只输出JSON，不要有其他文字。
+
+简历内容：
+{resume_text}
+
+岗位JD：
+{jd_text}
