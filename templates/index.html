@@ -6,334 +6,236 @@
 <title>简历 AI — 让你的简历脱颖而出</title>
 <link rel="stylesheet" href="/static/style.css">
 <style>
-.hero-section{max-width:980px;margin:0 auto;padding:120px 24px 80px;text-align:center}
-.hero-eyebrow{display:inline-block;font-size:.88rem;font-weight:600;color:#007AFF;letter-spacing:-.01em;margin-bottom:20px;opacity:0;transform:translateY(20px)}
-.hero-title{font-size:clamp(42px,7vw,72px);font-weight:800;line-height:1.05;letter-spacing:-.025em;color:#1d1d1f;margin-bottom:20px;opacity:0;transform:translateY(30px)}
-.hero-title em{font-style:normal;background:linear-gradient(90deg,#007AFF,#5856D6,#AF52DE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-sub{font-size:clamp(18px,2.5vw,24px);font-weight:400;line-height:1.5;color:#86868b;max-width:600px;margin:0 auto 0;letter-spacing:-.01em;opacity:0;transform:translateY(30px)}
-.hero-cta{display:inline-flex;gap:16px;flex-wrap:wrap;justify-content:center;opacity:0;transform:translateY(30px)}
-.hero-cta a{display:inline-flex;align-items:center;gap:8px;padding:16px 32px;border-radius:980px;font-size:1rem;font-weight:600;letter-spacing:-.01em;transition:all .4s cubic-bezier(.4,0,.2,1);text-decoration:none}
-.hero-cta .cta-primary{background:#007AFF;color:#fff}
-.hero-cta .cta-primary:hover{background:#0056CC;transform:scale(1.04)}
-.hero-cta .cta-secondary{background:transparent;color:#007AFF;border:1.5px solid rgba(0,122,255,.3)}
-.hero-cta .cta-secondary:hover{background:rgba(0,122,255,.06);transform:scale(1.04)}
+/* ═══ Canva-Inspired Index ═══ */
+body{background:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif}
 
-/* ═══ Cinematic Mockup ═══ */
-.mockup-wrap{padding:48px 0 44px;display:flex;justify-content:center;opacity:0;transform:translateY(30px)}
-.mw{width:min(760px,92vw);background:#fff;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.12),0 0 1px rgba(0,0,0,.08);overflow:hidden;border:1px solid rgba(0,0,0,.04)}
-.mw-header{display:flex;align-items:center;gap:7px;padding:11px 16px;background:linear-gradient(180deg,#fafafa,#f5f5f7);border-bottom:1px solid #e8e8ed}
-.mw-dot{width:10px;height:10px;border-radius:50%}.mw-dot.r{background:#FF5F57}.mw-dot.y{background:#FEBC2E}.mw-dot.g{background:#28C840}
-.mw-title{margin-left:10px;font-size:.7rem;color:#999;font-weight:500}
-.mw-body{display:flex;min-height:260px;position:relative;overflow:hidden}
+/* Hero */
+.hero{max-width:960px;margin:0 auto;padding:100px 24px 60px;text-align:center}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:980px;background:linear-gradient(135deg,#EEF2FF,#F0E6FF);font-size:.82rem;font-weight:600;color:#7C3AED;margin-bottom:22px;opacity:0;transform:translateY(20px)}
+.hero h1{font-size:clamp(36px,6vw,62px);font-weight:800;line-height:1.08;letter-spacing:-.03em;color:#1d1d1f;margin-bottom:16px;opacity:0;transform:translateY(30px)}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,#7C3AED,#2563EB,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(16px,2.2vw,20px);color:#6B7280;max-width:560px;margin:0 auto 8px;line-height:1.6;opacity:0;transform:translateY(20px)}
 
-/* Sidebar Tabs */
-.mw-tabs{width:110px;background:#fafafa;border-right:1px solid #f0f0f2;padding:10px 0;flex-shrink:0}
-.mw-tab{padding:8px 14px;font-size:.7rem;color:#999;cursor:default;border-left:2px solid transparent;transition:all .4s cubic-bezier(.4,0,.2,1);white-space:nowrap}
-.mw-tab.on{color:#007AFF;background:rgba(0,122,255,.04);border-left-color:#007AFF;font-weight:600}
+/* Typing ticker */
+.hero-ticker{height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:32px;opacity:0;transform:translateY(20px)}
+.ticker-text{font-size:clamp(14px,1.8vw,17px);color:#9CA3AF;font-weight:500}
+.ticker-cursor{display:inline-block;width:2px;height:1.1em;background:linear-gradient(180deg,#7C3AED,#2563EB);margin-left:3px;vertical-align:text-bottom;border-radius:1px;animation:tblink .9s ease-in-out infinite}
+@keyframes tblink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* Scenes */
-.mw-content{flex:1;position:relative;min-width:0}
-.mw-scene{position:absolute;inset:0;padding:18px 20px;opacity:0;transform:translateX(20px);transition:opacity .45s,transform .45s cubic-bezier(.4,0,.2,1);pointer-events:none}
-.mw-scene.active{opacity:1;transform:translateX(0);pointer-events:auto}
+/* CTA */
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;opacity:0;transform:translateY(20px)}
+.cta-main{padding:15px 36px;border-radius:14px;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;font-size:1rem;font-weight:700;text-decoration:none;transition:all .3s;box-shadow:0 4px 20px rgba(124,58,237,.25)}
+.cta-main:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,.35)}
+.cta-alt{padding:15px 28px;border-radius:14px;background:#F3F4F6;color:#374151;font-size:.95rem;font-weight:600;text-decoration:none;transition:all .3s}
+.cta-alt:hover{background:#E5E7EB}
+.hero-trust{font-size:.78rem;color:#9CA3AF;opacity:0;transform:translateY(10px)}
 
-/* Scene A: Editor */
-.sa-row{display:flex;gap:10px;margin-bottom:12px}
-.sa-field{flex:1;min-width:0}
-.sa-field.full{width:100%;flex:unset}
-.sa-lbl{font-size:.65rem;font-weight:600;color:#999;margin-bottom:4px;display:flex;align-items:center;gap:5px}
-.sa-badge{font-size:.56rem;padding:1px 5px;border-radius:980px;background:linear-gradient(135deg,rgba(0,122,255,.08),rgba(88,86,214,.08));color:#007AFF;font-weight:600}
-.sa-inp{height:26px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:5px;padding:0 8px;font-size:.72rem;color:#1d1d1f;display:flex;align-items:center;overflow:hidden;white-space:nowrap;transition:all .3s}
-.sa-inp.lg{height:48px;align-items:flex-start;padding:6px 8px;white-space:normal;line-height:1.45;word-break:break-all}
-.sa-inp.on{border-color:#007AFF;box-shadow:0 0 0 2px rgba(0,122,255,.1);background:#fff}
-.sa-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;font-size:.65rem;font-weight:600;color:#007AFF;margin-top:8px;transition:all .25s}
-.sa-btn.pressed{transform:scale(.94);background:#007AFF;color:#fff;border-color:#007AFF}
-.sa-btn .sa-spin{display:inline-block;width:8px;height:8px;border:1.5px solid rgba(0,122,255,.3);border-top-color:#007AFF;border-radius:50%;animation:sspin .5s linear infinite}
-@keyframes sspin{to{transform:rotate(360deg)}}
+/* Before/After */
+.ba-section{max-width:680px;margin:48px auto 0;opacity:0;transform:translateY(30px)}
+.ba-case-label{text-align:center;font-size:.85rem;font-weight:600;color:#374151;margin-bottom:18px;padding:8px 16px;background:#F9FAFB;border-radius:10px;border:1px solid #F3F4F6}
+.ba-wrap{display:flex;align-items:stretch;gap:0}
+.ba-card{flex:1;padding:24px 20px;border-radius:16px;position:relative}
+.ba-before{background:#FAFAFA;border:1px solid #E5E7EB}
+.ba-after{background:#fff;border:1.5px solid rgba(16,185,129,.3);box-shadow:0 8px 30px rgba(16,185,129,.08)}
+.ba-badge{position:absolute;top:-10px;left:18px;padding:3px 12px;border-radius:980px;font-size:.68rem;font-weight:700}
+.ba-badge.bad{background:#FEE2E2;color:#DC2626}.ba-badge.good{background:#D1FAE5;color:#059669}
+.ba-head{display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px}
+.ba-nm{width:56px;height:10px;border-radius:3px}.ba-nm.dim{background:#D1D5DB}.ba-nm.dark{background:#1d1d1f}
+.ba-sc{font-size:1.3rem;font-weight:800;line-height:1}.ba-sc span{font-size:.6rem;font-weight:500;margin-left:1px}.ba-sc.bad{color:#DC2626}.ba-sc.good{color:#059669}
+.ba-ln{height:5px;border-radius:3px;margin-bottom:5px}.ba-ln.dim{background:#E5E7EB}.ba-ln.lit{background:linear-gradient(90deg,#C7D2FE,#93C5FD)}
+.ba-ln.w50{width:50%}.ba-ln.w60{width:60%}.ba-ln.w70{width:70%}.ba-ln.w80{width:80%}.ba-ln.w85{width:85%}.ba-ln.w90{width:90%}
+.ba-gap{height:10px}
+.ba-list{display:flex;flex-direction:column;gap:3px;margin-top:10px}
+.ba-list div{font-size:.68rem;font-weight:500}
+.ba-list .bad{color:#DC2626}.ba-list .good{color:#059669}
+.ba-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;flex-shrink:0}
+.ba-arrow-dot{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;animation:apulse 2s ease-in-out infinite}
+.ba-arrow-txt{font-size:.62rem;font-weight:600;color:#7C3AED;margin-top:4px}
+@keyframes apulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(124,58,237,.3)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(124,58,237,0)}}
 
-/* Scene B: Diagnosis */
-.sb-center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px}
-.sb-ring{width:100px;height:100px;position:relative}
-.sb-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.sb-ring .bg{fill:none;stroke:#f0f0f2;stroke-width:8}
-.sb-ring .fg{fill:none;stroke:#34C759;stroke-width:8;stroke-linecap:round;stroke-dasharray:282.7;stroke-dashoffset:282.7;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
-.sb-score{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;color:#34C759;opacity:0;transition:opacity .4s}
-.sb-label{font-size:.75rem;color:#999;font-weight:500}
-.sb-scan{width:120px;height:4px;background:#f0f0f2;border-radius:2px;overflow:hidden;position:relative}
-.sb-scan-bar{height:100%;width:0;background:linear-gradient(90deg,#007AFF,#34C759);border-radius:2px;transition:width 1.5s cubic-bezier(.4,0,.2,1)}
+/* Demo Section */
+.demo-section{max-width:1080px;margin:0 auto;padding:80px 24px}
+.demo-header{text-align:center;margin-bottom:48px;opacity:0;transform:translateY(30px)}
+.demo-header h2{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;color:#1d1d1f;margin-bottom:10px}
+.demo-header p{font-size:1rem;color:#6B7280}
+.demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.demo-card{background:#F9FAFB;border-radius:20px;padding:0;overflow:hidden;text-decoration:none;transition:all .4s cubic-bezier(.16,1,.3,1);border:1px solid #F3F4F6;opacity:0;transform:translateY(30px)}
+.demo-card:hover{transform:translateY(-5px);box-shadow:0 16px 48px rgba(0,0,0,.08);border-color:#E5E7EB}
+.demo-card-visual{height:180px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.demo-card-visual.purple{background:linear-gradient(135deg,#EDE9FE,#DDD6FE)}
+.demo-card-visual.blue{background:linear-gradient(135deg,#DBEAFE,#BFDBFE)}
+.demo-card-visual.green{background:linear-gradient(135deg,#D1FAE5,#A7F3D0)}
+.dcv-mockup{width:70%;height:80%;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;overflow:hidden}
+.dcv-bar{height:16px;background:#F3F4F6;display:flex;align-items:center;gap:3px;padding:0 6px}
+.dcv-bar span{width:5px;height:5px;border-radius:50%}.dcv-bar .r{background:#FF5F57}.dcv-bar .y{background:#FEBC2E}.dcv-bar .g{background:#28C840}
+.dcv-body{flex:1;padding:8px;display:flex;flex-direction:column;gap:4px}
+.dcv-line{height:4px;border-radius:2px;background:#E5E7EB}
+.dcv-line.accent-p{background:#C4B5FD}.dcv-line.accent-b{background:#93C5FD}.dcv-line.accent-g{background:#6EE7B7}
+.dcv-ring{width:40px;height:40px;border-radius:50%;border:4px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;margin:4px auto 0}
+.dcv-ring.purple{border-color:#7C3AED;color:#7C3AED}.dcv-ring.blue{border-color:#2563EB;color:#2563EB}
+.demo-card-info{padding:22px 24px}
+.demo-card-info h3{font-size:1.05rem;font-weight:700;color:#1d1d1f;margin-bottom:6px}
+.demo-card-info p{font-size:.85rem;color:#6B7280;line-height:1.55}
+.demo-card-info .demo-tag{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:600}
+.demo-tag.purple{background:#EDE9FE;color:#7C3AED}.demo-tag.blue{background:#DBEAFE;color:#2563EB}.demo-tag.green{background:#D1FAE5;color:#059669}
 
-/* Scene C: JD Match */
-.sc-center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px}
-.sc-skeleton{display:flex;flex-direction:column;gap:6px;width:80%;opacity:1;transition:opacity .4s}
-.sc-sk-line{height:6px;background:#f0f0f2;border-radius:3px}
-.sc-sk-line.w60{width:60%}.sc-sk-line.w80{width:80%}.sc-sk-line.w70{width:70%}.sc-sk-line.w90{width:90%}
-.sc-analyzing{font-size:.75rem;color:#007AFF;font-weight:500;opacity:0;transition:opacity .4s}
-.sc-result{display:flex;align-items:baseline;gap:4px;opacity:0;transition:opacity .5s}
-.sc-pct{font-size:2rem;font-weight:800;color:#007AFF}
-.sc-pct-label{font-size:.8rem;color:#999;font-weight:500}
+/* Stats */
+.stats-bar{max-width:800px;margin:0 auto;padding:48px 24px 80px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap;opacity:0;transform:translateY(20px)}
+.stat{text-align:center}
+.stat-n{font-size:clamp(32px,4vw,44px);font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#7C3AED,#2563EB);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-l{font-size:.82rem;color:#9CA3AF;margin-top:4px;font-weight:500}
 
-/* Mini preview */
-.mw-pv{width:110px;background:#fafafa;border-left:1px solid #f0f0f2;padding:14px 10px;flex-shrink:0}
-.pv-bar{height:2.5px;width:35%;background:linear-gradient(90deg,#007AFF,#5856D6);border-radius:2px;margin-bottom:8px}
-.pv-nm{height:7px;width:0;background:#1d1d1f;border-radius:2px;margin-bottom:5px;transition:width .5s}
-.pv-ln{height:4px;background:#e8e8ed;border-radius:2px;margin-bottom:4px;transition:background .4s}
-.pv-ln.w50{width:50%}.pv-ln.w65{width:65%}.pv-ln.w80{width:80%}.pv-ln.w70{width:70%}.pv-ln.w90{width:90%}
-.pv-ln.lit{background:#c7d2fe}.pv-gap{height:6px}
-.pv-sc{height:5px;width:40%;background:#007AFF;border-radius:2px;margin-bottom:5px;opacity:.2}
+.idx-footer{text-align:center;padding:36px 24px;font-size:.8rem;color:#9CA3AF;border-top:1px solid #F3F4F6}
 
-/* Cursor */
-.mc{position:absolute;width:1.5px;height:13px;background:#007AFF;border-radius:1px;opacity:0;z-index:5;transition:left .3s cubic-bezier(.4,0,.2,1),top .3s cubic-bezier(.4,0,.2,1);animation:mcb .85s ease-in-out infinite}
-@keyframes mcb{0%,100%{opacity:1}50%{opacity:0}}
-
-/* Bento */
-.bento-section{max-width:1080px;margin:0 auto;padding:0 24px 120px}
-.bento-label{text-align:center;margin-bottom:48px;opacity:0;transform:translateY(30px)}
-.bento-label h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.02em;color:#1d1d1f;margin-bottom:12px}
-.bento-label p{font-size:1.1rem;color:#86868b}
-.bento-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:auto auto;gap:20px}
-.bento-card{background:#f5f5f7;border-radius:28px;padding:44px 36px;position:relative;overflow:hidden;transition:transform .5s cubic-bezier(.16,1,.3,1),box-shadow .5s cubic-bezier(.16,1,.3,1);cursor:pointer;text-decoration:none;display:flex;flex-direction:column;opacity:0;transform:translateY(40px)}
-.bento-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.08)}
-.bento-card.featured{grid-column:span 2;grid-row:span 2;background:linear-gradient(145deg,#1d1d1f,#2d2d30);color:#fff;padding:56px 48px}
-.bento-card.featured .card-title{color:#f5f5f7;font-size:1.6rem}
-.bento-card.featured .card-desc{color:rgba(245,245,247,.6);font-size:1.05rem;max-width:340px}
-.bento-card.featured .card-tag{background:rgba(0,122,255,.2);color:#4DB8FF}
-.bento-card.featured .card-icon{background:rgba(255,255,255,.1)}
-.card-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:24px;background:rgba(0,122,255,.08)}
-.card-icon.green{background:rgba(52,199,89,.08)}.card-icon.amber{background:rgba(255,159,10,.08)}
-.card-title{font-size:1.2rem;font-weight:700;letter-spacing:-.015em;color:#1d1d1f;margin-bottom:10px}
-.card-desc{font-size:.92rem;line-height:1.65;color:#86868b;margin-bottom:20px;flex:1}
-.card-tag{display:inline-flex;padding:5px 14px;border-radius:980px;font-size:.78rem;font-weight:600;background:rgba(0,122,255,.08);color:#007AFF;align-self:flex-start}
-.card-tag.green{background:rgba(52,199,89,.08);color:#30B050}.card-tag.amber{background:rgba(255,159,10,.08);color:#C08000}
-.card-arrow{position:absolute;bottom:36px;right:36px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;transition:all .4s;opacity:.5}
-.bento-card:hover .card-arrow{opacity:1;transform:translateX(4px)}
-.bento-card.featured .card-arrow{background:rgba(255,255,255,.1)}
-.stats-strip{max-width:980px;margin:0 auto;padding:60px 24px 100px;display:flex;justify-content:center;gap:80px;opacity:0;transform:translateY(30px)}
-.stat-item{text-align:center}
-.stat-num{font-size:clamp(36px,5vw,52px);font-weight:800;letter-spacing:-.03em;background:linear-gradient(135deg,#007AFF,#5856D6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-label{font-size:.92rem;color:#86868b;margin-top:6px;font-weight:500}
-.index-footer{text-align:center;padding:40px 24px;font-size:.82rem;color:#86868b;border-top:1px solid rgba(0,0,0,.06)}
-.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
 .reveal.visible{opacity:1;transform:translateY(0)}
-.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}
+.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.18s}.reveal-d3{transition-delay:.26s}
+
 @media(max-width:768px){
-  .hero-section{padding:80px 20px 60px}
-  .mw-tabs,.mw-pv{display:none}
-  .bento-grid{grid-template-columns:1fr}
-  .bento-card.featured{grid-column:span 1;grid-row:span 1;padding:36px 28px}
-  .stats-strip{gap:40px;flex-wrap:wrap}
-  .hero-cta a{padding:14px 28px;font-size:.92rem}
+  .hero{padding:80px 20px 40px}
+  .ba-wrap{flex-direction:column;align-items:center;gap:14px}
+  .ba-card{max-width:300px;width:100%}
+  .ba-arrow{transform:rotate(90deg);padding:0}
+  .demo-grid{grid-template-columns:1fr}
+  .stats-bar{gap:32px}
+  .hero-cta{flex-direction:column;align-items:center}
 }
 </style>
 </head>
-<body style="background:#fff">
-<nav class="nav" style="border-bottom:none;background:rgba(255,255,255,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)">
+<body>
+<nav class="nav" style="border-bottom:none;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)">
 <div class="nav-inner" style="max-width:1080px">
   <a href="/" class="nav-logo">简历 AI <span>BETA</span></a>
   <div class="nav-links"><a href="/" class="nav-link active">首页</a><a href="/resume" class="nav-link">简历诊断</a><a href="/jd" class="nav-link">JD 匹配</a><a href="/builder" class="nav-link">生成简历</a></div>
 </div></nav>
 
-<section class="hero-section">
-  <div class="hero-eyebrow reveal">基于大语言模型 · 免费使用</div>
-  <h1 class="hero-title reveal reveal-d1">AI 驱动的<br><em>简历优化</em>工具</h1>
-  <p class="hero-sub reveal reveal-d2">从诊断分析到一键润色，再到精美简历生成。<br>让每一份简历都为你赢得面试机会。</p>
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-pill reveal">🔥 专为中国互联网校招/社招优化的 ATS 语料库</div>
+  <h1 class="reveal reveal-d1">30 秒把大白话变成<br><em>HR 秒约面试的简历</em></h1>
+  <p class="hero-sub reveal reveal-d2">粘贴你的简历 → AI 诊断 + ATS 机筛模拟 → 一键生成大厂 HR 最爱格式</p>
+  <div class="hero-ticker reveal reveal-d2"><span class="ticker-text" id="ticker"></span><span class="ticker-cursor"></span></div>
+  <div class="hero-cta reveal reveal-d3">
+    <a href="/resume" class="cta-main">免费诊断我的简历 →</a>
+    <a href="/builder" class="cta-alt">没有简历？AI 帮你写</a>
+  </div>
+  <p class="hero-trust reveal reveal-d3">基础诊断免费 · 高级模板与 AI 重写低至 ¥9.9 · 无需注册</p>
 
-  <div class="mockup-wrap reveal reveal-d2">
-  <div class="mw">
-    <div class="mw-header"><span class="mw-dot r"></span><span class="mw-dot y"></span><span class="mw-dot g"></span><span class="mw-title">简历 AI Pro</span></div>
-    <div class="mw-body">
-      <div class="mw-tabs">
-        <div class="mw-tab on" id="tab-editor">✏️ 编辑器</div>
-        <div class="mw-tab" id="tab-diag">📊 诊断</div>
-        <div class="mw-tab" id="tab-jd">🎯 JD匹配</div>
+  <!-- Before/After Case -->
+  <div class="ba-section reveal">
+    <div class="ba-case-label">💼 真实优化案例：双非本科 → 拿到字节跳动面邀</div>
+    <div class="ba-wrap">
+      <div class="ba-card ba-before">
+        <div class="ba-badge bad">优化前</div>
+        <div class="ba-head"><div class="ba-nm dim"></div><div class="ba-sc bad" id="sc-b">0<span>分</span></div></div>
+        <div class="ba-ln w70 dim"></div><div class="ba-ln w90 dim"></div><div class="ba-ln w50 dim"></div>
+        <div class="ba-gap"></div><div class="ba-ln w80 dim"></div><div class="ba-ln w60 dim"></div>
+        <div class="ba-list"><div class="bad">✗ 「负责前端开发」← 无量化</div><div class="bad">✗ ATS 关键词覆盖率 31%</div><div class="bad">✗ 投了 200 份零面试</div></div>
       </div>
-      <div class="mw-content" id="mw-content">
-        <!-- Scene A: Editor -->
-        <div class="mw-scene active" id="scene-editor">
-          <div class="sa-row"><div class="sa-field"><div class="sa-lbl">姓名</div><div class="sa-inp" id="sf1"></div></div><div class="sa-field"><div class="sa-lbl">目标职位</div><div class="sa-inp" id="sf2"></div></div></div>
-          <div class="sa-row"><div class="sa-field full"><div class="sa-lbl">工作成就 <span class="sa-badge">✨ AI 扩写</span></div><div class="sa-inp lg" id="sf3"></div></div></div>
-          <div id="sa-expand-btn" class="sa-btn">✨ AI 智能扩写</div>
-        </div>
-        <!-- Scene B: Diagnosis -->
-        <div class="mw-scene" id="scene-diag">
-          <div class="sb-center">
-            <div class="sb-scan"><div class="sb-scan-bar" id="sb-bar"></div></div>
-            <div class="sb-ring"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45"/><circle class="fg" cx="50" cy="50" r="45" id="sb-fg"/></svg><div class="sb-score" id="sb-score"></div></div>
-            <div class="sb-label" id="sb-label">等待分析...</div>
-          </div>
-        </div>
-        <!-- Scene C: JD Match -->
-        <div class="mw-scene" id="scene-jd">
-          <div class="sc-center">
-            <div class="sc-skeleton" id="sc-skel"><div class="sc-sk-line w90"></div><div class="sc-sk-line w70"></div><div class="sc-sk-line w80"></div><div class="sc-sk-line w60"></div></div>
-            <div class="sc-analyzing" id="sc-msg">AI 正在分析岗位契合度...</div>
-            <div class="sc-result" id="sc-result"><span class="sc-pct" id="sc-pct"></span><span class="sc-pct-label">ATS 通过率</span></div>
-          </div>
-        </div>
-        <div class="mc" id="mc"></div>
-      </div>
-      <div class="mw-pv">
-        <div class="pv-bar"></div><div class="pv-nm" id="pv-nm"></div>
-        <div class="pv-ln w65"></div><div class="pv-ln w80"></div><div class="pv-gap"></div><div class="pv-sc"></div>
-        <div class="pv-ln w90"></div><div class="pv-ln w70"></div><div class="pv-ln w50"></div>
+      <div class="ba-arrow"><div class="ba-arrow-dot">→</div><div class="ba-arrow-txt">AI 重写</div></div>
+      <div class="ba-card ba-after">
+        <div class="ba-badge good">优化后</div>
+        <div class="ba-head"><div class="ba-nm dark"></div><div class="ba-sc good" id="sc-a">0<span>分</span></div></div>
+        <div class="ba-ln w90 lit"></div><div class="ba-ln w80 lit"></div><div class="ba-ln w85 lit"></div>
+        <div class="ba-gap"></div><div class="ba-ln w70 lit"></div><div class="ba-ln w90 lit"></div>
+        <div class="ba-list"><div class="good">✓ 「主导重构，性能提升 300%」</div><div class="good">✓ ATS 关键词覆盖率 100%</div><div class="good">✓ 一周收到 3 家大厂面邀</div></div>
       </div>
     </div>
   </div>
-  </div>
+</section>
 
-  <div class="hero-cta reveal reveal-d3">
-    <a href="/resume" class="cta-primary">开始诊断简历 →</a>
-    <a href="/builder" class="cta-secondary">生成简历</a>
+<!-- Product Demo Cards -->
+<section class="demo-section">
+  <div class="demo-header reveal"><h2>别人还在排版，你已经拿到面试</h2><p>每个功能都在帮你省时间、拿 Offer——不是帮你"做简历"</p></div>
+  <div class="demo-grid">
+    <a href="/resume" class="demo-card reveal reveal-d1">
+      <div class="demo-card-visual purple">
+        <div class="dcv-mockup"><div class="dcv-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="dcv-body"><div class="dcv-line w80 accent-p"></div><div class="dcv-line w60"></div><div class="dcv-line w90"></div><div class="dcv-ring purple">96</div></div></div>
+      </div>
+      <div class="demo-card-info"><h3>📊 AI 诊断 — 知道简历哪里烂</h3><p>5 维度打分，逐条告诉你「哪里让 HR 3 秒划走」，AI 一键改成 STAR 法则。</p><span class="demo-tag purple">免费使用</span></div>
+    </a>
+    <a href="/jd" class="demo-card reveal reveal-d2">
+      <div class="demo-card-visual blue">
+        <div class="dcv-mockup"><div class="dcv-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="dcv-body"><div class="dcv-line w90 accent-b"></div><div class="dcv-line w70"></div><div class="dcv-line w80 accent-b"></div><div class="dcv-ring blue">88%</div></div></div>
+      </div>
+      <div class="demo-card-info"><h3>🎯 ATS 机筛 — 别被机器刷掉</h3><p>模拟大厂 ATS 系统筛简历，找出你缺的关键词，一键融入，通过率翻倍。</p><span class="demo-tag blue">免费使用</span></div>
+    </a>
+    <a href="/builder" class="demo-card reveal reveal-d3">
+      <div class="demo-card-visual green">
+        <div class="dcv-mockup"><div class="dcv-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="dcv-body"><div class="dcv-line w70 accent-g"></div><div class="dcv-line w90 accent-g"></div><div class="dcv-line w50"></div><div style="margin-top:4px;text-align:center;font-size:.5rem;font-weight:700;color:#059669">14 套模板</div></div></div>
+      </div>
+      <div class="demo-card-info"><h3>✨ 一键生成 — 比你自己排版好 10 倍</h3><p>拖拽旧简历 PDF 自动填充，AI 扩写大白话，14 套 ATS 友好模板一键导出。</p><span class="demo-tag green">基础免费 · Pro ¥9.9</span></div>
+    </a>
   </div>
 </section>
 
-<section class="bento-section">
-  <div class="bento-label reveal"><h2>三大核心能力</h2><p>覆盖简历优化的完整链路</p></div>
-  <div class="bento-grid">
-    <a href="/resume" class="bento-card featured reveal reveal-d1"><div class="card-icon" style="background:rgba(0,122,255,.15)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4DB8FF" stroke-width="2" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 14l2 2 4-4"/></svg></div><div class="card-title">简历诊断</div><div class="card-desc">五个维度深度评估，逐条优化建议，AI 一键润色。</div><div class="card-tag">5 维度 · AI 改写</div><div class="card-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></a>
-    <a href="/jd" class="bento-card reveal reveal-d2"><div class="card-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div><div class="card-title">JD 匹配</div><div class="card-desc">智能匹配目标岗位，识别技能缺口。</div><div class="card-tag green">ATS · 关键词融合</div><div class="card-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></a>
-    <a href="/builder" class="bento-card reveal reveal-d3"><div class="card-icon amber"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></div><div class="card-title">生成简历</div><div class="card-desc">14 套模板，左右分屏实时编辑，一键导出 PDF。</div><div class="card-tag amber">所见即所得</div><div class="card-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></a>
-  </div>
-</section>
-
-<div class="stats-strip reveal">
-  <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">诊断维度</div></div>
-  <div class="stat-item"><div class="stat-num">17+</div><div class="stat-label">预置岗位</div></div>
-  <div class="stat-item"><div class="stat-num">14</div><div class="stat-label">精美模板</div></div>
-  <div class="stat-item"><div class="stat-num">0</div><div class="stat-label">使用费用</div></div>
+<!-- Value Props -->
+<div class="stats-bar reveal">
+  <div class="stat"><div class="stat-n">5</div><div class="stat-l">维度 AI 诊断</div></div>
+  <div class="stat"><div class="stat-n">14</div><div class="stat-l">ATS 友好模板</div></div>
+  <div class="stat"><div class="stat-n">30s</div><div class="stat-l">出诊断报告</div></div>
+  <div class="stat"><div class="stat-n">¥9.9</div><div class="stat-l">Pro 版起步价</div></div>
 </div>
 
-<footer class="index-footer">简历 AI — 免费智能简历优化工具</footer>
+<footer class="idx-footer">简历 AI — 基础诊断免费 · Pro 低至 ¥9.9<br><a href="/privacy" style="color:#9CA3AF;font-size:.72rem">隐私政策</a> · <a href="/terms" style="color:#9CA3AF;font-size:.72rem">用户协议</a></footer>
 
+<!-- Reveal -->
 <script>
 (function(){
   var els=document.querySelectorAll('.reveal');
   if(!('IntersectionObserver' in window)){for(var i=0;i<els.length;i++)els[i].classList.add('visible');return;}
-  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -30px 0px'});
   els.forEach(function(el){obs.observe(el);});
 })();
 </script>
 
+<!-- Typing ticker -->
 <script>
 (function(){
-// ═══ DATA POOLS ═══
-var NAMES=["张明远","李梓涵","王思琪","赵云飞","陈一诺","刘浩然","黄嘉怡","周子轩","吴思远","林晓峰","杨若曦","郑浩宇","孙艺菲","马天翔","何欣悦","沈逸飞","宋佳音","谢明睿","韩雨桐","朱俊杰","胡晨曦","高思源","罗子墨","梁天乐","许若兰","唐志远","邓雅琪","曹明辉","彭思齐","潘逸凡"];
-var TITLES=["高级前端架构师","资深后端工程师","首席产品经理","数据科学家","AI 算法专家","云原生架构师","增长黑客","风控策略分析师","全栈开发工程师","UX 设计主管","技术总监","DevOps 高级工程师","区块链工程师","大数据平台负责人","安全攻防专家","SRE 高级工程师","移动端架构师","量化交易开发","机器学习工程师","供应链分析师","投资银行分析师","品牌营销总监","战略咨询顾问","人力资源 BP","财务分析经理","运维平台负责人","搜索推荐工程师","音视频开发专家","嵌入式系统工程师","游戏服务端主程"];
-var AI_TEXTS=["主导核心交易链路重构，系统 QPS 从 2K 提升至 15K，P99 延迟降低 67%，支撑双十一峰值零故障","搭建用户增长数据模型，3 个月内 DAU 突破千万，获客成本降低 42%，用户留存率提升至行业 Top 5%","从 0 到 1 设计并落地智能风控引擎，日均处理 500 万+交易请求，欺诈拦截率提升至 99.7%","统筹 20 人跨部门协作，推动产品国际化落地 12 个国家，海外营收同比增长 180%","主导前端工程化体系建设，CI/CD 流水线覆盖率 100%，构建速度优化 4 倍","设计并实现分布式实时推荐系统，CTR 提升 35%，GMV 季度环比增长 2.8 亿","搭建 AB 实验平台，年均支撑 1200+ 实验，决策效率提升 300%","独立负责公司数据中台建设，实现全域数据资产标准化，报表产出效率提升 500%","优化 App 启动链路和内存管理，冷启动时间从 4.2s 降至 1.1s，崩溃率降至 0.02%","推动微服务架构迁移，服务拆分为 60+ 独立模块，部署频率从月级提升至日级"];
-var DIAG_LABELS=["简历综合竞争力评分","ATS 机筛通过概率","HR 推荐面试概率","内容专业度评分"];
-var JD_LABELS=["资深前端 · 字节跳动","高级后端 · 阿里巴巴","产品经理 · 腾讯","数据分析 · 美团","算法工程师 · 百度"];
-
-function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
-function randInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
-function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
-
-var mc=document.getElementById("mc");
-var tabs=document.querySelectorAll(".mw-tab");
-var scenes=document.querySelectorAll(".mw-scene");
-var pvNm=document.getElementById("pv-nm");
-var pvLns=document.querySelectorAll(".pv-ln");
-if(!mc||!document.getElementById("sf1"))return;
-
-function setTab(id){tabs.forEach(function(t){t.classList.toggle("on",t.id==="tab-"+id);});scenes.forEach(function(s){s.classList.toggle("active",s.id==="scene-"+id);});}
-
-function moveCursor(el,offX,offY){
-  if(!el)return;
-  var r=el.getBoundingClientRect(),p=el.closest(".mw-content").getBoundingClientRect();
-  mc.style.left=(r.left-p.left+(offX||8))+"px";
-  mc.style.top=(r.top-p.top+(offY||6))+"px";
-  mc.style.opacity="1";
-}
-
-async function typeIn(id,text){
-  var el=document.getElementById(id);if(!el)return;
-  el.classList.add("on");el.textContent="";moveCursor(el);await sleep(250);
-  for(var i=0;i<=text.length;i++){el.textContent=text.substring(0,i);moveCursor(el,Math.min(i*6.5+8,el.clientWidth-4));await sleep(60);}
-  el.classList.remove("on");await sleep(200);
-}
-
-async function clearFields(){
-  var ids=["sf1","sf2","sf3"];
-  for(var i=ids.length-1;i>=0;i--){var el=document.getElementById(ids[i]);if(el){var t=el.textContent;for(var j=t.length;j>=0;j--){el.textContent=t.substring(0,j);await sleep(12);}}}
-  mc.style.opacity="0";pvNm.style.width="0";pvLns.forEach(function(l){l.classList.remove("lit");});
-}
-
-async function runEditor(){
-  setTab("editor");await sleep(400);
-  var name=rand(NAMES),title=rand(TITLES),aiText=rand(AI_TEXTS);
-  await typeIn("sf1",name);
-  pvNm.style.width="45%";pvLns[0].classList.add("lit");
-  await typeIn("sf2",title);
-  pvLns[1].classList.add("lit");
-  await sleep(300);
-  // Click AI expand button
-  var btn=document.getElementById("sa-expand-btn");
-  moveCursor(btn,40,8);await sleep(500);
-  btn.classList.add("pressed");btn.innerHTML='<span class="sa-spin"></span> 扩写中';await sleep(100);
-  btn.classList.remove("pressed");await sleep(1200);
-  btn.innerHTML="✨ AI 智能扩写";
-  // Fill AI text
-  document.getElementById("sf3").textContent=aiText;
-  document.getElementById("sf3").classList.add("on");
-  pvLns[2].classList.add("lit");pvLns[3].classList.add("lit");pvLns[4].classList.add("lit");
-  await sleep(300);document.getElementById("sf3").classList.remove("on");
-  await sleep(1600);
-}
-
-async function runDiag(){
-  setTab("diag");await sleep(400);
-  var score=randInt(90,99),label=rand(DIAG_LABELS);
-  document.getElementById("sb-label").textContent="AI 正在扫描简历...";
-  document.getElementById("sb-bar").style.width="0";
-  document.getElementById("sb-fg").style.strokeDashoffset="282.7";
-  document.getElementById("sb-score").style.opacity="0";
-  document.getElementById("sb-score").textContent="";
-  await sleep(200);
-  document.getElementById("sb-bar").style.width="100%";
-  await sleep(1500);
-  document.getElementById("sb-bar").style.width="100%";
-  document.getElementById("sb-label").textContent=label;
-  var offset=282.7-(score/100)*282.7;
-  document.getElementById("sb-fg").style.strokeDashoffset=offset;
-  document.getElementById("sb-score").textContent=score;
-  document.getElementById("sb-score").style.opacity="1";
-  await sleep(2000);
-}
-
-async function runJD(){
-  setTab("jd");await sleep(400);
-  var pct=randInt(85,97),label=rand(JD_LABELS);
-  document.getElementById("sc-skel").style.opacity="1";
-  document.getElementById("sc-msg").style.opacity="0";
-  document.getElementById("sc-result").style.opacity="0";
-  await sleep(600);
-  document.getElementById("sc-msg").textContent="AI 正在匹配："+label;
-  document.getElementById("sc-msg").style.opacity="1";
-  await sleep(1500);
-  document.getElementById("sc-skel").style.opacity="0";
-  document.getElementById("sc-pct").textContent=pct+"%";
-  document.getElementById("sc-result").style.opacity="1";
-  document.getElementById("sc-msg").textContent=pct>=90?"✅ 高度匹配，建议立即投递":"⚠️ 建议优化关键词后投递";
-  await sleep(2200);
-}
-
-async function runMontage(){
-  while(true){
-    await runEditor();
-    await runDiag();
-    await runJD();
-    await sleep(800);
-    mc.style.opacity="0";
-    await clearFields();
-    // Reset scenes
-    document.getElementById("sb-bar").style.transition="none";document.getElementById("sb-bar").style.width="0";
-    document.getElementById("sb-fg").style.transition="none";document.getElementById("sb-fg").style.strokeDashoffset="282.7";
-    document.getElementById("sb-score").style.opacity="0";
-    document.getElementById("sc-skel").style.opacity="1";document.getElementById("sc-msg").style.opacity="0";document.getElementById("sc-result").style.opacity="0";
-    await sleep(50);
-    document.getElementById("sb-bar").style.transition="";document.getElementById("sb-fg").style.transition="";
-    await sleep(600);
+  var phrases=[
+    "📊 粘贴简历 → 30 秒出诊断报告，告诉你 HR 3 秒划走的原因",
+    "🎯 模拟字节/阿里 ATS 机筛，缺的关键词一键补进简历",
+    "✨ 把「负责前端开发」→ AI 改写成「主导平台重构，QPS 提升 300%」",
+    "📥 拖拽旧简历 PDF → AI 自动识别填充，不用从头打字",
+    "🤖 ATS 关键词覆盖率从 31% → 100%，不再被机器刷掉",
+    "🎨 14 套 ATS 友好模板，一键切换，导出 PDF 直接投",
+    "💡 不会写自我评价？AI 帮你编成 HR 爱看的 STAR 法则",
+    "⚡ 比你自己调 ChatGPT 快 10 倍，因为我们专门训练了简历语料"
+  ];
+  var el=document.getElementById("ticker");if(!el)return;
+  var idx=0,speed=55,pause=2200,delSpeed=25;
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  async function run(){
+    while(true){
+      var t=phrases[idx];
+      for(var i=0;i<=t.length;i++){el.textContent=t.substring(0,i);await sleep(speed);}
+      await sleep(pause);
+      for(var j=t.length;j>=0;j--){el.textContent=t.substring(0,j);await sleep(delSpeed);}
+      await sleep(300);
+      idx=(idx+1)%phrases.length;
+    }
   }
-}
+  setTimeout(function(){run();},1500);
+})();
+</script>
 
-setTimeout(function(){runMontage();},2000);
+<!-- Score counter -->
+<script>
+(function(){
+  var ba=document.querySelector('.ba-section');if(!ba)return;
+  var done=false;
+  var obs=new IntersectionObserver(function(entries){
+    if(entries[0].isIntersecting&&!done){
+      done=true;
+      var b=0,a=0,sb=document.getElementById('sc-b'),sa=document.getElementById('sc-a');
+      var t=setInterval(function(){
+        if(b<47){b+=2;if(b>47)b=47;sb.innerHTML=b+'<span>分</span>';}
+        if(a<93){a+=3;if(a>93)a=93;sa.innerHTML=a+'<span>分</span>';}
+        if(b>=47&&a>=93)clearInterval(t);
+      },30);
+    }
+  },{threshold:.3});
+  obs.observe(ba);
 })();
 </script>
 </body></html>

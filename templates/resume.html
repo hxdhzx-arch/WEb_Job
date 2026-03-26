@@ -15,6 +15,8 @@
     <div class="form-section"><h3 class="template-title">技能</h3><input type="text" id="t-skills" placeholder="JavaScript, React, Python..." style="width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.92rem;background:var(--bg)"></div>
     <div class="form-section"><h3 class="template-title">自我评价（选填）</h3><textarea id="t-self-intro" rows="3" placeholder="简短描述你的优势..."></textarea></div>
   </div>
+  <div class="trust-badge" style="margin:12px 0"><span class="trust-badge-icon">🔒</span><div class="trust-badge-text"><strong>隐私防火墙</strong>：您的手机号、邮箱等个人信息在发送给 AI 前已自动脱敏，分析完成后数据立即销毁。</div></div>
+  <div class="consent-row"><input type="checkbox" id="privacy-consent"><span>我已阅读并同意 <a href="/privacy" target="_blank">《隐私政策》</a> 与 <a href="/terms" target="_blank">《用户服务协议》</a></span></div>
   <button id="submit-btn" class="btn btn-primary" onclick="submitResume()">开始诊断</button>
   <div id="result-panel" class="result-panel">
     <div class="page-header"><h1>诊断结果</h1></div>
@@ -31,6 +33,6 @@
     </div>
   </div>
 </div>
-<footer class="footer"><div class="container"><p>简历 AI — 免费智能简历优化工具</p></div></footer>
+<footer class="footer"><div class="container"><p>简历 AI — 基础诊断免费 · Pro 低至 ¥9.9</p><p style="margin-top:6px;font-size:.72rem"><a href="/privacy" style="color:#9CA3AF">隐私政策</a> · <a href="/terms" style="color:#9CA3AF">用户协议</a></p></div></footer>
 <script src="/static/script.js"></script>
 </body></html>

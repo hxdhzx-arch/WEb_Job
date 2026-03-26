@@ -28,6 +28,8 @@
     <div class="selector-row"><select id="industry-select" onchange="onIndustryChange(this)"><option value="">-- 选择行业 --</option><option value="互联网/IT">互联网/IT</option><option value="金融/银行">金融/银行</option><option value="教育/培训">教育/培训</option><option value="医疗/健康">医疗/健康</option></select><select id="position-select" onchange="onPositionChange(this)" disabled><option value="">-- 先选行业 --</option></select></div>
     <textarea id="jd-input" placeholder="选择岗位后自动填充，也可手动粘贴 JD..." style="margin-top:12px"></textarea>
   </div>
+  <div class="trust-badge" style="margin:12px 0"><span class="trust-badge-icon">🔒</span><div class="trust-badge-text"><strong>隐私防火墙</strong>：您的手机号、邮箱等个人信息在发送给 AI 前已自动脱敏，分析完成后数据立即销毁。</div></div>
+  <div class="consent-row"><input type="checkbox" id="privacy-consent-jd"><span>我已阅读并同意 <a href="/privacy" target="_blank">《隐私政策》</a> 与 <a href="/terms" target="_blank">《用户服务协议》</a></span></div>
   <button id="submit-btn" class="btn btn-primary" onclick="submitJdMatch()">开始匹配分析</button>
   <div id="result-panel" class="result-panel">
     <div class="page-header"><h1>匹配分析结果</h1></div>
@@ -66,6 +68,6 @@
 </div>
 </div>
 
-<footer class="footer"><div class="container"><p>简历 AI — 免费智能简历优化工具</p></div></footer>
+<footer class="footer"><div class="container"><p>简历 AI — 基础诊断免费 · Pro 低至 ¥9.9</p><p style="margin-top:6px;font-size:.72rem"><a href="/privacy" style="color:#9CA3AF">隐私政策</a> · <a href="/terms" style="color:#9CA3AF">用户协议</a></p></div></footer>
 <script src="/static/script.js"></script>
 </body></html>

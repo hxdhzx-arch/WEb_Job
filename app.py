@@ -9,6 +9,7 @@ from config import PORT, DEBUG, RATE_LIMIT_PER_MINUTE
 from services.resume_analyzer import analyze_resume
 from services.jd_matcher import match_jd
 from services.gemini_client import call_gemini
+from services.privacy_mask import mask_resume_for_ai
 
 app = Flask(__name__)
 
@@ -54,6 +55,14 @@ def jd_page():
 @app.route("/builder")
 def builder_page():
     return render_template("resume_builder.html")
+
+@app.route("/privacy")
+def privacy_page():
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms_page():
+    return render_template("terms.html")
 
 # ── API 路由 ──
 @app.route("/api/analyze-resume", methods=["POST"])
@@ -218,7 +227,7 @@ def api_auto_fill():
 4. 输出3-5条扩写后的成就描述
 5. 只输出扩写结果，不要加任何解释文字
 
-""" + ("岗位背景：" + context + "\n\n" if context else "") + "用户原文：\n" + data["text"]
+""" + ("岗位背景：" + context + "\n\n" if context else "") + "用户原文：\n" + mask_resume_for_ai(data["text"])
         result = call_gemini(prompt)
         return jsonify({"expanded": result.strip()})
     except Exception as e:
@@ -232,7 +241,7 @@ def api_polish_resume():
     if not data or not data.get("resume_text"):
         return jsonify({"error": "请输入简历内容"}), 400
     try:
-        prompt = "你是专业简历润色专家。请润色以下简历，要求：保持信息不变但优化表达，用STAR法则改写工作经历，突出量化成果，技能描述专业化，自我评价精炼有力。只输出润色后的完整简历文本，不要加任何解释。\n\n原始简历：\n" + data["resume_text"]
+        prompt = "你是专业简历润色专家。请润色以下简历，要求：保持信息不变但优化表达，用STAR法则改写工作经历，突出量化成果，技能描述专业化，自我评价精炼有力。只输出润色后的完整简历文本，不要加任何解释。\n\n原始简历：\n" + mask_resume_for_ai(data["resume_text"])
         result = call_gemini(prompt)
         return jsonify({"polished_text": result})
     except Exception as e:
