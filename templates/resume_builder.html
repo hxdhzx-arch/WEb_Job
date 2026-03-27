@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="/static/style.css">
 <!-- Web Fonts -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Merriweather:wght@300;400;700&family=Lora:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap">
+<script src="https://openfpcdn.io/fingerprintjs/v4" async></script>
 </head>
 <body>
 <nav class="nav"><div class="nav-inner" style="max-width:100%"><a href="/" class="nav-logo">简历 AI <span>PRO</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link">诊断</a><a href="/jd" class="nav-link">匹配</a><a href="/builder" class="nav-link active">生成</a></div></div></nav>
@@ -166,5 +167,7 @@
 <template id="tpl-duty"><div class="duty-item"><input data-field="duty" placeholder="STAR法则描述" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.84rem"><button type="button" class="btn-remove-duty">×</button></div></template>
 <template id="tpl-edu"><div class="entry-card"><div class="entry-header"><span class="entry-number">#1</span><button type="button" class="btn-remove-entry">删除</button></div><div class="template-row"><div class="template-field"><label>学校</label><input data-field="school" placeholder="北京大学"></div><div class="template-field"><label>专业</label><input data-field="major" placeholder="计算机"></div></div><div class="template-row"><div class="template-field"><label>学历</label><select data-field="degree"><option value="">选择</option><option>大专</option><option>本科</option><option>硕士</option><option>博士</option></select></div><div class="template-field"><label>时间</label><input data-field="time" placeholder="2016-2020"></div></div></div></template>
 
+{% include 'credits_components.html' %}
+<script src="/static/credits.js"></script>
 <script src="/static/script.js"></script>
 </body></html>

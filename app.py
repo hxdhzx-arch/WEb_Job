@@ -10,6 +10,7 @@ from services.resume_analyzer import analyze_resume
 from services.jd_matcher import match_jd
 from services.gemini_client import call_gemini
 from services.privacy_mask import mask_resume_for_ai
+from services import database as db
 
 app = Flask(__name__)
 
@@ -246,6 +247,71 @@ def api_polish_resume():
         return jsonify({"polished_text": result})
     except Exception as e:
         return jsonify({"error": "润色失败: %s" % str(e)}), 500
+
+# ── 算力系统 API ──
+def _uid_info():
+    d = request.get_json(silent=True) or {}
+    uid = d.get("user_id") or request.headers.get("X-User-Id","")
+    did = d.get("device_hash") or request.headers.get("X-Device-Hash","")
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+    if ip and "," in ip: ip = ip.split(",")[0].strip()
+    return uid, did, ip
+
+@app.route("/api/credits/init", methods=["POST"])
+def api_credits_init():
+    uid, did, ip = _uid_info()
+    if not uid: return jsonify({"error":"缺少 user_id"}), 400
+    user, is_new, err = db.get_or_create_user(uid, did, ip)
+    if err: return jsonify({"error":err,"credits":0,"need_bind":True}), 403
+    return jsonify({"credits":user["credits_left"],"is_new":is_new,
+                    "bound":bool(user.get("bind_email") or user.get("bind_phone"))})
+
+@app.route("/api/credits/check", methods=["POST"])
+def api_credits_check():
+    uid,_,_ = _uid_info()
+    if not uid: return jsonify({"error":"缺少 user_id"}), 400
+    return jsonify({"credits":db.get_credits(uid)})
+
+@app.route("/api/credits/consume", methods=["POST"])
+def api_credits_consume():
+    uid,_,_ = _uid_info()
+    if not uid: return jsonify({"error":"缺少 user_id"}), 400
+    ok, rem, err = db.consume(uid)
+    if not ok: return jsonify({"error":err,"credits":rem,"need_bind":rem==0}), 403
+    return jsonify({"credits":rem})
+
+@app.route("/api/submit-review", methods=["POST"])
+def api_submit_review():
+    uid,_,_ = _uid_info()
+    data = request.get_json() or {}
+    if not uid: return jsonify({"error":"缺少 user_id"}), 400
+    rating = data.get("rating")
+    if not rating or not isinstance(rating, int) or rating<1 or rating>5:
+        return jsonify({"error":"请选择 1-5 星评分"}), 400
+    content = data.get("content","")
+    is_anon = 1 if data.get("is_anonymous") else 0
+    display = "匿名用户" if is_anon else data.get("display_name","用户")
+    feature = data.get("feature","general")
+    new_cr, err = db.add_review(uid, feature, rating, content, is_anon, display)
+    if err: return jsonify({"error":err}), 400
+    return jsonify({"credits":new_cr,"message":"评价成功，已奖励 ⚡ 100 算力！","show_bind":True})
+
+@app.route("/api/get-reviews", methods=["GET"])
+def api_get_reviews():
+    reviews = db.get_public_reviews(limit=20)
+    return jsonify({"reviews":reviews})
+
+@app.route("/api/bind-account", methods=["POST"])
+def api_bind_account():
+    uid,_,_ = _uid_info()
+    data = request.get_json() or {}
+    if not uid: return jsonify({"error":"缺少 user_id"}), 400
+    email = (data.get("email") or "").strip()
+    phone = (data.get("phone") or "").strip()
+    if not email and not phone: return jsonify({"error":"请输入邮箱或手机号"}), 400
+    result, err = db.bind_account(uid, email=email or None, phone=phone or None)
+    if err: return jsonify({"error":err}), 400
+    return jsonify(result)
 
 if __name__ == "__main__":
     print("服务启动于: http://localhost:%d" % PORT)

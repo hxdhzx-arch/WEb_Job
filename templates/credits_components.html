@@ -1,0 +1,49 @@
+<!-- ⚡ Power Badge (top-right floating) -->
+<div id="power-badge" class="pw-badge" style="display:none" onclick="PowerSystem.showBind()">
+  <span class="pw-icon">⚡</span>
+  <span class="pw-num">0</span>
+  <span class="pw-unit">算力</span>
+</div>
+
+<!-- Toast -->
+<div id="pw-toast" class="pw-toast"></div>
+
+<!-- ⭐ Review Modal -->
+<div id="review-overlay" class="cm-overlay" onclick="if(event.target===this)PowerSystem.closeReview()">
+<div class="cm-box">
+  <button class="cm-x" onclick="PowerSystem.closeReview()">&times;</button>
+  <div class="cm-icon">⭐</div>
+  <h2 class="cm-h">评价本次 AI 服务</h2>
+  <p class="cm-p">真实评价可获得 <strong>⚡ 100 算力</strong> 奖励</p>
+  <input type="hidden" id="rv-feat" value="general">
+  <div class="rv-stars">
+    <span class="rv-s" onclick="PowerSystem.pickStar(1)">★</span>
+    <span class="rv-s" onclick="PowerSystem.pickStar(2)">★</span>
+    <span class="rv-s" onclick="PowerSystem.pickStar(3)">★</span>
+    <span class="rv-s" onclick="PowerSystem.pickStar(4)">★</span>
+    <span class="rv-s" onclick="PowerSystem.pickStar(5)">★</span>
+  </div>
+  <input type="text" id="rv-name" class="cm-input sm" placeholder="您的昵称（选填）">
+  <textarea id="rv-ct" class="cm-ta" rows="2" placeholder="说说您的使用感受（选填）"></textarea>
+  <label class="rv-anon-label"><input type="checkbox" id="rv-anon"> 匿名评价</label>
+  <button id="rv-btn" class="cm-btn primary" onclick="PowerSystem.submitReview()">提交评价，获得 ⚡100 算力</button>
+</div>
+</div>
+
+<!-- 🛡️ Bind / Asset Protection Modal -->
+<div id="bind-overlay" class="cm-overlay" onclick="if(event.target===this)PowerSystem.closeBind()">
+<div class="cm-box">
+  <button class="cm-x" onclick="PowerSystem.closeBind()">&times;</button>
+  <div class="cm-icon">🛡️</div>
+  <h2 class="cm-h">您的简历资产与算力<br>处于游客状态，极易丢失！</h2>
+  <p class="cm-p" id="bind-reason">清理浏览器缓存或更换电脑后，您的记录将永久清空。<br>立即免费绑定账号，永久保存，并解锁多端同步。</p>
+  <div class="bind-credit-display">
+    <span class="bcd-icon">⚡</span>
+    <span class="bcd-num pw-num">0</span>
+    <span class="bcd-text">算力待保护</span>
+  </div>
+  <input type="text" id="bind-val" class="cm-input" placeholder="邮箱 或 手机号">
+  <button id="bind-btn" class="cm-btn primary" onclick="PowerSystem.submitBind()">一键绑定，永久保存</button>
+  <button class="cm-btn ghost" onclick="PowerSystem.closeBind()">我再想想</button>
+</div>
+</div>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>JD 匹配分析</title><link rel="stylesheet" href="/static/style.css"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>JD 匹配分析</title><link rel="stylesheet" href="/static/style.css"><script src="https://openfpcdn.io/fingerprintjs/v4" async></script>
+</head>
 <body>
 <nav class="nav"><div class="nav-inner"><a href="/" class="nav-logo">简历 AI <span>PRO</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link">简历诊断</a><a href="/jd" class="nav-link active">JD 匹配</a><a href="/builder" class="nav-link">生成简历</a></div></div></nav>
 <div id="error-toast" class="error-toast"></div>
@@ -69,5 +70,7 @@
 </div>
 
 <footer class="footer"><div class="container"><p>简历 AI — 基础诊断免费 · Pro 低至 ¥9.9</p><p style="margin-top:6px;font-size:.72rem"><a href="/privacy" style="color:#9CA3AF">隐私政策</a> · <a href="/terms" style="color:#9CA3AF">用户协议</a></p></div></footer>
+{% include 'credits_components.html' %}
+<script src="/static/credits.js"></script>
 <script src="/static/script.js"></script>
 </body></html>
