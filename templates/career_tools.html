@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>职场通工具箱</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body{background:#f8fafc}
+    .tools-wrap{max-width:1120px;margin:36px auto;padding:0 20px}
+    .hero{background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(0,0,0,.04)}
+    .hero h1{font-size:30px;margin:0 0 8px;color:#111827}
+    .hero p{margin:0;color:#4b5563;line-height:1.7}
+    .grid{margin-top:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px}
+    .card h3{margin:0 0 12px;font-size:18px;color:#111827}
+    .muted{font-size:13px;color:#6b7280}
+    .line{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+    input,textarea{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px;font-size:14px}
+    button{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer}
+    pre{background:#0b1020;color:#dbeafe;border-radius:10px;padding:12px;max-height:280px;overflow:auto;font-size:12px;white-space:pre-wrap}
+    ul{margin:0;padding-left:18px;color:#374151;line-height:1.8}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">简历 AI <span>BETA</span></a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">首页</a>
+        <a href="/resume" class="nav-link">简历诊断</a>
+        <a href="/jd" class="nav-link">JD 匹配</a>
+        <a href="/builder" class="nav-link">生成简历</a>
+        <a href="/career-tools" class="nav-link active">职场通工具</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="tools-wrap">
+    <section class="hero">
+      <h1>职场通工具箱</h1>
+      <p>新增一组和求职决策强相关的小工具：税后薪资 / 五险一金估算、Offer 对比、JD 解析 + 简历定制建议。同时保留文档工具主线，统一在一个心智入口里。</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h3>税后薪资 / 五险一金计算器</h3>
+        <div class="line"><input id="grossSalary" type="number" placeholder="税前月薪（例如 30000）"></div>
+        <div class="line"><input id="fundRate" type="number" placeholder="公积金比例（5-12）" value="12"></div>
+        <div class="line"><input id="specialDeduction" type="number" placeholder="专项附加扣除（默认 0）" value="0"></div>
+        <button onclick="calcSalary()">开始计算</button>
+        <p class="muted">说明：该计算器为估算模型，具体以当地政策为准。</p>
+        <pre id="salaryResult">等待计算...</pre>
+      </article>
+
+      <article class="card">
+        <h3>Offer 对比器</h3>
+        <p class="muted">输入两个 Offer（JSON）后可得到综合评分排行。</p>
+        <textarea id="offerInput" rows="9">[
+  {"name":"A公司","monthly_salary":32000,"months":15,"bonus":20000,"stock":30000,"commute":7,"growth":8,"stability":7,"wlb":6},
+  {"name":"B公司","monthly_salary":35000,"months":14,"bonus":10000,"stock":50000,"commute":4,"growth":7,"stability":8,"wlb":7}
+]</textarea>
+        <button onclick="compareOffers()">开始对比</button>
+        <pre id="offerResult">等待对比...</pre>
+      </article>
+
+      <article class="card">
+        <h3>JD 解析 + 简历定制</h3>
+        <textarea id="jdText" rows="8" placeholder="粘贴岗位 JD"></textarea>
+        <div style="height:8px"></div>
+        <textarea id="resumeText" rows="6" placeholder="可选：粘贴简历内容用于个性化建议"></textarea>
+        <button onclick="parseJd()">解析并生成建议</button>
+        <pre id="jdResult">等待解析...</pre>
+      </article>
+
+      <article class="card">
+        <h3>文档工具（主线能力）</h3>
+        <ul id="docOnline"></ul>
+        <h4 style="margin:14px 0 8px;color:#111827">规划中</h4>
+        <ul id="docComing"></ul>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    async function post(url, data){
+      const res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+      return await res.json();
+    }
+
+    async function calcSalary(){
+      const data = {
+        gross_salary: Number(document.getElementById('grossSalary').value || 0),
+        fund_rate: Number(document.getElementById('fundRate').value || 12),
+        special_deduction: Number(document.getElementById('specialDeduction').value || 0)
+      };
+      const result = await post('/api/calculate-net-salary', data);
+      document.getElementById('salaryResult').textContent = JSON.stringify(result, null, 2);
+    }
+
+    async function compareOffers(){
+      let offers = [];
+      try{ offers = JSON.parse(document.getElementById('offerInput').value); }
+      catch(e){ document.getElementById('offerResult').textContent = 'JSON 格式有误'; return; }
+      const result = await post('/api/compare-offers', {offers});
+      document.getElementById('offerResult').textContent = JSON.stringify(result, null, 2);
+    }
+
+    async function parseJd(){
+      const jd_text = document.getElementById('jdText').value;
+      const resume_text = document.getElementById('resumeText').value;
+      const result = await post('/api/parse-jd-customize-resume', {jd_text, resume_text});
+      document.getElementById('jdResult').textContent = JSON.stringify(result, null, 2);
+    }
+
+    async function loadDocCatalog(){
+      const res = await fetch('/api/doc-tools-catalog');
+      const data = await res.json();
+      const online = document.getElementById('docOnline');
+      const coming = document.getElementById('docComing');
+      online.innerHTML = (data.online || []).map(x=>`<li>${x}</li>`).join('');
+      coming.innerHTML = (data.coming_soon || []).map(x=>`<li>${x}</li>`).join('');
+    }
+    loadDocCatalog();
+  </script>
+</body>
+</html>

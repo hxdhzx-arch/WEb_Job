@@ -57,6 +57,10 @@ def jd_page():
 def builder_page():
     return render_template("resume_builder.html")
 
+@app.route("/career-tools")
+def career_tools_page():
+    return render_template("career_tools.html")
+
 @app.route("/privacy")
 def privacy_page():
     return render_template("privacy.html")
@@ -233,6 +237,176 @@ def api_auto_fill():
         return jsonify({"expanded": result.strip()})
     except Exception as e:
         return jsonify({"error": "扩写失败: %s" % str(e)}), 500
+
+def _calc_progressive_tax(monthly_taxable):
+    """按中国大陆常见个税月度速算表计算税额"""
+    brackets = [
+        (3000, 0.03, 0),
+        (12000, 0.10, 210),
+        (25000, 0.20, 1410),
+        (35000, 0.25, 2660),
+        (55000, 0.30, 4410),
+        (80000, 0.35, 7160),
+        (float("inf"), 0.45, 15160),
+    ]
+    for limit, rate, deduction in brackets:
+        if monthly_taxable <= limit:
+            return max(0, monthly_taxable * rate - deduction), rate
+    return 0, 0
+
+@app.route("/api/calculate-net-salary", methods=["POST"])
+def api_calculate_net_salary():
+    """税后薪资 + 五险一金估算器"""
+    data = request.get_json() or {}
+    try:
+        gross_salary = float(data.get("gross_salary", 0))
+        city = (data.get("city") or "全国默认").strip()
+        fund_rate = float(data.get("fund_rate", 12))
+        insurance_base = float(data.get("insurance_base", gross_salary))
+        special_deduction = float(data.get("special_deduction", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "输入参数格式错误"}), 400
+
+    if gross_salary <= 0:
+        return jsonify({"error": "税前月薪必须大于 0"}), 400
+    if fund_rate < 5 or fund_rate > 12:
+        return jsonify({"error": "公积金比例建议在 5-12 之间"}), 400
+
+    # 常见个人缴纳比例（简化版）
+    pension = insurance_base * 0.08
+    medical = insurance_base * 0.02 + 3
+    unemployment = insurance_base * 0.005
+    housing_fund = insurance_base * (fund_rate / 100)
+    social_total = pension + medical + unemployment + housing_fund
+
+    taxable_income = gross_salary - social_total - 5000 - special_deduction
+    tax, tax_rate = _calc_progressive_tax(taxable_income)
+    net_salary = gross_salary - social_total - tax
+
+    return jsonify({
+        "city": city,
+        "gross_salary": round(gross_salary, 2),
+        "insurance_base": round(insurance_base, 2),
+        "fund_rate": fund_rate,
+        "breakdown": {
+            "pension": round(pension, 2),
+            "medical": round(medical, 2),
+            "unemployment": round(unemployment, 2),
+            "housing_fund": round(housing_fund, 2),
+            "social_total": round(social_total, 2),
+            "taxable_income": round(max(0, taxable_income), 2),
+            "tax_rate": f"{int(tax_rate * 100)}%",
+            "income_tax": round(tax, 2),
+        },
+        "net_salary": round(net_salary, 2),
+        "annual_net_salary": round(net_salary * 12, 2),
+        "notice": "为产品内估算模型，实际缴纳请以当地社保公积金与个税政策为准。",
+    })
+
+@app.route("/api/compare-offers", methods=["POST"])
+def api_compare_offers():
+    """Offer 对比器：按综合得分排序"""
+    data = request.get_json() or {}
+    offers = data.get("offers") or []
+    if not isinstance(offers, list) or len(offers) < 2:
+        return jsonify({"error": "请至少提供 2 个 offer"}), 400
+
+    evaluated = []
+    for idx, offer in enumerate(offers):
+        try:
+            name = (offer.get("name") or f"Offer {idx+1}").strip()
+            monthly_salary = float(offer.get("monthly_salary", 0))
+            months = float(offer.get("months", 12))
+            bonus = float(offer.get("bonus", 0))
+            stock = float(offer.get("stock", 0))
+            commute = float(offer.get("commute", 5))
+            growth = float(offer.get("growth", 5))
+            stability = float(offer.get("stability", 5))
+            wlb = float(offer.get("wlb", 5))
+        except (TypeError, ValueError):
+            return jsonify({"error": f"第 {idx+1} 个 offer 数据格式错误"}), 400
+
+        annual_cash = monthly_salary * months + bonus
+        total_package = annual_cash + stock
+        soft_score = growth * 0.35 + stability * 0.25 + wlb * 0.25 + (10 - min(commute, 10)) * 0.15
+        final_score = total_package / 10000 * 0.65 + soft_score * 0.35
+
+        evaluated.append({
+            "name": name,
+            "annual_cash": round(annual_cash, 2),
+            "total_package": round(total_package, 2),
+            "soft_score": round(soft_score, 2),
+            "final_score": round(final_score, 2),
+            "inputs": {
+                "monthly_salary": monthly_salary,
+                "months": months,
+                "bonus": bonus,
+                "stock": stock,
+                "commute": commute,
+                "growth": growth,
+                "stability": stability,
+                "wlb": wlb,
+            },
+        })
+
+    ranked = sorted(evaluated, key=lambda x: x["final_score"], reverse=True)
+    return jsonify({
+        "ranking": ranked,
+        "winner": ranked[0]["name"],
+        "summary": f"综合评分最高的是 {ranked[0]['name']}，建议优先推进谈薪与入职流程。",
+    })
+
+@app.route("/api/parse-jd-customize-resume", methods=["POST"])
+def api_parse_jd_customize_resume():
+    """JD 解析 + 简历定制建议"""
+    if _is_rate_limited(request.remote_addr):
+        return jsonify({"error": "请求过于频繁"}), 429
+    data = request.get_json() or {}
+    jd_text = (data.get("jd_text") or "").strip()
+    resume_text = (data.get("resume_text") or "").strip()
+    if len(jd_text) < 30:
+        return jsonify({"error": "请输入完整岗位 JD（至少 30 字）"}), 400
+    try:
+        prompt = """你是资深招聘专家。请解析岗位JD并输出严格JSON，字段如下：
+{
+  "job_title": "岗位名称",
+  "level": "初级/中级/高级",
+  "keywords": ["关键词1","关键词2","关键词3","关键词4","关键词5"],
+  "must_have": ["硬性要求1","硬性要求2","硬性要求3"],
+  "bonus_points": ["加分项1","加分项2"],
+  "resume_tailoring": ["简历改写建议1","简历改写建议2","简历改写建议3","简历改写建议4"],
+  "self_intro": "一段 120 字内的面试自我介绍"
+}
+要求：只输出JSON，不要markdown。
+"""
+        if resume_text:
+            prompt += "\n候选人简历：\n" + mask_resume_for_ai(resume_text[:2500]) + "\n"
+        prompt += "\n岗位JD：\n" + jd_text[:2500]
+
+        raw = call_gemini(prompt)
+        import json as _json
+        cleaned = raw.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+        result = _json.loads(cleaned)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": "JD 解析失败: %s" % str(e)}), 500
+
+@app.route("/api/doc-tools-catalog", methods=["GET"])
+def api_doc_tools_catalog():
+    """文档工具导航：已上线/规划中能力"""
+    return jsonify({
+        "online": [
+            "简历 PDF 解析并自动识别教育经历/工作经历/技能模块",
+            "AI 扩写与简历润色",
+        ],
+        "coming_soon": [
+            "简历 PDF 转可编辑 Word（结构化版）",
+            "Word 转 PDF",
+            "PDF 压缩 / 合并 / 拆分 / 提取文字",
+        ],
+    })
 
 @app.route("/api/polish-resume", methods=["POST"])
 def api_polish_resume():
