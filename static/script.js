@@ -59,7 +59,7 @@ function clearAllDataAndExit(){
 
 // ══ 5. Debounce ══
 function debounce(fn,ms){var t;return function(){clearTimeout(t);var c=this,a=arguments;t=setTimeout(function(){fn.apply(c,a);},ms);};}
-var liveRender=debounce(function(){renderPreview();saveToLocal();},80);
+var liveRender=debounce(function(){renderPreview();saveToLocal();if(typeof CloudSync!=="undefined")CloudSync.scheduleAutoSave();},80);
 var liveRenderSlow=debounce(function(){renderPreview();saveToLocal();},150);
 
 // ══ 6. State Ops ══

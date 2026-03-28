@@ -29,7 +29,7 @@
     <div class="selector-row"><select id="industry-select" onchange="onIndustryChange(this)"><option value="">-- 选择行业 --</option><option value="互联网/IT">互联网/IT</option><option value="金融/银行">金融/银行</option><option value="教育/培训">教育/培训</option><option value="医疗/健康">医疗/健康</option></select><select id="position-select" onchange="onPositionChange(this)" disabled><option value="">-- 先选行业 --</option></select></div>
     <textarea id="jd-input" placeholder="选择岗位后自动填充，也可手动粘贴 JD..." style="margin-top:12px"></textarea>
   </div>
-  <div class="trust-badge" style="margin:12px 0"><span class="trust-badge-icon">🔒</span><div class="trust-badge-text"><strong>隐私防火墙</strong>：您的手机号、邮箱等个人信息在发送给 AI 前已自动脱敏，分析完成后数据立即销毁。</div></div>
+  <div class="trust-badge" style="margin:12px 0"><span class="trust-badge-icon">🔒</span><div class="trust-badge-text"><strong>隐私防火墙</strong>：您的手机号、邮箱等个人信息在发送给第三方 AI 模型前已自动脱敏替换。未绑定账号时，分析文本不做持久化存储。详见<a href="/privacy" target="_blank" style="color:#166534;text-decoration:underline">隐私政策</a>。</div></div>
   <div class="consent-row"><input type="checkbox" id="privacy-consent-jd"><span>我已阅读并同意 <a href="/privacy" target="_blank">《隐私政策》</a> 与 <a href="/terms" target="_blank">《用户服务协议》</a></span></div>
   <button id="submit-btn" class="btn btn-primary" onclick="submitJdMatch()">开始匹配分析</button>
   <div id="result-panel" class="result-panel">

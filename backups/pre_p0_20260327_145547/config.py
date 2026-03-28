@@ -10,26 +10,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ──────────────────────────────────────
-# 基础配置
+# 基础配置（优先加载，确保 app.py 能正常导入）
 # ──────────────────────────────────────
 
 PORT = int(os.getenv("PORT", 5000))
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", 10))
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-
-# ──────────────────────────────────────
-# SMTP 邮件配置（验证码发送）
-# ──────────────────────────────────────
-
-SMTP_HOST = os.getenv("SMTP_HOST", "")           # smtp.qq.com / smtp.gmail.com
-SMTP_PORT = int(os.getenv("SMTP_PORT", 465))      # 465=SSL / 587=STARTTLS
-SMTP_USER = os.getenv("SMTP_USER", "")            # 发件邮箱
-SMTP_PASS = os.getenv("SMTP_PASS", "")            # 授权码（非邮箱密码）
-SMTP_FROM = os.getenv("SMTP_FROM", "")            # 发件人显示名，如: 简历AI <xx@qq.com>
-
-if not SMTP_HOST:
-    print("[提示] SMTP 未配置，验证码将打印到控制台（开发模式）")
 
 # ──────────────────────────────────────
 # API Key 轮询池
@@ -62,6 +49,7 @@ class KeyPool:
         return self.total - len(self._failed)
 
     def next_key(self) -> str:
+        """获取下一个可用的 API Key（Round-Robin）"""
         with self._lock:
             if len(self._failed) >= self.total:
                 self._failed.clear()
@@ -77,6 +65,7 @@ class KeyPool:
             return self._keys[0]
 
     def mark_failed(self, key: str):
+        """标记某个 Key 为临时不可用"""
         with self._lock:
             try:
                 idx = self._keys.index(key)
@@ -85,6 +74,7 @@ class KeyPool:
                 pass
 
     def reset_all(self):
+        """手动重置所有 Key 状态"""
         with self._lock:
             self._failed.clear()
             self._index = 0
