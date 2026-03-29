@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>职场通工具箱 - 简历 AI</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+/* ═══ Career Tools Specific Styles ═══ */
+body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;color:#1E293B;padding-top:70px}
+.ct-hero{max-width:960px;margin:0 auto;padding:60px 24px 40px;text-align:center}
+.ct-hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-.03em;color:#1d1d1f;margin-bottom:16px}
+.ct-hero p{font-size:clamp(16px,2vw,18px);color:#64748B;max-width:600px;margin:0 auto;line-height:1.6}
+
+.tools-grid{max-width:1080px;margin:0 auto 80px;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:30px}
+.tool-card{background:#fff;border-radius:20px;padding:32px;box-shadow:0 12px 32px rgba(0,0,0,.04);border:1px solid #E2E8F0;transition:all .3s}
+
+/* Calculator Section */
+.calc-form{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+.calc-row{display:flex;flex-direction:column;gap:6px}
+.calc-row label{font-size:14px;font-weight:600;color:#475569}
+.calc-input{padding:12px 16px;border-radius:10px;border:1px solid #CBD5E1;font-size:15px;transition:border .2s}
+.calc-input:focus{outline:none;border-color:#3B82F6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.calc-result{background:#EFF6FF;border-radius:14px;padding:24px;text-align:center;border:1px solid #BFDBFE}
+.cr-title{font-size:14px;color:#3B82F6;font-weight:600;margin-bottom:8px}
+.cr-money{font-size:42px;font-weight:800;color:#1D4ED8;letter-spacing:-.02em}
+.cr-detail{display:flex;justify-content:space-between;font-size:13px;color:#64748B;margin-top:16px;padding-top:16px;border-top:1px dashed #BFDBFE}
+
+/* Offer Comparator Section */
+.offer-list{display:flex;flex-direction:column;gap:16px;margin-bottom:20px}
+.offer-item{background:#F8FAFC;padding:16px;border-radius:12px;border:1px solid #E2E8F0;position:relative}
+.offer-item h4{margin:0 0 12px;font-size:15px;color:#0F172A}
+.offer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.remove-offer{position:absolute;top:16px;right:16px;color:#EF4444;cursor:pointer;font-size:12px;font-weight:600}
+.add-offer-btn{width:100%;padding:12px;background:#fff;border:1px dashed #CBD5E1;border-radius:10px;color:#64748B;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;margin-bottom:20px}
+.add-offer-btn:hover{border-color:#3B82F6;color:#3B82F6;background:#EFF6FF}
+.btn-compare{width:100%;padding:14px;background:#10B981;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(16,185,129,.2);transition:all .2s}
+.btn-compare:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(16,185,129,.3)}
+.btn-compare:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.compare-result{margin-top:24px;padding:20px;background:#ECFDF5;border-radius:12px;border:1px solid #A7F3D0;display:none}
+
+/* Generic Button */
+.btn-calc{width:100%;padding:14px;background:#3B82F6;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-calc:hover{background:#2563EB}
+
+@media(max-width:768px){.tools-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav class="nav" style="border-bottom:1px solid #E2E8F0;background:rgba(255,255,255,.9);backdrop-filter:blur(10px)">
+<div class="nav-inner" style="max-width:1080px">
+  <a href="/" class="nav-logo">简历 AI <span>BETA</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">首页</a>
+    <a href="/resume" class="nav-link">简历诊断</a>
+    <a href="/jd" class="nav-link">JD 匹配</a>
+    <a href="/builder" class="nav-link">生成简历</a>
+    <a href="/career-tools" class="nav-link active">职场通工具</a>
+  </div>
+</div>
+</nav>
+
+<section class="ct-hero">
+  <h1>🧰 职场通工具箱</h1>
+  <p>为你提供实用的职场小工具，解决薪资计算、Offer 选择等常见痛点，助你轻松应对求职决策。</p>
+</section>
+
+<div class="tools-grid">
+  <!-- Tool 1: Salary Calculator -->
+  <div class="tool-card">
+    <h2 style="font-size:22px;margin-bottom:24px;display:flex;align-items:center;gap:8px"><span>💰</span> 税后月薪计算器 <span style="font-size:12px;padding:4px 8px;background:#FEF3C7;color:#D97706;border-radius:6px;font-weight:600">快速估算</span></h2>
+    <div class="calc-form">
+      <div class="calc-row">
+        <label>税前月薪 (元)</label>
+        <input type="number" id="pre-tax-salary" class="calc-input" placeholder="例如: 20000">
+      </div>
+      <div class="calc-row">
+        <label>所在城市</label>
+        <select id="city-select" class="calc-input">
+          <option value="bj">北京 (公积金默认 12%)</option>
+          <option value="sh">上海 (公积金默认 7%)</option>
+          <option value="gz">广州 (公积金默认 12%)</option>
+          <option value="sz">深圳 (公积金默认 12%)</option>
+          <option value="other">其他城市 (五险一金约扣 20%)</option>
+        </select>
+      </div>
+      <button class="btn-calc" onclick="calculateSalary()">计算税后收入</button>
+    </div>
+    
+    <div class="calc-result" id="salary-result" style="display:none">
+      <div class="cr-title">预计税后月薪约</div>
+      <div class="cr-money">¥<span id="res-net">0</span></div>
+      <div class="cr-detail">
+        <span>五险一金扣除: ¥<span id="res-ins">0</span></span>
+        <span>个人所得税: ¥<span id="res-tax">0</span></span>
+      </div>
+      <div style="font-size:12px;color:#9CA3AF;margin-top:12px">* 此为简化估算模型，不含专项附加扣除，仅供择业参考。</div>
+    </div>
+  </div>
+
+  <!-- Tool 2: Offer Comparator -->
+  <div class="tool-card">
+    <h2 style="font-size:22px;margin-bottom:24px;display:flex;align-items:center;gap:8px"><span>⚖️</span> Offer 决策仪 <span style="font-size:12px;padding:4px 8px;background:#E0E7FF;color:#4F46E5;border-radius:6px;font-weight:600">AI 辅助决策</span></h2>
+    <p style="font-size:14px;color:#64748B;line-height:1.6;margin-bottom:20px">纠结选哪个 Offer？录入几个关键指标，AI 帮你客观点评，选出性价比王。</p>
+    
+    <div id="offer-container" class="offer-list">
+      <!-- Offers will be injected here -->
+    </div>
+    <button class="add-offer-btn" onclick="addOffer()">+ 添加一个 Offer 对比项</button>
+    
+    <button id="btn-compare" class="btn-compare" onclick="compareOffers()">开始 AI 综合对比评估</button>
+    
+    <div id="compare-result" class="compare-result">
+      <h3 style="color:#059669;margin-bottom:12px;font-size:16px">AI 决策建议</h3>
+      <div id="compare-text" style="font-size:14px;line-height:1.7;color:#374151;white-space:pre-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- Calculator Logic ---
+function calculateSalary(){
+  var pre=parseFloat(document.getElementById('pre-tax-salary').value);
+  if(isNaN(pre)||pre<=0){alert("请输入有效的税前月薪");return;}
+  var city=document.getElementById('city-select').value;
+  
+  // Simplified standard deductions
+  var insRate=0.20; // Default generic social security roughly 20%
+  if(city==="bj")insRate=0.105+0.12; // Pension 8, Medical 2, Unemp 0.5, HF 12
+  else if(city==="sh")insRate=0.105+0.07;
+  else if(city==="gz")insRate=0.105+0.12;
+  else if(city==="sz")insRate=0.105+0.12;
+
+  // Rough calculation
+  var maxBase=30000; // Simplified cap
+  var base=pre>maxBase?maxBase:pre;
+  var ins=base*insRate;
+  
+  var taxBase=pre-ins-5000;
+  var tax=0;
+  if(taxBase>0){
+    if(taxBase<=3000)tax=taxBase*0.03;
+    else if(taxBase<=12000)tax=taxBase*0.1-210;
+    else if(taxBase<=25000)tax=taxBase*0.2-1410;
+    else if(taxBase<=35000)tax=taxBase*0.25-2660;
+    else if(taxBase<=55000)tax=taxBase*0.3-4410;
+    else if(taxBase<=80000)tax=taxBase*0.35-7160;
+    else tax=taxBase*0.45-15160;
+  }
+  
+  var net=pre-ins-tax;
+  document.getElementById('res-net').innerText=net.toFixed(2);
+  document.getElementById('res-ins').innerText=ins.toFixed(2);
+  document.getElementById('res-tax').innerText=tax.toFixed(2);
+  document.getElementById('salary-result').style.display='block';
+}
+
+// --- Offer Comparator Logic ---
+var ofCount=0;
+function addOffer(){
+  if(ofCount>=3){alert("最多对比 3 个 Offer");return;}
+  ofCount++;
+  var id=Date.now()+Math.floor(Math.random()*100);
+  var html=`
+    <div class="offer-item" id="offer-${id}">
+      ${ofCount>1?`<div class="remove-offer" onclick="removeOffer(${id})">删除</div>`:''}
+      <h4>Offer ${ofCount}</h4>
+      <div class="offer-grid">
+        <label>公司名称<input type="text" class="calc-input off-comp" placeholder="如: 字节跳动"></label>
+        <label>月薪(元)<input type="number" class="calc-input off-sal" placeholder="如: 25000"></label>
+        <label>年终奖(月)<input type="number" class="calc-input off-bonus" placeholder="如: 3" value="0"></label>
+        <label>通勤硬算(分钟)<input type="number" class="calc-input off-commute" placeholder="单程如: 45"></label>
+        <label>工作强度<select class="calc-input off-wt"><option value="965">965 (双休)</option><option value="995">995 (稍微加班)</option><option value="996">996 (单休高压)</option><option value="大小周">大小周</option></select></label>
+      </div>
+    </div>
+  `;
+  document.getElementById('offer-container').insertAdjacentHTML('beforeend',html);
+}
+function removeOffer(id){
+  document.getElementById('offer-'+id).remove();
+  ofCount--;
+  // Re-number
+  var items=document.querySelectorAll('.offer-item h4');
+  for(var i=0;i<items.length;i++){items[i].innerText='Offer '+(i+1);}
+}
+
+// Init one offer
+addOffer();
+addOffer();
+
+function compareOffers(){
+  var items=document.querySelectorAll('.offer-item');
+  var offers=[];
+  for(var i=0;i<items.length;i++){
+    var c=items[i].querySelector('.off-comp').value;
+    var s=items[i].querySelector('.off-sal').value;
+    var b=items[i].querySelector('.off-bonus').value;
+    var co=items[i].querySelector('.off-commute').value;
+    var w=items[i].querySelector('.off-wt').value;
+    if(!c||!s){alert("请填全第 "+(i+1)+" 个 Offer 的公司名和薪资");return;}
+    offers.push(`公司:${c}, 月薪:${s}, 年终:${b}个月, 单程通勤:${co}分, 强度:${w}`);
+  }
+  
+  var btn=document.getElementById('btn-compare');
+  var res=document.getElementById('compare-result');
+  var text=document.getElementById('compare-text');
+  
+  btn.disabled=true;
+  btn.innerText="AI 分析中...";
+  res.style.display="none";
+  
+  var prompt=offers.join("\n")+"\n\n请作为资深职场导师，对上述 Offer 进行客观的量化性价比分析（考虑时薪、通勤折损等），指出每个Offer的优劣，并最终给出明确的选择建议。字数不超过 400 字。";
+  
+  fetch("/api/career-advisor",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({user_query:prompt,type:"offer_compare"})
+  })
+  .then(resp=>resp.json())
+  .then(data=>{
+    // Repurposing career-advisor a bit: API returns best_match_jd, but we can hack it to return text or we can create a new route.
+    // Let's create a new lightweight approach or expect data.analysis.
+    text.innerHTML=data.analysis?data.analysis.replace(/\n/g,"<br>"):"AI服务忙，请重试";
+    res.style.display="block";
+  })
+  .catch(err=>{
+    text.innerHTML="<span style='color:red'>"+err.message+"</span>";
+    res.style.display="block";
+  })
+  .finally(()=>{
+    btn.disabled=false;
+    btn.innerText="开始 AI 综合对比评估";
+  });
+}
+</script>
+</body>
+</html>

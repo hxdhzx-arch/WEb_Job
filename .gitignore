@@ -1,29 +1,11 @@
-# 敏感文件 - 绝对不要上传
-.env
-*.env
-.env.*
-
-# Python
 __pycache__/
-*.py[cod]
-*.so
-.venv/
-venv/
-env/
-
-# macOS
-.DS_Store
-._*
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# 日志
 *.log
-
-# Database
-data/
-*.db
+.env
+.venv/
+.DS_Store
+data/*.db
+data/*.db-shm
+data/*.db-wal
+migrations/
+*.pyc
+instance/

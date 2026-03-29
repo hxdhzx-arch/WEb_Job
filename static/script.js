@@ -738,3 +738,43 @@ document.addEventListener("DOMContentLoaded",function(){
   var p=new URLSearchParams(window.location.search);
   if(p.get("intro")){var el=document.getElementById("b-intro");if(el){el.value=decodeURIComponent(p.get("intro"));resumeData.intro=el.value;saveToLocal();}}
 });
+
+function exportWord() {
+  var btns = document.querySelectorAll('button[onclick="exportWord()"]');
+  var btn = btns[0];
+  var origText = "导出 Word";
+  if(btn) {
+    origText = btn.innerText;
+    btn.innerText = "生成中...";
+    btn.disabled = true;
+  }
+  
+  fetch('/api/export-word', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(resumeData)
+  })
+  .then(function(resp) {
+    if (!resp.ok) throw new Error("导出 Word 失败");
+    return resp.blob();
+  })
+  .then(function(blob) {
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (resumeData.basic.name || "未命名") + "_简历.docx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  })
+  .catch(function(err) {
+    alert(err.message);
+  })
+  .finally(function() {
+    if(btn) {
+      btn.innerText = origText;
+      btn.disabled = false;
+    }
+  });
+}
