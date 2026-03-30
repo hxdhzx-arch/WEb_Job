@@ -153,6 +153,32 @@ def create_app():
     def web_resume_page():
         return render_template("web_resume.html")
 
+    @app.route("/personal-site")
+    def personal_site_page():
+        return render_template("personal_site.html")
+
+    # ── AI 个人网站公开路由 ──
+    @app.route("/site/<slug>")
+    def personal_site_public(slug):
+        from backend.models.personal_site import PersonalSite
+        from backend.utils.personal_site_renderer import render_personal_site as _render_site
+        site = PersonalSite.query.filter_by(slug=slug, is_published=True).first()
+        if not site:
+            return render_template("404.html") if _template_exists("404.html") else ("网站不存在", 404)
+
+        # 统计浏览量
+        site.view_count = (site.view_count or 0) + 1
+        try:
+            from backend.extensions import db as _db
+            _db.session.commit()
+        except Exception:
+            pass
+
+        # 服务端渲染
+        html = _render_site(site.site_data, site.site_config)
+        return html
+
+
     # ── 公开预览 API（无需鉴权）──
     @app.route("/api/web-resume/preview-public", methods=["POST"])
     def web_resume_preview_public():

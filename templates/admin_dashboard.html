@@ -8,6 +8,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="/static/admin_dashboard.css">
+
+<!-- Theme Init -->
+<script>
+(function(){
+  var theme = localStorage.getItem("resumeAI_theme");
+  if (!theme) {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem("resumeAI_theme", t);
+  var icon = document.getElementById("theme-toggle-icon");
+  if(icon) {
+    icon.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+}
+</script>
+
 </head>
 <body>
 

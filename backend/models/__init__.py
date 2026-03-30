@@ -13,6 +13,7 @@ from backend.models.verify_code import VerifyCode
 from backend.models.contact_lead import ContactLead
 from backend.models.error_log import ErrorLog
 from backend.models.analytics import AnalyticsEvent
+from backend.models.personal_site import PersonalSite
 
 __all__ = [
     "User", "Plan", "Subscription",
@@ -21,4 +22,5 @@ __all__ = [
     "PromoCode", "PromoUsage",
     "Resume", "Review", "VerifyCode",
     "ContactLead", "ErrorLog", "AnalyticsEvent",
+    "PersonalSite",
 ]

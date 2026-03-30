@@ -9,11 +9,11 @@
 /* ═══ Career Tools Specific Styles ═══ */
 body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;color:#1E293B;padding-top:70px}
 .ct-hero{max-width:960px;margin:0 auto;padding:60px 24px 40px;text-align:center}
-.ct-hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-.03em;color:#1d1d1f;margin-bottom:16px}
+.ct-hero h1{font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-.03em;color:var(--text-main);margin-bottom:16px}
 .ct-hero p{font-size:clamp(16px,2vw,18px);color:#64748B;max-width:600px;margin:0 auto;line-height:1.6}
 
 .tools-grid{max-width:1080px;margin:0 auto 80px;padding:0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:30px}
-.tool-card{background:#fff;border-radius:20px;padding:32px;box-shadow:0 12px 32px rgba(0,0,0,.04);border:1px solid #E2E8F0;transition:all .3s}
+.tool-card{background:var(--bg-card);border-radius:20px;padding:32px;box-shadow:0 12px 32px rgba(0,0,0,.04);border:1px solid #E2E8F0;transition:all .3s}
 
 /* Calculator Section */
 .calc-form{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
@@ -32,7 +32,7 @@ body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Dis
 .offer-item h4{margin:0 0 12px;font-size:15px;color:#0F172A}
 .offer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .remove-offer{position:absolute;top:16px;right:16px;color:#EF4444;cursor:pointer;font-size:12px;font-weight:600}
-.add-offer-btn{width:100%;padding:12px;background:#fff;border:1px dashed #CBD5E1;border-radius:10px;color:#64748B;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;margin-bottom:20px}
+.add-offer-btn{width:100%;padding:12px;background:var(--bg-card);border:1px dashed #CBD5E1;border-radius:10px;color:#64748B;font-weight:600;font-size:14px;cursor:pointer;transition:all .2s;margin-bottom:20px}
 .add-offer-btn:hover{border-color:#3B82F6;color:#3B82F6;background:#EFF6FF}
 .btn-compare{width:100%;padding:14px;background:#10B981;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(16,185,129,.2);transition:all .2s}
 .btn-compare:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(16,185,129,.3)}
@@ -45,6 +45,27 @@ body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Dis
 
 @media(max-width:768px){.tools-grid{grid-template-columns:1fr}}
 </style>
+
+<!-- Theme Init -->
+<script>
+(function(){
+  var theme = localStorage.getItem("resumeAI_theme");
+  if (!theme) {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem("resumeAI_theme", t);
+  var icon = document.getElementById("theme-toggle-icon");
+  if(icon) {
+    icon.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+}
+</script>
+
 </head>
 <body>
 <nav class="nav" style="border-bottom:1px solid #E2E8F0;background:rgba(255,255,255,.9);backdrop-filter:blur(10px)">
@@ -55,6 +76,8 @@ body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Dis
     <a href="/resume" class="nav-link">简历诊断</a>
     <a href="/jd" class="nav-link">JD 匹配</a>
     <a href="/builder" class="nav-link">生成简历</a>
+    <a href="/web-resume" class="nav-link">简历站</a>
+    <a href="/personal-site" class="nav-link-pro">✨ 个人网站</a>
     <a href="/career-tools" class="nav-link active">职场通工具</a>
   </div>
 </div>
@@ -94,7 +117,7 @@ body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Dis
         <span>五险一金扣除: ¥<span id="res-ins">0</span></span>
         <span>个人所得税: ¥<span id="res-tax">0</span></span>
       </div>
-      <div style="font-size:12px;color:#9CA3AF;margin-top:12px">* 此为简化估算模型，不含专项附加扣除，仅供择业参考。</div>
+      <div style="font-size:12px;color:var(--text-hint);margin-top:12px">* 此为简化估算模型，不含专项附加扣除，仅供择业参考。</div>
     </div>
   </div>
 
@@ -112,7 +135,7 @@ body{background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Dis
     
     <div id="compare-result" class="compare-result">
       <h3 style="color:#059669;margin-bottom:12px;font-size:16px">AI 决策建议</h3>
-      <div id="compare-text" style="font-size:14px;line-height:1.7;color:#374151;white-space:pre-wrap"></div>
+      <div id="compare-text" style="font-size:14px;line-height:1.7;color:var(--text-main);white-space:pre-wrap"></div>
     </div>
   </div>
 </div>

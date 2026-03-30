@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI 个人网站专家 - 简历 AI (Canva 版)</title>
+<link rel="stylesheet" href="/static/style.css">
+
+<!-- Theme Init -->
+<script>
+(function(){
+  var theme = localStorage.getItem("resumeAI_theme");
+  if (!theme) {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem("resumeAI_theme", t);
+  var icon = document.getElementById("theme-toggle-icon");
+  if(icon) {
+    icon.textContent = t === 'dark' ? '☀️' : '🌙';
+  }
+}
+</script>
+
+<style>
+/* Canva-style Reset & Scope */
+body {
+    margin: 0; padding: 0;
+    height: 100vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+}
+
+/* Nav */
+.editor-navbar {
+    height: 56px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; flex-shrink: 0; z-index: 100;
+}
+.editor-navbar-left { display: flex; align-items: center; gap: 16px; }
+.editor-navbar-left .back-btn { 
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px; color: var(--text-main); font-weight: 700; transition: background 0.2s; 
+}
+.editor-navbar-left .back-btn:hover { background: var(--bg); }
+.editor-navbar-left .title { font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;}
+.editor-navbar-left .title .badge { background: linear-gradient(135deg, #7C3AED, #2563EB); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; }
+
+.editor-navbar-right { display: flex; align-items: center; gap: 12px; }
+
+/* Workspace */
+.editor-workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Slim Toolbar */
+.slim-sidebar {
+    width: 72px;
+    background: #111111; /* Always dark for extreme contrast, like pro tools */
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 20px; gap: 12px; flex-shrink: 0; z-index: 50;
+}
+[data-theme="dark"] .slim-sidebar { background: #000000; border-right: 1px solid var(--border); }
+
+.slim-tab {
+    width: 60px; height: 60px;
+    border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #8E8E93; cursor: pointer; transition: all 0.2s;
+    font-size: 0.72rem; font-weight: 600; gap: 4px;
+}
+.slim-tab:hover { background: rgba(255,255,255,0.08); color: #FFF; }
+.slim-tab.active { background: rgba(255,255,255,0.15); color: #FFF; }
+.slim-tab .icon { font-size: 1.4rem; }
+
+/* Panel Area */
+.panel-area {
+    width: 340px;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+    transition: width 0.3s;
+    position: relative;
+    z-index: 40;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+}
+
+.panel-content {
+    padding: 24px 20px;
+    overflow-y: auto;
+    flex: 1;
+    display: none;
+}
+.panel-content::-webkit-scrollbar { width: 4px; }
+.panel-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.panel-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }
+
+.panel-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 20px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
+
+/* Canvas Area */
+.canvas-area {
+    flex: 1;
+    background: var(--bg);
+    padding: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    position: relative;
+}
+.canvas-area::-webkit-scrollbar { width: 8px; }
+.canvas-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.canvas-container {
+    width: 100%;
+    max-width: 1000px;
+    height: 800px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-lg);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.canvas-container iframe { width: 100%; height: 100%; border: none; background: #fff; }
+
+.canvas-overlay {
+    position: absolute; inset: 0; 
+    background: rgba(var(--bg-rgb, 255,255,255), 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 20;
+}
+.canvas-overlay.show { opacity: 1; pointer-events: auto; }
+.canvas-overlay-content { text-align: center; }
+.canvas-overlay h2 { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-top: 16px; }
+.canvas-overlay p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px; }
+
+/* Custom Controls */
+.c-prompt-wrap { position: relative; margin-bottom: 24px; }
+.c-textarea {
+    width: 100%; min-height: 140px; padding: 16px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-family: inherit; font-size: 0.9rem; line-height: 1.6;
+    background: var(--bg); color: var(--text-main); resize: vertical;
+    transition: all 0.2s;
+}
+.c-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); background: var(--bg-card);}
+.c-prompt-wrap::after { content: "✨"; position: absolute; right: 14px; top: 14px; font-size: 1.2rem; opacity: 0.6; pointer-events: none;}
+
+.c-upload-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;}
+.c-upload {
+    border: 1.5px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center;
+    cursor: pointer; transition: all 0.2s; position: relative;
+    background: var(--bg);
+}
+.c-upload:hover { border-color: var(--primary); background: var(--primary-light); }
+.c-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.c-upload-icon { font-size: 1.8rem; margin-bottom: 8px; color: var(--text-secondary);}
+.c-upload-label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+.c-upload-name { font-size: 0.75rem; color: var(--primary); margin-top: 6px; }
+.c-upload-preview { max-width: 100%; max-height: 100px; border-radius: 8px; margin-top: 10px; object-fit: cover; display: none; }
+
+.c-style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;}
+.c-style-item {
+    border: 2px solid var(--border); border-radius: 12px; padding: 18px 12px; text-align: center;
+    cursor: pointer; transition: all 0.2s; background: var(--bg-card);
+}
+.c-style-item:hover { border-color: var(--border-focus); transform: translateY(-2px); box-shadow: var(--shadow-sm);}
+.c-style-item.selected { border-color: var(--primary); background: var(--primary-light); }
+.c-style-icon { font-size: 2rem; margin-bottom: 10px; }
+.c-style-name { font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;}
+.c-style-desc { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
+
+.c-btn {
+    width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 800;
+    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: inherit; letter-spacing: -0.01em;
+}
+.c-btn-primary { background: linear-gradient(135deg, #0A84FF, #5E5CE6); color: #FFF; box-shadow: 0 4px 16px rgba(10,132,255,0.25); }
+.c-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(10,132,255,0.35); }
+.c-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.c-btn-success { background: linear-gradient(135deg, #30D158, #34C759); color: #FFF; box-shadow: 0 4px 16px rgba(48,209,88,0.25); }
+.c-btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(48,209,88,0.35); }
+
+.c-btn-secondary { background: var(--bg); color: var(--text-main); border: 1.5px solid var(--border); }
+.c-btn-secondary:hover { background: var(--border); }
+.c-btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+.c-btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; border-radius: 8px;}
+
+/* Data Editor */
+.c-json-editor {
+    width: 100%; min-height: 400px; padding: 16px; border: 1px solid var(--border);
+    border-radius: 12px; font-family: monospace; font-size: 0.8rem; line-height: 1.5;
+    background: var(--bg); color: var(--text-main); resize: vertical; margin-bottom: 16px;
+}
+.c-json-editor:focus { outline: none; border-color: var(--primary); }
+
+.c-form-group { margin-bottom: 20px; }
+.c-form-label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+.c-form-input { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); font-family: inherit; font-size: 0.95rem; outline: none; transition: border-color 0.2s;}
+.c-form-input:focus { border-color: var(--primary); background: var(--bg-card); }
+
+/* Import Banner */
+.c-import-banner {
+    display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--primary-light);
+    border: 1.5px solid rgba(0,122,255,0.2); border-radius: 12px; margin-bottom: 24px;
+}
+.c-import-banner p { font-size: 0.85rem; font-weight: 600; color: var(--primary); line-height: 1.5;}
+
+/* Spinner Animation */
+.ps-spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s cubic-bezier(0.5, 0, 0.5, 1) infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.c-blank-state {
+    text-align: center; color: var(--text-hint);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px;
+}
+.c-blank-icon { font-size: 3rem; opacity: 0.5; }
+
+/* Result Modal equivalent */
+.c-result-box {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-top: 24px; display: none;
+}
+.c-result-box.show { display: block; animation: fadeIn 0.4s ease;}
+.c-result-url-wrap { display: flex; gap: 8px; margin: 12px 0; }
+.c-result-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;}
+
+/* Custom Scrollbars for the whole app */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-hint); }
+
+/* Toasts */
+.ps-toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;padding:12px 28px;border-radius:98px;font-size:.95rem;font-weight:700;z-index:9999;transition:all .3s cubic-bezier(.16,1,.3,1);box-shadow:var(--shadow-lg);pointer-events:none; letter-spacing: -0.01em;}
+.ps-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ps-toast.success{background:var(--accent);color:#fff}
+.ps-toast.error{background:var(--danger);color:#fff}
+
+@media(max-width: 768px) {
+    .editor-workspace { flex-direction: column; height: auto;}
+    .slim-sidebar { width: 100%; height: 64px; flex-direction: row; padding: 0 16px; justify-content: space-around; }
+    .slim-tab { width: auto; height: 100%; padding: 0 12px; border-radius: 0; }
+    .panel-area { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+    .canvas-area { padding: 16px; min-height: 60vh;}
+    .canvas-container { height: 100%; min-height: 500px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<nav class="editor-navbar">
+    <div class="editor-navbar-left">
+        <a href="/" class="back-btn">←</a>
+        <div class="title">个人网站专家 <span class="badge">PRO</span></div>
+    </div>
+    <div class="editor-navbar-right">
+        <button class="c-btn c-btn-secondary c-btn-sm" onclick="doPreview()" id="refresh-btn" style="display:none">↻ 刷新画布</button>
+        <button class="c-btn c-btn-primary c-btn-sm" onclick="switchTab('tab-publish')" id="nav-publish-btn" style="display:none">🚀 发布</button>
+        <button onclick="toggleTheme()" class="c-btn c-btn-secondary c-btn-sm" id="theme-switch" style="border:none;background:transparent;font-size:1.2rem;padding:4px"><span id="theme-toggle-icon">🌙</span></button>
+    </div>
+</nav>
+
+<!-- Main Workspace -->
+<div class="editor-workspace">
+    
+    <!-- 1. Slim Sidebar -->
+    <div class="slim-sidebar">
+        <div class="slim-tab active" data-target="tab-design" onclick="switchTab('tab-design')">
+            <span class="icon">✨</span>
+            <span>生成</span>
+        </div>
+        <div class="slim-tab" data-target="tab-style" onclick="switchTab('tab-style')">
+            <span class="icon">🎨</span>
+            <span>模板</span>
+        </div>
+        <div class="slim-tab" data-target="tab-data" onclick="switchTab('tab-data')">
+            <span class="icon">⚙️</span>
+            <span>数据</span>
+        </div>
+        <div class="slim-tab" data-target="tab-publish" onclick="switchTab('tab-publish')">
+            <span class="icon">🚀</span>
+            <span>发布</span>
+        </div>
+    </div>
+
+    <!-- 2. Action Panel Area -->
+    <div class="panel-area">
+        
+        <!-- Tab 1: Design / Generation -->
+        <div class="panel-content active" id="tab-design">
+            <div class="panel-title">AI 一键生成</div>
+            
+            <div class="c-import-banner" id="import-hint" style="display:none">
+                <p>💡 检测到您的简历编辑器中有缓存数据，可以无需输入直接一键转换！</p>
+                <button class="c-btn c-btn-primary c-btn-sm" onclick="importFromBuilder()">从该简历生成</button>
+            </div>
+
+            <div class="c-prompt-wrap">
+                <textarea class="c-textarea" id="prompt-input" placeholder="输入一句话描述，例如：帮我做一个极简、科技感、适合前端工程师求职的个人网站，带项目经历和博客入口..."></textarea>
+            </div>
+            
+            <div class="c-upload-group">
+                <div class="c-upload" id="pdf-zone">
+                    <input type="file" accept=".pdf" id="pdf-input" onchange="handlePdf(this)">
+                    <div class="c-upload-icon">📄</div>
+                    <div class="c-upload-label">上传 PDF 简历辅助生成 (可选)</div>
+                    <div id="pdf-name" class="c-upload-name" style="display:none"></div>
+                </div>
+                <div class="c-upload" id="avatar-zone">
+                    <input type="file" accept="image/*" id="avatar-input" onchange="handleAvatar(this)">
+                    <div class="c-upload-icon">📷</div>
+                    <div class="c-upload-label">上传网站头像 (可选)</div>
+                    <img id="avatar-preview" class="c-upload-preview">
+                </div>
+            </div>
+
+            <button class="c-btn c-btn-primary" id="btn-generate" onclick="doGenerate()">生成网站方案</button>
+        </div>
+
+        <!-- Tab 2: Style / Templates -->
+        <div class="panel-content" id="tab-style">
+            <div class="panel-title">模板库</div>
+            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:20px;line-height:1.5">随时无损切换模板，内容将被自动重新排布为新风格。</p>
+            
+            <div class="c-style-grid" id="style-grid">
+                <div class="c-style-item selected" data-style="modern" onclick="pickStyle('modern',this)">
+                    <div class="c-style-icon">🚀</div>
+                    <div class="c-style-name">科技感</div>
+                    <div class="c-style-desc">苹果风 · 毛玻璃效果</div>
+                </div>
+                <div class="c-style-item" data-style="minimal" onclick="pickStyle('minimal',this)">
+                    <div class="c-style-icon">📃</div>
+                    <div class="c-style-name">大白极简</div>
+                    <div class="c-style-desc">干净留白 · 重点清晰</div>
+                </div>
+                <div class="c-style-item" data-style="card" onclick="pickStyle('card',this)">
+                    <div class="c-style-icon">🃏</div>
+                    <div class="c-style-name">区块卡片</div>
+                    <div class="c-style-desc">模块化展示 · 直观体验</div>
+                </div>
+                <div class="c-style-item" data-style="blog" onclick="pickStyle('blog',this)">
+                    <div class="c-style-icon">📝</div>
+                    <div class="c-style-name">博文展示</div>
+                    <div class="c-style-desc">温和色调 · 注重阅读</div>
+                </div>
+            </div>
+            
+            <div style="margin-top:20px; text-align:center">
+                <button class="c-btn c-btn-primary" id="btn-apply-style" onclick="doPreview()" style="display:none">应用到画布</button>
+                <p id="style-hint" style="color:var(--text-hint); font-size:0.8rem">请先在「生成」面板创建内容</p>
+            </div>
+        </div>
+
+        <!-- Tab 3: Data JSON -->
+        <div class="panel-content" id="tab-data">
+            <div class="panel-title">高级：数据源配置</div>
+            <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:16px;">在这里您可以手动微调 AI 生成的节点，点击应用即可呈现。</p>
+            
+            <textarea class="c-json-editor" id="data-json" placeholder="这里将显示生成的 JSON 原始数据..."></textarea>
+            
+            <button class="c-btn c-btn-secondary" id="btn-save-data" onclick="applyDataEdit()" disabled>覆盖并渲染</button>
+        </div>
+
+        <!-- Tab 4: Publish & Export -->
+        <div class="panel-content" id="tab-publish">
+            <div class="panel-title">发布分享</div>
+            
+            <div class="c-form-group">
+                <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">一键将右侧画布中的静态代码部署上线，获得属于你的永久公网链接。</p>
+            </div>
+
+            <button class="c-btn c-btn-success" id="btn-publish" onclick="doPublish()" disabled>🚀 在线发布</button>
+            <button class="c-btn c-btn-outline" id="btn-export" onclick="doExport()" disabled style="margin-top:16px">⬇️ 导出离线 HTML</button>
+
+            <!-- Result Box -->
+            <div class="c-result-box" id="publish-result">
+                <h3 style="font-size:1rem;color:#34C759;margin-bottom:8px">🎉 网站成功上线！</h3>
+                <p style="font-size:0.8rem;color:var(--text-secondary);">你可以把这个链接挂在求职信或微信基本信息里。</p>
+                <div class="c-result-url-wrap">
+                    <input type="text" id="result-url" class="c-form-input" readonly style="padding:10px;font-size:0.8rem">
+                </div>
+                <div class="c-result-actions">
+                    <button class="c-btn c-btn-secondary c-btn-sm" onclick="copyUrl()">🔗 复制链接</button>
+                    <a id="result-link" href="#" target="_blank" class="c-btn c-btn-primary c-btn-sm" style="text-decoration:none">🌐 访问主页</a>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- 3. Main Canvas Area -->
+    <div class="canvas-area">
+        <div class="canvas-container">
+            <div class="c-blank-state" id="canvas-blank">
+                <div class="c-blank-icon">✨</div>
+                <h3 style="font-size:1.2rem;font-weight:800;color:var(--text-main);">您的排版画布</h3>
+                <p style="font-size:0.9rem">在左侧栏使用 AI 生成您的网站数据<br>结果会在这里实时展现</p>
+            </div>
+            <iframe id="preview-iframe" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+            
+            <!-- Loading Overlay -->
+            <div class="canvas-overlay" id="canvas-overlay">
+                <div class="ps-spinner" style="width:40px;height:40px;border-width:4px;"></div>
+                <div class="canvas-overlay-content">
+                    <h2 id="overlay-title">AI 设计引擎渲染中</h2>
+                    <p id="overlay-desc">正在组合模板风格与您的个人信息...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="ps-toast" id="ps-toast"></div>
+
+<script>
+/* ══ State variables ══ */
+var selectedStyle = 'modern';
+var siteData = null;
+var previewHtml = '';
+var pdfFile = null;
+var avatarB64 = '';
+var TOKEN = localStorage.getItem('admin_token') || '';
+
+/* ══ UI Interactions ══ */
+function switchTab(tabId) {
+    document.querySelectorAll('.slim-tab').forEach(function(el) { el.classList.remove('active'); });
+    document.querySelector('.slim-tab[data-target="'+tabId+'"]').classList.add('active');
+    
+    document.querySelectorAll('.panel-content').forEach(function(el) { el.classList.remove('active'); });
+    document.getElementById(tabId).classList.add('active');
+}
+
+function toast(msg, type) {
+  var el = document.getElementById('ps-toast');
+  el.textContent = msg;
+  el.className = 'ps-toast ' + (type || 'success') + ' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.classList.remove('show'); }, 3500);
+}
+
+function showOverlay(title, desc) {
+    document.getElementById('overlay-title').textContent = title || "AI 执行中";
+    document.getElementById('overlay-desc').textContent = desc || "请稍候...";
+    document.getElementById('canvas-overlay').classList.add('show');
+}
+function hideOverlay() {
+    document.getElementById('canvas-overlay').classList.remove('show');
+}
+
+/* ══ Setup Pick Style ══ */
+function pickStyle(s, el) {
+    selectedStyle = s;
+    document.querySelectorAll('.c-style-item').forEach(function(c){c.classList.remove('selected');});
+    el.classList.add('selected');
+    
+    // Auto refresh if we have data
+    if (siteData) {
+        doPreview();
+    }
+}
+
+/* ══ Setup Uploads ══ */
+function handlePdf(input) {
+  if (!input.files || !input.files[0]) return;
+  pdfFile = input.files[0];
+  var el = document.getElementById('pdf-name');
+  el.textContent = '📄 ' + pdfFile.name;
+  el.style.display = 'block';
+}
+
+function handleAvatar(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    avatarB64 = e.target.result;
+    var img = document.getElementById('avatar-preview');
+    img.src = avatarB64;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+/* ══ Core: Generate from API ══ */
+function doGenerate() {
+  var prompt = document.getElementById('prompt-input').value.trim();
+  if (!prompt && !pdfFile && !siteData) {
+    toast('请输入描述或上传 PDF', 'error');
+    return;
+  }
+
+  showOverlay("AI 提取架构中", "正在从您的描述解析模块结构...");
+  var btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+
+  if (pdfFile) {
+    var fd = new FormData();
+    fd.append('prompt', prompt);
+    fd.append('pdf', pdfFile);
+    if (avatarB64) {
+      var avatarInput = document.getElementById('avatar-input');
+      if (avatarInput.files && avatarInput.files[0]) {
+        fd.append('avatar', avatarInput.files[0]);
+      }
+    }
+    fetch('/api/v1/personal-site/generate', { method: 'POST', body: fd })
+      .then(handleGenResponse)
+      .catch(handleGenError)
+      .finally(function() { btn.disabled = false; hideOverlay(); });
+  } else {
+    fetch('/api/v1/personal-site/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt, resume_data: siteData ? null : undefined}) // fallback
+    })
+      .then(handleGenResponse)
+      .catch(handleGenError)
+      .finally(function() { btn.disabled = false; hideOverlay(); });
+  }
+}
+
+function handleGenResponse(r) { return r.json().then(processGenResult); }
+function processGenResult(d) {
+    if (!d.success) { toast(d.message || '生成结构失败', 'error'); return; }
+    
+    siteData = d.data.site_data;
+    if (avatarB64 && siteData.hero) { siteData.hero.avatar = avatarB64; }
+    
+    toast('✅ 结构映射成功', 'success');
+    
+    // Unlock advanced tabs & UI elements
+    updateUIStateForDataReady();
+    
+    // Switch to Style tab (or keep it as is) to render preview
+    doPreview();
+}
+function handleGenError(e) { toast('服务器错误: ' + e.message, 'error'); }
+
+/* ══ Builder Data Pipeline ══ */
+function checkBuilderData() {
+  try {
+    var saved = localStorage.getItem('resumeAI_data');
+    if (saved) {
+      var data = JSON.parse(saved);
+      if (data.basic && data.basic.name) {
+        document.getElementById('import-hint').style.display = 'flex';
+      }
+    }
+  } catch(e) {}
+}
+
+function importFromBuilder() {
+  try {
+    var data = JSON.parse(localStorage.getItem('resumeAI_data'));
+    if (!data) return;
+    showOverlay("正在转换结构", "将简历数据解析为网站模块...");
+    fetch('/api/v1/personal-site/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resume_data: data })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.success) {
+        siteData = d.data.site_data;
+        document.getElementById('import-hint').style.display = 'none';
+        toast('导入数据成功，开始排版', 'success');
+        updateUIStateForDataReady();
+        doPreview();
+      } else {
+          toast(d.message, 'error');
+      }
+    })
+    .catch(function(e) { toast('转换失败', 'error'); })
+    .finally(function(){ hideOverlay(); });
+  } catch(e) { toast('转换异常', 'error'); hideOverlay();}
+}
+
+/* ══ Core: Theming / Render ══ */
+function updateUIStateForDataReady() {
+    // Fill JSON editor
+    document.getElementById('data-json').value = JSON.stringify(siteData, null, 2);
+    // Enable buttons
+    document.getElementById('btn-save-data').disabled = false;
+    document.getElementById('btn-publish').disabled = false;
+    document.getElementById('btn-export').disabled = false;
+    document.getElementById('btn-apply-style').style.display = '';
+    document.getElementById('refresh-btn').style.display = '';
+    document.getElementById('nav-publish-btn').style.display = '';
+    document.getElementById('style-hint').textContent = "风格支持一键无感切换";
+    
+    // Hide blank state
+    document.getElementById('canvas-blank').style.display = 'none';
+}
+
+function applyDataEdit() {
+  try {
+    siteData = JSON.parse(document.getElementById('data-json').value);
+    toast('数据配置已更新', 'success');
+    doPreview();
+    switchTab('tab-style');
+  } catch(e) {
+    toast('JSON 格式拼写错误', 'error');
+  }
+}
+
+function doPreview() {
+  if (!siteData) { return; }
+  
+  showOverlay("渲染排版结果", "应用 " + selectedStyle + " 风格模板...");
+  
+  fetch('/api/v1/personal-site/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ site_data: siteData, style: selectedStyle })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      previewHtml = d.data.html;
+      document.getElementById('preview-iframe').srcdoc = previewHtml;
+    } else {
+      toast(d.message || '画布渲染失败', 'error');
+    }
+  })
+  .catch(function(e) { toast('渲染请求异常', 'error'); })
+  .finally(function() { hideOverlay(); });
+}
+
+/* ══ Core: Publish & Export ══ */
+function doPublish() {
+  if (!siteData) return;
+  var btn = document.getElementById('btn-publish');
+  btn.disabled = true; 
+  showOverlay("推送至公网", "正在分配免费站点并执行最后编译...");
+
+  var headers = { 'Content-Type': 'application/json' };
+  if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
+
+  fetch('/api/v1/personal-site/publish', {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      site_data: siteData,
+      site_config: { style: selectedStyle },
+      prompt: document.getElementById('prompt-input').value.trim()
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.success) {
+      var url = location.origin + d.data.url;
+      document.getElementById('result-url').value = url;
+      document.getElementById('result-link').href = d.data.url;
+      document.getElementById('publish-result').classList.add('show');
+      toast('🎉 网站发布成功', 'success');
+    } else if (d._status === 401 || d.message && d.message.indexOf('登录') >= 0) {
+      toast('请进行后台管理员或用户登录认证', 'error');
+    } else {
+      toast(d.message || '发布服务器错误', 'error');
+    }
+  })
+  .catch(function(e) { toast('网络错误', 'error'); })
+  .finally(function() { btn.disabled = false; hideOverlay(); });
+}
+
+function doExport() {
+  if (previewHtml) {
+    downloadHtml(previewHtml);
+    return;
+  }
+  if (!siteData) { toast('请先完成设计排版', 'error'); return; }
+  fetch('/api/v1/personal-site/export-html', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ site_data: siteData, style: selectedStyle })
+  })
+  .then(function(r) { return r.text(); })
+  .then(function(html) { downloadHtml(html); })
+  .catch(function() { toast('代码封包失败', 'error'); });
+}
+
+function downloadHtml(html) {
+  var name = (siteData && siteData.hero && siteData.hero.name) || 'my_personal_site';
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('代码离线包就绪', 'success');
+}
+
+function copyUrl() {
+  var input = document.getElementById('result-url');
+  input.select();
+  document.execCommand('copy');
+  toast('链接已存入剪贴板', 'success');
+}
+
+/* Init */
+checkBuilderData();
+</script>
+</body>
+</html>
