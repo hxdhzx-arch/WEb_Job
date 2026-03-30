@@ -33,25 +33,28 @@ body {
     height: 100vh;
     display: flex; flex-direction: column;
     overflow: hidden;
-    background: var(--bg);
+    background: #f1f2f6;
+    color: #1f2937;
+    font-family: "Inter","PingFang SC","Microsoft YaHei",sans-serif;
 }
 
 /* Nav */
 .editor-navbar {
-    height: 56px;
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
+    height: 64px;
+    background: linear-gradient(90deg, #33b6d8 0%, #3a68f3 52%, #7a3ff0 100%);
+    border-bottom: none;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 20px; flex-shrink: 0; z-index: 100;
+    color: #fff;
 }
 .editor-navbar-left { display: flex; align-items: center; gap: 16px; }
-.editor-navbar-left .back-btn { 
+.editor-navbar-left .back-btn {
     display: flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px; border-radius: 8px; color: var(--text-main); font-weight: 700; transition: background 0.2s; 
+    width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; transition: background 0.2s;
 }
-.editor-navbar-left .back-btn:hover { background: var(--bg); }
-.editor-navbar-left .title { font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;}
-.editor-navbar-left .title .badge { background: linear-gradient(135deg, #7C3AED, #2563EB); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; }
+.editor-navbar-left .back-btn:hover { background: rgba(255,255,255,0.14); }
+.editor-navbar-left .title { font-weight: 700; font-size: 1.02rem; display: flex; align-items: center; gap: 8px;}
+.editor-navbar-left .title .badge { background: rgba(255,255,255,0.2); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; }
 
 .editor-navbar-right { display: flex; align-items: center; gap: 12px; }
 
@@ -60,39 +63,39 @@ body {
     display: flex;
     flex: 1;
     overflow: hidden;
+    background: #eceef3;
 }
 
 /* Left Slim Toolbar */
 .slim-sidebar {
     width: 72px;
-    background: #111111; /* Always dark for extreme contrast, like pro tools */
+    background: #f7f8fa;
     display: flex; flex-direction: column; align-items: center;
-    padding-top: 20px; gap: 12px; flex-shrink: 0; z-index: 50;
+    padding-top: 18px; gap: 6px; flex-shrink: 0; z-index: 50;
+    border-right: 1px solid #e5e7eb;
 }
-[data-theme="dark"] .slim-sidebar { background: #000000; border-right: 1px solid var(--border); }
-
 .slim-tab {
-    width: 60px; height: 60px;
-    border-radius: 12px;
+    width: 54px; height: 58px;
+    border-radius: 10px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #8E8E93; cursor: pointer; transition: all 0.2s;
+    color: #4b5563; cursor: pointer; transition: all 0.2s;
     font-size: 0.72rem; font-weight: 600; gap: 4px;
 }
-.slim-tab:hover { background: rgba(255,255,255,0.08); color: #FFF; }
-.slim-tab.active { background: rgba(255,255,255,0.15); color: #FFF; }
-.slim-tab .icon { font-size: 1.4rem; }
+.slim-tab:hover { background: #eceff5; color: #111827; }
+.slim-tab.active { background: #1f1f1f; color: #fff; }
+.slim-tab .icon { font-size: 1.25rem; }
 
 /* Panel Area */
 .panel-area {
-    width: 340px;
-    background: var(--bg-card);
-    border-right: 1px solid var(--border);
+    width: 360px;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
     display: flex; flex-direction: column;
     flex-shrink: 0;
     transition: width 0.3s;
     position: relative;
     z-index: 40;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.02);
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.03);
 }
 
 .panel-content {
@@ -112,8 +115,8 @@ body {
 /* Canvas Area */
 .canvas-area {
     flex: 1;
-    background: var(--bg);
-    padding: 32px;
+    background: #eceef3;
+    padding: 22px 24px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -125,20 +128,22 @@ body {
 
 .canvas-container {
     width: 100%;
-    max-width: 1000px;
-    height: 800px;
-    background: var(--bg-card);
-    box-shadow: var(--shadow-lg);
-    border-radius: 12px;
+    max-width: 1120px;
+    height: calc(100vh - 132px);
+    min-height: 560px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(31,41,55,0.08);
+    border-radius: 10px;
     overflow: hidden;
     position: relative;
     transition: all 0.3s;
+    border: 1px solid #d7d9e2;
 }
 
 .canvas-container iframe { width: 100%; height: 100%; border: none; background: #fff; }
 
 .canvas-overlay {
-    position: absolute; inset: 0; 
+    position: absolute; inset: 0;
     background: rgba(var(--bg-rgb, 255,255,255), 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     display: flex; align-items: center; justify-content: center;
     flex-direction: column; gap: 16px;
@@ -154,7 +159,7 @@ body {
 .c-textarea {
     width: 100%; min-height: 140px; padding: 16px; border: 1.5px solid var(--border);
     border-radius: 12px; font-family: inherit; font-size: 0.9rem; line-height: 1.6;
-    background: var(--bg); color: var(--text-main); resize: vertical;
+    background: #f6f7fb; color: var(--text-main); resize: vertical;
     transition: all 0.2s;
 }
 .c-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); background: var(--bg-card);}
@@ -164,7 +169,7 @@ body {
 .c-upload {
     border: 1.5px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center;
     cursor: pointer; transition: all 0.2s; position: relative;
-    background: var(--bg);
+    background: #f8f9fc;
 }
 .c-upload:hover { border-color: var(--primary); background: var(--primary-light); }
 .c-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -226,8 +231,9 @@ body {
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .c-blank-state {
-    text-align: center; color: var(--text-hint);
+    text-align: center; color: #9ca3af;
     display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px;
+    background: linear-gradient(180deg, #fbfcff 0%, #f1f3f9 100%);
 }
 .c-blank-icon { font-size: 3rem; opacity: 0.5; }
 
@@ -267,19 +273,19 @@ body {
 <!-- Header -->
 <nav class="editor-navbar">
     <div class="editor-navbar-left">
-        <a href="/" class="back-btn">←</a>
+        <a href="/" class="back-btn">⌂</a>
         <div class="title">个人网站专家 <span class="badge">PRO</span></div>
     </div>
     <div class="editor-navbar-right">
-        <button class="c-btn c-btn-secondary c-btn-sm" onclick="doPreview()" id="refresh-btn" style="display:none">↻ 刷新画布</button>
-        <button class="c-btn c-btn-primary c-btn-sm" onclick="switchTab('tab-publish')" id="nav-publish-btn" style="display:none">🚀 发布</button>
-        <button onclick="toggleTheme()" class="c-btn c-btn-secondary c-btn-sm" id="theme-switch" style="border:none;background:transparent;font-size:1.2rem;padding:4px"><span id="theme-toggle-icon">🌙</span></button>
+        <button class="c-btn c-btn-secondary c-btn-sm" onclick="doPreview()" id="refresh-btn" style="display:none;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.24);color:#fff">↻ 刷新画布</button>
+        <button class="c-btn c-btn-primary c-btn-sm" onclick="switchTab('tab-publish')" id="nav-publish-btn" style="display:none;background:#ffffff;color:#374151">🚀 发布网站</button>
+        <button onclick="toggleTheme()" class="c-btn c-btn-secondary c-btn-sm" id="theme-switch" style="border:none;background:rgba(255,255,255,0.14);color:#fff;font-size:1.2rem;padding:4px"><span id="theme-toggle-icon">🌙</span></button>
     </div>
 </nav>
 
 <!-- Main Workspace -->
 <div class="editor-workspace">
-    
+
     <!-- 1. Slim Sidebar -->
     <div class="slim-sidebar">
         <div class="slim-tab active" data-target="tab-design" onclick="switchTab('tab-design')">
@@ -302,20 +308,20 @@ body {
 
     <!-- 2. Action Panel Area -->
     <div class="panel-area">
-        
+
         <!-- Tab 1: Design / Generation -->
         <div class="panel-content active" id="tab-design">
             <div class="panel-title">AI 一键生成</div>
-            
+
             <div class="c-import-banner" id="import-hint" style="display:none">
                 <p>💡 检测到您的简历编辑器中有缓存数据，可以无需输入直接一键转换！</p>
                 <button class="c-btn c-btn-primary c-btn-sm" onclick="importFromBuilder()">从该简历生成</button>
             </div>
 
             <div class="c-prompt-wrap">
-                <textarea class="c-textarea" id="prompt-input" placeholder="输入一句话描述，例如：帮我做一个极简、科技感、适合前端工程师求职的个人网站，带项目经历和博客入口..."></textarea>
+                <textarea class="c-textarea" id="prompt-input" placeholder="描述你的理想设计，例如：极简科技风、适合前端求职、突出项目和联系方式"></textarea>
             </div>
-            
+
             <div class="c-upload-group">
                 <div class="c-upload" id="pdf-zone">
                     <input type="file" accept=".pdf" id="pdf-input" onchange="handlePdf(this)">
@@ -338,7 +344,7 @@ body {
         <div class="panel-content" id="tab-style">
             <div class="panel-title">模板库</div>
             <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:20px;line-height:1.5">随时无损切换模板，内容将被自动重新排布为新风格。</p>
-            
+
             <div class="c-style-grid" id="style-grid">
                 <div class="c-style-item selected" data-style="modern" onclick="pickStyle('modern',this)">
                     <div class="c-style-icon">🚀</div>
@@ -361,7 +367,7 @@ body {
                     <div class="c-style-desc">温和色调 · 注重阅读</div>
                 </div>
             </div>
-            
+
             <div style="margin-top:20px; text-align:center">
                 <button class="c-btn c-btn-primary" id="btn-apply-style" onclick="doPreview()" style="display:none">应用到画布</button>
                 <p id="style-hint" style="color:var(--text-hint); font-size:0.8rem">请先在「生成」面板创建内容</p>
@@ -372,16 +378,16 @@ body {
         <div class="panel-content" id="tab-data">
             <div class="panel-title">高级：数据源配置</div>
             <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:16px;">在这里您可以手动微调 AI 生成的节点，点击应用即可呈现。</p>
-            
+
             <textarea class="c-json-editor" id="data-json" placeholder="这里将显示生成的 JSON 原始数据..."></textarea>
-            
+
             <button class="c-btn c-btn-secondary" id="btn-save-data" onclick="applyDataEdit()" disabled>覆盖并渲染</button>
         </div>
 
         <!-- Tab 4: Publish & Export -->
         <div class="panel-content" id="tab-publish">
             <div class="panel-title">发布分享</div>
-            
+
             <div class="c-form-group">
                 <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">一键将右侧画布中的静态代码部署上线，获得属于你的永久公网链接。</p>
             </div>
@@ -402,7 +408,7 @@ body {
                 </div>
             </div>
         </div>
-        
+
     </div>
 
     <!-- 3. Main Canvas Area -->
@@ -414,7 +420,7 @@ body {
                 <p style="font-size:0.9rem">在左侧栏使用 AI 生成您的网站数据<br>结果会在这里实时展现</p>
             </div>
             <iframe id="preview-iframe" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
-            
+
             <!-- Loading Overlay -->
             <div class="canvas-overlay" id="canvas-overlay">
                 <div class="ps-spinner" style="width:40px;height:40px;border-width:4px;"></div>
@@ -443,7 +449,7 @@ var TOKEN = localStorage.getItem('admin_token') || '';
 function switchTab(tabId) {
     document.querySelectorAll('.slim-tab').forEach(function(el) { el.classList.remove('active'); });
     document.querySelector('.slim-tab[data-target="'+tabId+'"]').classList.add('active');
-    
+
     document.querySelectorAll('.panel-content').forEach(function(el) { el.classList.remove('active'); });
     document.getElementById(tabId).classList.add('active');
 }
@@ -470,7 +476,7 @@ function pickStyle(s, el) {
     selectedStyle = s;
     document.querySelectorAll('.c-style-item').forEach(function(c){c.classList.remove('selected');});
     el.classList.add('selected');
-    
+
     // Auto refresh if we have data
     if (siteData) {
         doPreview();
@@ -539,15 +545,15 @@ function doGenerate() {
 function handleGenResponse(r) { return r.json().then(processGenResult); }
 function processGenResult(d) {
     if (!d.success) { toast(d.message || '生成结构失败', 'error'); return; }
-    
+
     siteData = d.data.site_data;
     if (avatarB64 && siteData.hero) { siteData.hero.avatar = avatarB64; }
-    
+
     toast('✅ 结构映射成功', 'success');
-    
+
     // Unlock advanced tabs & UI elements
     updateUIStateForDataReady();
-    
+
     // Switch to Style tab (or keep it as is) to render preview
     doPreview();
 }
@@ -605,7 +611,7 @@ function updateUIStateForDataReady() {
     document.getElementById('refresh-btn').style.display = '';
     document.getElementById('nav-publish-btn').style.display = '';
     document.getElementById('style-hint').textContent = "风格支持一键无感切换";
-    
+
     // Hide blank state
     document.getElementById('canvas-blank').style.display = 'none';
 }
@@ -623,9 +629,9 @@ function applyDataEdit() {
 
 function doPreview() {
   if (!siteData) { return; }
-  
+
   showOverlay("渲染排版结果", "应用 " + selectedStyle + " 风格模板...");
-  
+
   fetch('/api/v1/personal-site/preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -648,7 +654,7 @@ function doPreview() {
 function doPublish() {
   if (!siteData) return;
   var btn = document.getElementById('btn-publish');
-  btn.disabled = true; 
+  btn.disabled = true;
   showOverlay("推送至公网", "正在分配免费站点并执行最后编译...");
 
   var headers = { 'Content-Type': 'application/json' };
