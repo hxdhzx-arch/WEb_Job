@@ -145,6 +145,10 @@ def create_app():
     def career_tools_page():
         return render_template("career_tools.html")
 
+    @app.route("/dashboard")
+    def user_dashboard():
+        return render_template("user_dashboard.html")
+
     @app.route("/admin-panel")
     def admin_panel():
         return render_template("admin_dashboard.html")

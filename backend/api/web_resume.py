@@ -88,6 +88,11 @@ def create_web_resume_bp():
         elif data.get("remove_password"):
             resume.set_password(None)
 
+        if "seo_title" in data:
+            resume.seo_title = data["seo_title"]
+        if "seo_description" in data:
+            resume.seo_description = data["seo_description"]
+
         db.session.commit()
 
         return jsonify({
@@ -99,6 +104,38 @@ def create_web_resume_bp():
                 "published_at": resume.published_at.isoformat(),
             }
         })
+
+    # ── 自动保存 (Auto Save) ──
+    @bp.route("/resume/auto-save", methods=["POST"])
+    @auth_required()
+    def auto_save_resume(current_user):
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "message": "缺少数据"}), 400
+
+        resume_id = data.get("resume_id")
+        if resume_id:
+            resume = Resume.query.filter_by(id=resume_id, user_id=current_user.id).first()
+            if not resume:
+                return jsonify({"success": False, "message": "简历不存在"}), 404
+        else:
+            resume = Resume(user_id=current_user.id)
+            db.session.add(resume)
+            
+        name = data.get("resume_data", {}).get("basic", {}).get("name", "未命名")
+        resume.title = data.get("title") or f"{name}的简历"
+        
+        if "resume_data" in data:
+            resume.resume_data = data["resume_data"]
+        if "template_config" in data:
+            resume.template_config = data["template_config"]
+        if "seo_title" in data:
+            resume.seo_title = data["seo_title"]
+        if "seo_description" in data:
+            resume.seo_description = data["seo_description"]
+
+        db.session.commit()
+        return jsonify({"success": True, "data": {"resume_id": resume.id}})
 
     # ── 获取发布状态 ──
     @bp.route("/resume/publish/<int:resume_id>", methods=["GET"])

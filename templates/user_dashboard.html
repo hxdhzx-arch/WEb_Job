@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>我的工作台 - 简历 AI / 网站中心</title>
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <script>
+    (function(){
+      var theme = localStorage.getItem("resumeAI_theme");
+      if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+    function toggleTheme() {
+      var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      localStorage.setItem("resumeAI_theme", t);
+      var icon = document.getElementById("theme-toggle-icon");
+      if(icon) icon.textContent = t === 'dark' ? '☀️' : '🌙';
+    }
+    </script>
+    
+    <style>
+    /* Canva-style Dashboard Reset */
+    body { background: var(--bg); color: var(--text-main); font-family: "Inter","PingFang SC",sans-serif; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Top Header */
+    .ds-header { height: 64px; background: var(--bg-nav); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; position: sticky; top: 0; }
+    .ds-header-left { display: flex; align-items: center; gap: 24px; }
+    .ds-logo { font-size: 1.1rem; font-weight: 800; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+    .ds-logo span { background: linear-gradient(135deg, var(--primary), #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .ds-header-right { display: flex; align-items: center; gap: 16px; }
+    
+    /* Layout */
+    .ds-layout { display: flex; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%; padding: 40px 32px; gap: 40px; }
+    
+    /* Sidebar */
+    .ds-sidebar { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+    .ds-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; cursor: pointer; border: none; background: transparent; text-align: left; width: 100%; }
+    .ds-nav-item:hover { background: var(--bg-hover); }
+    .ds-nav-item.active { background: var(--primary-light); color: var(--primary); }
+    .ds-nav-icon { opacity: 0.7; font-size: 1.1rem; }
+    .ds-nav-item.active .ds-nav-icon { opacity: 1; color: var(--primary); }
+    
+    /* Main Content */
+    .ds-main { flex: 1; display: flex; flex-direction: column; }
+    .ds-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+    .ds-title { font-size: 1.6rem; font-weight: 800; }
+    .ds-actions { display: flex; gap: 12px; }
+    
+    /* Project Grid */
+    .ds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    .ds-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; display: flex; flex-direction: column; height: 320px; }
+    .ds-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--border-focus); }
+    
+    .ds-card-cover { height: 160px; background: var(--bg-hover); position: relative; border-bottom: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+    .ds-card-img { width: 100%; height: 100%; object-fit: cover; }
+    .ds-card-type { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; background: rgba(0,0,0,0.6); color: #fff; backdrop-filter: blur(4px); letter-spacing: 0.02em; }
+    .ds-card-status { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(255,255,255,0.8); }
+    .ds-card-status.online { background: #10B981; }
+    .ds-card-status.draft { background: #F59E0B; }
+    
+    .ds-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .ds-card-title { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ds-card-meta { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: auto; display: flex; align-items: center; gap: 12px; }
+    .ds-card-meta span { display: flex; align-items: center; gap: 4px; }
+    
+    .ds-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .ds-card-link { font-size: 0.85rem; color: var(--primary); text-decoration: none; font-weight: 600; }
+    .ds-card-link:hover { text-decoration: underline; }
+    
+    /* Dropdown */
+    .ds-menu-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; font-size: 1.2rem; }
+    .ds-menu-btn:hover { background: var(--bg-hover); color: var(--text-main); }
+    
+    .ds-dropdown { position: absolute; bottom: 50px; right: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); width: 160px; padding: 8px 0; z-index: 20; opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.2s; }
+    .ds-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    .ds-dropdown-item { padding: 10px 16px; display: block; width: 100%; text-align: left; border: none; background: transparent; color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    .ds-dropdown-item:hover { background: var(--bg-hover); color: var(--primary); }
+    .ds-dropdown-item.danger:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+    
+    /* Buttons Form UI */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 20px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #8B5CF6); color: #fff; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2); }
+    .btn-primary:hover { box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3); transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    
+    .form-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .form-input:focus { border-color: var(--primary); }
+    
+    /* Modal */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; padding: 20px; }
+    .modal-backdrop.show { opacity: 1; pointer-events: auto; }
+    .modal-box { background: var(--bg-card); border-radius: 16px; padding: 32px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.3s; }
+    .modal-backdrop.show .modal-box { transform: translateY(0); }
+    .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 12px; }
+    .modal-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+    
+    /* Empty State */
+    .empty-state { padding: 80px 0; text-align: center; color: var(--text-secondary); }
+    .empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
+    .empty-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
+    .empty-desc { font-size: 0.95rem; margin-bottom: 24px; }
+    
+    @media(max-width: 768px) {
+      .ds-layout { flex-direction: column; padding: 24px 16px; gap: 24px; }
+      .ds-sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 8px; }
+      .ds-nav-item { width: auto; white-space: nowrap; }
+    }
+    
+    /* Toast (Canva style pill) */
+    .ps-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; padding: 12px 28px; border-radius: 98px; font-size: 0.95rem; font-weight: 700; z-index: 9999; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--shadow-lg); pointer-events: none; color: #fff; }
+    .ps-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .ps-toast.success { background: #1f2937; }
+    .ps-toast.error { background: var(--danger); }
+    </style>
+</head>
+<body>
+
+<header class="ds-header">
+    <a href="/" class="ds-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="24" height="24" rx="6" fill="url(#grad1)"/>
+            <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+                <linearGradient id="grad1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#3B82F6" />
+                    <stop offset="1" stop-color="#8B5CF6" />
+                </linearGradient>
+            </defs>
+        </svg>
+        <span>个人资产工作台</span>
+    </a>
+    <div class="ds-header-right">
+        <button class="btn btn-secondary" onclick="toggleTheme()" id="theme-switch" style="padding: 8px; border-radius: 50%; width: 36px; height: 36px;">
+            <span id="theme-toggle-icon">🌙</span>
+        </button>
+    </div>
+</header>
+
+<div class="ds-layout">
+    <!-- Sidebar -->
+    <aside class="ds-sidebar">
+        <button class="ds-nav-item active" onclick="switchFilter('all', this)">
+            <span class="ds-nav-icon">📁</span> 全部项目
+        </button>
+        <button class="ds-nav-item" onclick="switchFilter('site', this)">
+            <span class="ds-nav-icon">🌐</span> 我的网站
+        </button>
+        <button class="ds-nav-item" onclick="switchFilter('resume', this)">
+            <span class="ds-nav-icon">📄</span> 简历档案
+        </button>
+        <hr style="border:0; border-top:1px solid var(--border); margin: 8px 0">
+        <button class="ds-nav-item" style="color:var(--text-secondary)" onclick="window.location.href='/career-tools'">
+            <span class="ds-nav-icon">🛠</span> 求职工具箱
+        </button>
+    </aside>
+
+    <!-- Main Board -->
+    <main class="ds-main">
+        <div class="ds-toolbar">
+            <h1 class="ds-title">全部项目</h1>
+            <div class="ds-actions">
+                <a href="/builder" class="btn btn-secondary">新建简历</a>
+                <a href="/personal-site" class="btn btn-primary">✨ 生成网站中心</a>
+            </div>
+        </div>
+
+        <div id="loading" style="padding:40px;text-align:center;color:var(--text-secondary)">正在加载您的云端资产...</div>
+        
+        <div class="ds-grid" id="project-grid" style="display:none">
+            <!-- Cards will be injected here -->
+        </div>
+        
+        <div class="empty-state" id="empty-state" style="display:none">
+            <div class="empty-icon">🌱</div>
+            <div class="empty-title">一切从这里开始</div>
+            <div class="empty-desc">您的工作台空空如也，立即创建一个引人注目的网站或专业简历吧。</div>
+            <a href="/personal-site" class="btn btn-primary">去创建网站</a>
+        </div>
+    </main>
+</div>
+
+<!-- Modals -->
+<div class="modal-backdrop" id="rename-modal">
+    <div class="modal-box">
+        <div class="modal-title">重命名项目</div>
+        <div class="modal-desc">为您的项目起一个更容易辨识的名称。</div>
+        <input type="text" id="rename-input" class="form-input" placeholder="输入新名称...">
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('rename')">取消</button>
+            <button class="btn btn-primary" onclick="confirmRename()">保存更改</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="delete-modal">
+    <div class="modal-box">
+        <div class="modal-title">删除项目</div>
+        <div class="modal-desc">您确定要将这个项目移至回收站吗？此操作无法立即撤销。</div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('delete')">保留</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">确认删除</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="ps-toast" id="ps-toast"></div>
+
+<script>
+// State
+let projects = [];
+let currentFilter = 'all';
+let actionTarget = null; // {id, type}
+const TOKEN = localStorage.getItem('token') || localStorage.getItem('admin_token');
+
+// API
+async function fetchProjects() {
+    if(!TOKEN) { window.location.href='/'; return; }
+    try {
+        const res = await fetch('/api/v1/dashboard/projects', {
+            headers: {'Authorization': 'Bearer ' + TOKEN}
+        });
+        const data = await res.json();
+        if(data.success) {
+            projects = data.data;
+            renderProjects();
+        } else {
+            toast(data.message || '加载失败', 'error');
+        }
+    } catch(e) {
+        toast('网络错误', 'error');
+    }
+}
+
+function switchFilter(filter, el) {
+    document.querySelectorAll('.ds-nav-item').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+    currentFilter = filter;
+    
+    let title = "全部项目";
+    if(filter==='site') title = "我的网站";
+    if(filter==='resume') title = "简历档案";
+    document.querySelector('.ds-title').textContent = title;
+    
+    renderProjects();
+}
+
+function renderProjects() {
+    document.getElementById('loading').style.display = 'none';
+    const grid = document.getElementById('project-grid');
+    const empty = document.getElementById('empty-state');
+    
+    let filtered = projects;
+    if(currentFilter !== 'all') {
+        filtered = projects.filter(p => p.project_type === currentFilter);
+    }
+    
+    if(filtered.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+    }
+    
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+    
+    grid.innerHTML = filtered.map(p => {
+        const typeLabel = p.project_type === 'site' ? '网站' : '简历';
+        const statusClass = p.is_published ? 'online' : 'draft';
+        const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '未知时间';
+        
+        return `
+        <div class="ds-card">
+            <div class="ds-card-cover" onclick="window.location.href='${p.editor_url}'" style="cursor:pointer">
+                <span style="font-size:2rem;opacity:0.2;font-weight:900">${p.title.charAt(0).toUpperCase()}</span>
+                <div class="ds-card-type">${typeLabel}</div>
+                <div class="ds-card-status ${statusClass}" title="${p.is_published ? '已上线' : '草稿'}"></div>
+            </div>
+            <div class="ds-card-body">
+                <div class="ds-card-title" title="${p.title}">${p.title}</div>
+                <div class="ds-card-meta">
+                    <span>⏱ ${date}</span>
+                    <span title="浏览量">👁 ${p.view_count || 0}</span>
+                </div>
+                <div class="ds-card-footer">
+                    <a href="${p.editor_url}" class="ds-card-link">✏️ 继续编辑</a>
+                    
+                    <button class="ds-menu-btn" onclick="toggleMenu('menu-${p.project_type}-${p.id}')">⋯</button>
+                    <div class="ds-dropdown" id="menu-${p.project_type}-${p.id}">
+                        ${p.is_published ? `<button class="ds-dropdown-item" onclick="window.open('${p.public_url}', '_blank')">🌐 预览上线版本</button>` : ''}
+                        <button class="ds-dropdown-item" onclick="dupProject(${p.id}, '${p.project_type}')">📑 创建副本</button>
+                        <button class="ds-dropdown-item" onclick="openRename(${p.id}, '${p.project_type}', '${p.title.replace(/'/g, "\\'")}')">🏷️ 重命名</button>
+                        <button class="ds-dropdown-item danger" onclick="openDelete(${p.id}, '${p.project_type}')">🗑️ 移至回收站</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
+// Menus & Modals
+function toggleMenu(id) {
+    document.querySelectorAll('.ds-dropdown').forEach(d => { if(d.id !== id) d.classList.remove('show'); });
+    const menu = document.getElementById(id);
+    if(menu) menu.classList.toggle('show');
+}
+document.addEventListener('click', e => {
+    if(!e.target.closest('.ds-menu-btn') && !e.target.closest('.ds-dropdown')) {
+        document.querySelectorAll('.ds-dropdown').forEach(d => d.classList.remove('show'));
+    }
+});
+
+function openRename(id, type, oldTitle) {
+    actionTarget = {id, type};
+    document.getElementById('rename-input').value = oldTitle;
+    document.getElementById('rename-modal').classList.add('show');
+    document.querySelectorAll('.ds-dropdown').forEach(d => d.classList.remove('show'));
+}
+function openDelete(id, type) {
+    actionTarget = {id, type};
+    document.getElementById('delete-modal').classList.add('show');
+    document.querySelectorAll('.ds-dropdown').forEach(d => d.classList.remove('show'));
+}
+function closeModal(type) {
+    document.getElementById(`${type}-modal`).classList.remove('show');
+    actionTarget = null;
+}
+
+// API Actions
+async function dupProject(id, type) {
+    toast('正在复制...', 'success');
+    document.querySelectorAll('.ds-dropdown').forEach(d => d.classList.remove('show'));
+    const res = await fetch('/api/v1/dashboard/projects/duplicate', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + TOKEN},
+        body: JSON.stringify({id, type})
+    });
+    const d = await res.json();
+    if(d.success) { toast('副本已创建', 'success'); fetchProjects(); }
+    else toast(d.message, 'error');
+}
+
+async function confirmRename() {
+    const title = document.getElementById('rename-input').value;
+    if(!title.trim()) return toast('名称不能为空', 'error');
+    const {id, type} = actionTarget;
+    closeModal('rename');
+    const res = await fetch('/api/v1/dashboard/projects/rename', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + TOKEN},
+        body: JSON.stringify({id, type, title})
+    });
+    const d = await res.json();
+    if(d.success) { toast('已重命名', 'success'); fetchProjects(); }
+    else toast(d.message, 'error');
+}
+
+async function confirmDelete() {
+    const {id, type} = actionTarget;
+    closeModal('delete');
+    const res = await fetch('/api/v1/dashboard/projects/delete', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + TOKEN},
+        body: JSON.stringify({id, type})
+    });
+    const d = await res.json();
+    if(d.success) { toast('已移至回收站', 'success'); fetchProjects(); }
+    else toast(d.message, 'error');
+}
+
+function toast(msg, type) {
+  var el = document.getElementById('ps-toast');
+  el.textContent = msg;
+  el.className = 'ps-toast ' + (type || 'success') + ' show';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Init
+window.addEventListener('DOMContentLoaded', fetchProjects);
+</script>
+</body>
+</html>

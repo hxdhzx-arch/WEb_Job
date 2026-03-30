@@ -23,6 +23,8 @@ class PersonalSite(db.Model):
     # ── 上传资源（base64 或路径） ──
     avatar_data = db.Column(db.Text, nullable=True, comment="头像 base64")
     cover_data = db.Column(db.Text, nullable=True, comment="封面图 base64")
+    seo_title = db.Column(db.String(200), nullable=True, comment="SEO 标签标题")
+    seo_description = db.Column(db.Text, nullable=True, comment="SEO 描述配置")
 
     # ── 发布 ──
     slug = db.Column(db.String(50), unique=True, nullable=True, index=True,
@@ -67,6 +69,8 @@ class PersonalSite(db.Model):
             "user_id": self.user_id,
             "title": self.title,
             "prompt": self.prompt,
+            "seo_title": self.seo_title,
+            "seo_description": self.seo_description,
             "slug": self.slug,
             "is_published": self.is_published,
             "view_count": self.view_count,

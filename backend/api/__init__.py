@@ -7,7 +7,7 @@ from flask import Blueprint
 
 def register_blueprints(app):
     """注册所有 API Blueprint 到 Flask app"""
-    from backend.api import auth, user, plan, subscription, payment, usage, promo, contact, admin
+    from backend.api import auth, user, plan, subscription, payment, usage, promo, contact, admin, dashboard
     from backend.api.web_resume import create_web_resume_bp
     from backend.api.personal_site import create_personal_site_bp
 
@@ -23,6 +23,7 @@ def register_blueprints(app):
     api_v1.register_blueprint(promo.create_blueprint())
     api_v1.register_blueprint(contact.create_blueprint())
     api_v1.register_blueprint(admin.create_blueprint())
+    api_v1.register_blueprint(dashboard.create_blueprint())
     api_v1.register_blueprint(create_web_resume_bp())
     api_v1.register_blueprint(create_personal_site_bp())
 

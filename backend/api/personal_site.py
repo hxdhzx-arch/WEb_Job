@@ -19,11 +19,10 @@ GENERATION_PROMPT = '''你是一个个人网站内容生成专家。
 用户给了你一段描述或一段简历原文。你需要将这些信息结构化为一个个人网站数据 JSON。
 
 要求：
-1. 你必须且只能输出 JSON，不要输出任何其他文字、解释或 markdown 代码块
-2. 如果字段信息缺失，填空字符串或空数组
-3. projects.tags 必须是字符串数组
-4. skills 可以是 [{category:"分类名", items:["技能1","技能2"]}] 或直接 ["技能1","技能2"]
-5. experience.description 用换行符分隔多条成就
+1. 你必须且只能输出 JSON，不要输出任何其他文字、解释或 markdown 代码块。
+2. 极其重要：如果用户仅仅给出了非常宽泛的要求（比如：“帮我生成一个模板”或完全没有提供真实信息），你绝对【不能】输出空数据或省略字段！你必须根据用户描述的侧重点，自动生成一份极其专业、内容丰富、耀眼的**完整虚拟简历数据**（包含优秀的假名、假邮箱、2-3段一流工作经历、2-3个出色项目、顶级学府学历、满屏技能等）来填满这个 JSON。这样在没有任何简历的情况下，用户能直接看到一张如同 Canva 完美演示样板那样的炫酷个人网站。
+3. 如果用户提供了真实的简历，就必须严格提取和美化真实信息。
+4. projects.tags 和 skills 可以被处理为字符串数组。experience.description 用纯文本的换行符 \n 分隔多条成就。
 
 JSON 格式：
 {
@@ -259,10 +258,17 @@ def create_personal_site_bp():
                 site_data = _fallback_from_text(resume_text, prompt)
             else:
                 site_data = {
-                    "hero": {"name": "", "tagline": prompt[:80] if prompt else ""},
-                    "about": prompt or "",
-                    "experience": [], "projects": [], "education": [],
-                    "skills": [], "contact": {},
+                    "hero": {"name": "张科技", "tagline": "资深全栈工程师 / 独立开发者"},
+                    "about": "这是一个AI备用演示模板。因为服务发生了一些中断，我们为您自动填充了这些占位符内容，您可以随后在左栏手动更改结构。",
+                    "experience": [
+                        {"company": "字节跳动", "role": "高级研发工程师", "period": "2021.06 - 至今", "description": "主导了千万级并发微服务架构设计与落地。\\n将核心接口响应时长降低了 40%。"}
+                    ],
+                    "projects": [
+                        {"name": "开源 Vue 组件库", "description": "在 Github 上获得了 15.2k Stars，帮助上千企业快速构建后台。", "tags": ["Vue3", "TypeScript"]}
+                    ],
+                    "education": [{"school": "清华大学", "major": "计算机科学与技术", "degree": "硕士", "period": "2018 - 2021"}],
+                    "skills": ["Python", "Golang", "React", "Docker", "Kubernetes"],
+                    "contact": {"email": "hello@example.com", "github": "https://github.com/example"},
                 }
             if avatar_b64:
                 site_data.setdefault("hero", {})["avatar"] = avatar_b64
@@ -329,8 +335,15 @@ def create_personal_site_bp():
             db.session.add(site)
             db.session.flush()
 
-        if not site.slug:
+        if "slug" in data and data["slug"]:
+            site.slug = data["slug"]
+        elif not site.slug:
             site.generate_slug()
+
+        if "seo_title" in data:
+            site.seo_title = data["seo_title"]
+        if "seo_description" in data:
+            site.seo_description = data["seo_description"]
 
         site.is_published = True
         site.published_at = datetime.now(timezone.utc)

@@ -258,6 +258,36 @@ body {
 .ps-toast.success{background:var(--accent);color:#fff}
 .ps-toast.error{background:var(--danger);color:#fff}
 
+/* Publish Modal Styles */
+.ds-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; z-index: 9999; padding: 20px;
+}
+.ds-modal-backdrop.show { opacity: 1; pointer-events: auto; }
+.ds-modal-box {
+  background: var(--bg-card, #fff); border-radius: 12px; width: 100%; max-width: 480px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.3s;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+[data-theme="dark"] .ds-modal-box { background: #1C1C1E; border: 1px solid #333; }
+.ds-modal-backdrop.show .ds-modal-box { transform: translateY(0); }
+.ds-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border, #eee); display: flex; justify-content: space-between; align-items: center; }
+.ds-modal-title { font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main); }
+.ds-modal-close { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); }
+.ds-modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 70vh; }
+.ds-form-group { display: flex; flex-direction: column; gap: 6px; }
+.ds-form-group label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+.ds-form-input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 0.95rem; background: var(--bg, #fafafa); color: var(--text-main); outline: none; }
+.ds-form-input:focus { border-color: var(--primary, #3B82F6); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.ds-form-hint { font-size: 0.8rem; color: var(--text-secondary, #666); margin-top: 2px; }
+.ds-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border, #eee); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-hover, #fafafa); }
+
+/* Auto Save Indicator */
+.ds-auto-save-indicator {
+  font-size: 0.8rem; color: rgba(255,255,255,0.8); display: inline-flex; align-items: center; gap: 6px; font-weight: 500;
+}
+
 @media(max-width: 768px) {
     .editor-workspace { flex-direction: column; height: auto;}
     .slim-sidebar { width: 100%; height: 64px; flex-direction: row; padding: 0 16px; justify-content: space-around; }
@@ -277,8 +307,9 @@ body {
         <div class="title">个人网站专家 <span class="badge">PRO</span></div>
     </div>
     <div class="editor-navbar-right">
+        <div id="save-indicator" class="ds-auto-save-indicator"></div>
         <button class="c-btn c-btn-secondary c-btn-sm" onclick="doPreview()" id="refresh-btn" style="display:none;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.24);color:#fff">↻ 刷新画布</button>
-        <button class="c-btn c-btn-primary c-btn-sm" onclick="switchTab('tab-publish')" id="nav-publish-btn" style="display:none;background:#ffffff;color:#374151">🚀 发布网站</button>
+        <button class="c-btn c-btn-primary c-btn-sm" onclick="openPublishModal()" id="nav-publish-btn" style="display:none;background:#ffffff;color:#374151">🚀 发布网站</button>
         <button onclick="toggleTheme()" class="c-btn c-btn-secondary c-btn-sm" id="theme-switch" style="border:none;background:rgba(255,255,255,0.14);color:#fff;font-size:1.2rem;padding:4px"><span id="theme-toggle-icon">🌙</span></button>
     </div>
 </nav>
@@ -392,7 +423,7 @@ body {
                 <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">一键将右侧画布中的静态代码部署上线，获得属于你的永久公网链接。</p>
             </div>
 
-            <button class="c-btn c-btn-success" id="btn-publish" onclick="doPublish()" disabled>🚀 在线发布</button>
+            <button class="c-btn c-btn-success" id="btn-publish" onclick="openPublishModal()" disabled>🚀 在线发布</button>
             <button class="c-btn c-btn-outline" id="btn-export" onclick="doExport()" disabled style="margin-top:16px">⬇️ 导出离线 HTML</button>
 
             <!-- Result Box -->
@@ -433,10 +464,109 @@ body {
     </div>
 </div>
 
+<!-- Publish Modal -->
+<div class="ds-modal-backdrop" id="publish-modal">
+  <div class="ds-modal-box">
+    <div class="ds-modal-header">
+      <h3 class="ds-modal-title">🚀 发布个人网站</h3>
+      <button class="ds-modal-close" onclick="closePublishModal()">×</button>
+    </div>
+    <div class="ds-modal-body">
+      <div class="ds-form-group">
+        <label>专属链接 (Slug)</label>
+        <div style="display:flex;align-items:center;">
+          <span style="color:var(--text-secondary);font-size:0.95rem;background:var(--bg-hover);padding:10px;border:1px solid var(--border);border-right:none;border-radius:6px 0 0 6px;">/site/</span>
+          <input type="text" id="pub-slug" class="ds-form-input ds-form-input" style="border-radius:0 6px 6px 0;flex:1;" placeholder="为空则自动生成">
+        </div>
+        <div class="ds-form-hint">定制你的专属短链，如 /site/alex</div>
+      </div>
+      <div class="ds-form-group">
+        <label>SEO 标题</label>
+        <input type="text" id="pub-seo-title" class="ds-form-input ds-form-input" placeholder="展示在浏览器标签页上的标题">
+      </div>
+      <div class="ds-form-group">
+        <label>SEO 描述</label>
+        <textarea id="pub-seo-desc" class="ds-form-input ds-form-input" rows="2" placeholder="展示在搜索引擎或社交媒体卡片上的描述"></textarea>
+      </div>
+    </div>
+    <div class="ds-modal-footer">
+      <button class="c-btn c-btn-secondary c-btn-sm" onclick="closePublishModal()">取消</button>
+      <button class="c-btn c-btn-primary c-btn-sm" onclick="doPublish()" id="pub-confirm-btn">立即发布</button>
+    </div>
+  </div>
+</div>
+
+<div class="ds-modal-backdrop" id="publish-success-modal">
+  <div class="ds-modal-box" style="align-items:center;padding:40px 20px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:16px;">🎉</div>
+    <h3 class="ds-modal-title" style="margin-bottom:8px;">发布成功！</h3>
+    <p style="color:var(--text-secondary);margin-bottom:24px;font-size:0.95rem;">您的个人网站已成功上线</p>
+    <div style="background:var(--bg-hover);padding:12px 16px;border-radius:8px;border:1px solid var(--border);margin-bottom:24px;width:100%;">
+      <a href="#" id="pub-success-url" target="_blank" style="color:var(--primary);font-weight:600;word-break:break-all;"></a>
+    </div>
+    <button class="c-btn c-btn-secondary c-btn-sm" style="width:100%" onclick="closeSuccessModal()">完成</button>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="ps-toast" id="ps-toast"></div>
 
 <script>
+let currentSiteId = new URLSearchParams(window.location.search).get('id') || null;
+let hasUnsavedChanges = false;
+let autoSaveTimer = null;
+const saveIndicator = document.getElementById('save-indicator');
+
+function indicateSaving() {
+  if(saveIndicator) { saveIndicator.textContent = '⟳ 保存中...'; }
+}
+function indicateSaved() {
+  if(saveIndicator) { saveIndicator.textContent = '✓ 已云端保存'; }
+  hasUnsavedChanges = false;
+}
+
+function scheduleAutoSave() {
+  hasUnsavedChanges = true;
+  indicateSaving();
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(performAutoSave, 2000);
+}
+
+async function performAutoSave() {
+  if(!TOKEN || !siteData) return;
+  try {
+    const payload = {
+      site_id: currentSiteId,
+      site_data: siteData,
+      site_config: { style: selectedStyle },
+      prompt: document.getElementById('prompt-input').value.trim()
+    };
+    const res = await fetch('/api/v1/personal-site/auto-save', {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if(d.success) {
+      currentSiteId = d.data.site_id;
+      const url = new URL(window.location);
+      if(!url.searchParams.get('id')) {
+        url.searchParams.set('id', currentSiteId);
+        window.history.replaceState({}, '', url);
+      }
+      indicateSaved();
+    }
+  } catch(e) { console.error('AutoSave failed:', e); }
+}
+
+window.onbeforeunload = function(e) {
+  if (hasUnsavedChanges) {
+    const msg = "您有未保存的更改，确定要离开吗？";
+    e.returnValue = msg;
+    return msg;
+  }
+};
+
 /* ══ State variables ══ */
 var selectedStyle = 'modern';
 var siteData = null;
@@ -555,6 +685,7 @@ function processGenResult(d) {
     updateUIStateForDataReady();
 
     // Switch to Style tab (or keep it as is) to render preview
+    scheduleAutoSave();
     doPreview();
 }
 function handleGenError(e) { toast('服务器错误: ' + e.message, 'error'); }
@@ -620,6 +751,7 @@ function applyDataEdit() {
   try {
     siteData = JSON.parse(document.getElementById('data-json').value);
     toast('数据配置已更新', 'success');
+    scheduleAutoSave();
     doPreview();
     switchTab('tab-style');
   } catch(e) {
@@ -642,6 +774,7 @@ function doPreview() {
     if (d.success) {
       previewHtml = d.data.html;
       document.getElementById('preview-iframe').srcdoc = previewHtml;
+      scheduleAutoSave();
     } else {
       toast(d.message || '画布渲染失败', 'error');
     }
@@ -651,11 +784,29 @@ function doPreview() {
 }
 
 /* ══ Core: Publish & Export ══ */
+function openPublishModal() {
+  if(!TOKEN) { toast("请先登录再发布！", "error"); return; }
+  
+  const name = siteData?.hero?.name || '我';
+  document.getElementById('pub-seo-title').value = `${name}的个人主页`;
+  document.getElementById('pub-seo-desc').value = siteData?.hero?.tagline || '';
+  
+  document.getElementById('publish-modal').classList.add('show');
+}
+
+function closePublishModal() {
+  document.getElementById('publish-modal').classList.remove('show');
+}
+
+function closeSuccessModal() {
+  document.getElementById('publish-success-modal').classList.remove('show');
+}
+
 function doPublish() {
   if (!siteData) return;
-  var btn = document.getElementById('btn-publish');
+  var btn = document.getElementById('pub-confirm-btn');
   btn.disabled = true;
-  showOverlay("推送至公网", "正在分配免费站点并执行最后编译...");
+  btn.innerHTML = '发布中...';
 
   var headers = { 'Content-Type': 'application/json' };
   if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
@@ -664,19 +815,40 @@ function doPublish() {
     method: 'POST',
     headers: headers,
     body: JSON.stringify({
+      site_id: currentSiteId,
       site_data: siteData,
       site_config: { style: selectedStyle },
-      prompt: document.getElementById('prompt-input').value.trim()
+      prompt: document.getElementById('prompt-input').value.trim(),
+      slug: document.getElementById('pub-slug').value.trim(),
+      seo_title: document.getElementById('pub-seo-title').value.trim(),
+      seo_description: document.getElementById('pub-seo-desc').value.trim()
     })
   })
   .then(function(r) { return r.json(); })
   .then(function(d) {
     if (d.success) {
+      currentSiteId = d.data.site_id;
+      hasUnsavedChanges = false;
+      closePublishModal();
+      
       var url = location.origin + d.data.url;
       document.getElementById('result-url').value = url;
       document.getElementById('result-link').href = d.data.url;
       document.getElementById('publish-result').classList.add('show');
+      
+      document.getElementById('pub-success-url').href = url;
+      document.getElementById('pub-success-url').textContent = url;
+      document.getElementById('publish-success-modal').classList.add('show');
+      
       toast('🎉 网站发布成功', 'success');
+      
+      // Save version
+      fetch('/api/v1/dashboard/versions/save', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+        body: JSON.stringify({ project_id: currentSiteId, project_type: 'site', note: '发布版本' })
+      });
+      
     } else if (d._status === 401 || d.message && d.message.indexOf('登录') >= 0) {
       toast('请进行后台管理员或用户登录认证', 'error');
     } else {
@@ -684,7 +856,7 @@ function doPublish() {
     }
   })
   .catch(function(e) { toast('网络错误', 'error'); })
-  .finally(function() { btn.disabled = false; hideOverlay(); });
+  .finally(function() { btn.disabled = false; btn.innerHTML = '立即发布'; });
 }
 
 function doExport() {

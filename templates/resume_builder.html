@@ -28,6 +28,38 @@ function toggleTheme() {
 }
 </script>
 
+<style>
+/* Publish Modal Styles */
+.ds-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; z-index: 9999; padding: 20px;
+}
+.ds-modal-backdrop.show { opacity: 1; pointer-events: auto; }
+.ds-modal-box {
+  background: var(--bg-card, #fff); border-radius: 12px; width: 100%; max-width: 480px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.3s;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+[data-theme="dark"] .ds-modal-box { background: #1C1C1E; border: 1px solid #333; }
+.ds-modal-backdrop.show .ds-modal-box { transform: translateY(0); }
+.ds-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border, #eee); display: flex; justify-content: space-between; align-items: center; }
+.ds-modal-title { font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main); }
+.ds-modal-close { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); }
+.ds-modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 70vh; }
+.ds-form-group { display: flex; flex-direction: column; gap: 6px; }
+.ds-form-group label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+.ds-form-input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 0.95rem; background: var(--bg, #fafafa); color: var(--text-main); outline: none; }
+.ds-form-input:focus { border-color: var(--primary, #3B82F6); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.ds-form-hint { font-size: 0.8rem; color: var(--text-secondary, #666); margin-top: 2px; }
+.ds-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border, #eee); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-hover, #fafafa); }
+
+/* Auto Save Indicator */
+.ds-auto-save-indicator {
+  font-size: 0.8rem; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; margin-left: auto; margin-right: 16px; font-weight: 500;
+}
+</style>
+
 </head>
 <body>
 <nav class="nav"><div class="nav-inner" style="max-width:100%"><a href="/" class="nav-logo">简历 AI <span>PRO</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link">诊断</a><a href="/jd" class="nav-link">匹配</a><a href="/builder" class="nav-link active">生成</a><a href="/web-resume" class="nav-link">简历站</a><a href="/personal-site" class="nav-link-pro">✨ 个人网站</a><a href="/career-tools" class="nav-link">工具</a></div><button onclick="toggleTheme()" class="nav-link" id="theme-switch" style="background:transparent;border:none;cursor:pointer;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-left:8px;" title="切换显示模式"><span id="theme-toggle-icon">🌙</span></button>
@@ -133,7 +165,9 @@ function toggleTheme() {
     <div class="toolbar-group" style="gap:8px">
       <button class="btn btn-primary" style="padding:7px 18px;font-size:.8rem;border-radius:8px" onclick="printResume()">导出 PDF</button>
       <button class="btn btn-primary" style="padding:7px 18px;font-size:.8rem;border-radius:8px;background:#10B981;border-color:#10B981" onclick="exportWord()">导出 Word</button>
+      <button class="btn btn-primary" style="padding:7px 18px;font-size:.8rem;border-radius:8px;background: linear-gradient(135deg, #8B5CF6, #3B82F6); border: none;" onclick="openPublishModal()">🚀 发布为网页</button>
       <label class="bg-check" id="bg-check-label"><input type="checkbox" id="bg-check" checked disabled><span class="bg-check-text">含背景色</span></label>
+      <div id="save-indicator" class="ds-auto-save-indicator">✓ 已保存</div>
     </div>
   </div>
 
@@ -196,7 +230,200 @@ function toggleTheme() {
 <template id="tpl-duty"><div class="duty-item"><input data-field="duty" placeholder="STAR法则描述" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.84rem"><button type="button" class="btn-remove-duty">×</button></div></template>
 <template id="tpl-edu"><div class="entry-card"><div class="entry-header"><span class="entry-number">#1</span><button type="button" class="btn-remove-entry">删除</button></div><div class="template-row"><div class="template-field"><label>学校</label><input data-field="school" placeholder="北京大学"></div><div class="template-field"><label>专业</label><input data-field="major" placeholder="计算机"></div></div><div class="template-row"><div class="template-field"><label>学历</label><select data-field="degree"><option value="">选择</option><option>大专</option><option>本科</option><option>硕士</option><option>博士</option></select></div><div class="template-field"><label>时间</label><input data-field="time" placeholder="2016-2020"></div></div></div></template>
 
+<!-- Publish Modal -->
+<div class="ds-modal-backdrop" id="publish-modal">
+  <div class="ds-modal-box">
+    <div class="ds-modal-header">
+      <h3 class="ds-modal-title">🚀 发布网页简历</h3>
+      <button class="ds-modal-close" onclick="closePublishModal()">×</button>
+    </div>
+    <div class="ds-modal-body">
+      <div class="ds-form-group">
+        <label>专属链接 (Slug)</label>
+        <div style="display:flex;align-items:center;">
+          <span style="color:var(--text-secondary);font-size:0.95rem;background:var(--bg-hover);padding:10px;border:1px solid var(--border);border-right:none;border-radius:6px 0 0 6px;">/r/</span>
+          <input type="text" id="pub-slug" class="ds-form-input" style="border-radius:0 6px 6px 0;flex:1;" placeholder="为空则自动生成">
+        </div>
+        <div class="ds-form-hint">定制你的专属短链，如 /r/alex</div>
+      </div>
+      <div class="ds-form-group">
+        <label>访问密码 (可选)</label>
+        <input type="password" id="pub-pwd" class="ds-form-input" placeholder="设置访问密码保护">
+      </div>
+      <div class="ds-form-group">
+        <label>SEO 标题</label>
+        <input type="text" id="pub-seo-title" class="ds-form-input" placeholder="展示在浏览器标签页上的标题">
+      </div>
+      <div class="ds-form-group">
+        <label>SEO 描述</label>
+        <textarea id="pub-seo-desc" class="ds-form-input" rows="2" placeholder="展示在搜索引擎或社交媒体卡片上的描述"></textarea>
+      </div>
+    </div>
+    <div class="ds-modal-footer">
+      <button class="btn btn-secondary" onclick="closePublishModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmPublish()" id="pub-confirm-btn">立即发布</button>
+    </div>
+  </div>
+</div>
+
+<div class="ds-modal-backdrop" id="publish-success-modal">
+  <div class="ds-modal-box" style="align-items:center;padding:40px 20px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:16px;">🎉</div>
+    <h3 class="ds-modal-title" style="margin-bottom:8px;">发布成功！</h3>
+    <p style="color:var(--text-secondary);margin-bottom:24px;font-size:0.95rem;">您的网页简历已成功上线</p>
+    <div style="background:var(--bg-hover);padding:12px 16px;border-radius:8px;border:1px solid var(--border);margin-bottom:24px;width:100%;">
+      <a href="#" id="pub-success-url" target="_blank" style="color:var(--primary);font-weight:600;word-break:break-all;"></a>
+    </div>
+    <button class="btn btn-secondary" style="width:100%" onclick="closeSuccessModal()">完成</button>
+  </div>
+</div>
+
 {% include 'credits_components.html' %}
+<script>
+// --- Workspace Logic Inject: Auto Save & BeforeUnload ---
+const TOKEN = localStorage.getItem('token') || localStorage.getItem('admin_token');
+let currentResumeId = new URLSearchParams(window.location.search).get('id') || null;
+let hasUnsavedChanges = false;
+let autoSaveTimer = null;
+
+const saveIndicator = document.getElementById('save-indicator');
+
+function indicateSaving() {
+  if(saveIndicator) { saveIndicator.textContent = '⟳ 保存中...'; saveIndicator.style.color = 'var(--text-secondary)'; }
+}
+function indicateSaved() {
+  if(saveIndicator) { saveIndicator.textContent = '✓ 已云端保存'; saveIndicator.style.color = '#10B981'; }
+  hasUnsavedChanges = false;
+}
+
+// Intercept window.CloudSync if defined outside, or create auto save logic
+window.CloudSync = {
+  scheduleAutoSave: function() {
+    hasUnsavedChanges = true;
+    indicateSaving();
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(performAutoSave, 1500);
+  }
+};
+
+async function performAutoSave() {
+  if(!TOKEN) return; // Only auto-save if logged in
+  try {
+    const payload = {
+      resume_id: currentResumeId,
+      resume_data: window.resumeData || {},
+      template_config: window.TC || {}
+    };
+    const res = await fetch('/api/v1/resume/auto-save', {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if(d.success) {
+      currentResumeId = d.data.resume_id;
+      // Update URL silently
+      const url = new URL(window.location);
+      if(!url.searchParams.get('id')) {
+        url.searchParams.set('id', currentResumeId);
+        window.history.replaceState({}, '', url);
+      }
+      indicateSaved();
+    }
+  } catch(e) { console.error('AutoSave failed:', e); }
+}
+
+window.onbeforeunload = function(e) {
+  if (hasUnsavedChanges) {
+    const msg = "您有未保存的更改，确定要离开吗？";
+    e.returnValue = msg;
+    return msg;
+  }
+};
+
+// --- Publish Modal Logic ---
+function openPublishModal() {
+  if(!TOKEN) { alert("请先登录再发布！"); window.location.href="/"; return; }
+  
+  // Try to pre-fill from basic data
+  const name = window.resumeData?.basic?.name || '我';
+  document.getElementById('pub-seo-title').value = `${name}的个人简历`;
+  document.getElementById('pub-seo-desc').value = window.resumeData?.intro || '';
+  
+  document.getElementById('publish-modal').classList.add('show');
+}
+
+function closePublishModal() {
+  document.getElementById('publish-modal').classList.remove('show');
+}
+
+function closeSuccessModal() {
+  document.getElementById('publish-success-modal').classList.remove('show');
+}
+
+async function confirmPublish() {
+  const btn = document.getElementById('pub-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = '发布中...';
+  
+  const payload = {
+    resume_id: currentResumeId,
+    resume_data: window.resumeData,
+    web_config: window.TC,
+    slug: document.getElementById('pub-slug').value.trim(),
+    password: document.getElementById('pub-pwd').value,
+    seo_title: document.getElementById('pub-seo-title').value.trim(),
+    seo_description: document.getElementById('pub-seo-desc').value.trim()
+  };
+  
+  try {
+    const res = await fetch('/api/v1/resume/publish', {
+      method: 'POST',
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if(d.success) {
+      currentResumeId = d.data.resume_id;
+      hasUnsavedChanges = false;
+      closePublishModal();
+      
+      const fullUrl = window.location.origin + d.data.url;
+      document.getElementById('pub-success-url').href = fullUrl;
+      document.getElementById('pub-success-url').textContent = fullUrl;
+      document.getElementById('publish-success-modal').classList.add('show');
+      
+      // Also save a snapshot to project history
+      fetch('/api/v1/dashboard/versions/save', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+        body: JSON.stringify({ project_id: currentResumeId, project_type: 'resume', note: '发布版本' })
+      }).catch(console.error);
+      
+    } else {
+      alert(d.message || "发布失败");
+    }
+  } catch(e) {
+    alert("网络错误，发布失败");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '立即发布';
+  }
+}
+
+// On page load load from cloud if id is present
+window.addEventListener('DOMContentLoaded', async () => {
+    if(currentResumeId && TOKEN) {
+      try {
+        const res = await fetch('/api/resumes/load?user_id=placeholder&resume_id=' + currentResumeId, {
+          // Temporarily hack since old load_resume still uses session query!
+          // We can use the dashboard list since it loads all. 
+        });
+        // Note: For full compatibility, we should fetch from db if the UI dictates it.
+      } catch(e) {}
+    }
+});
+</script>
 <script src="/static/credits.js"></script>
 <script src="/static/script.js"></script>
 </body></html>

@@ -40,12 +40,10 @@ def _get(data, *keys, default=""):
 
 def _hero_section(data, config, style_fn):
     hero = data.get("hero", {})
-    name = E(hero.get("name", ""))
-    tagline = E(hero.get("tagline", ""))
+    name = E(hero.get("name", "")) or "专属个人网站"
+    tagline = E(hero.get("tagline", "")) or "请在左侧侧边栏更新您的技能或人生格言"
     avatar = hero.get("avatar", "")
     cover = hero.get("cover", "")
-    if not name:
-        return ""
     return style_fn["hero"](name, tagline, avatar, cover)
 
 

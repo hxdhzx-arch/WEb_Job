@@ -23,6 +23,9 @@ class Resume(db.Model):
                      comment="网页简历短链标识 /r/<slug>")
     is_published = db.Column(db.Boolean, default=False, comment="是否已发布为网页")
     web_config = db.Column(db.JSON, default=dict, comment="网页简历配置 JSON")
+    seo_title = db.Column(db.String(200), nullable=True, comment="SEO 标签标题")
+    seo_description = db.Column(db.Text, nullable=True, comment="SEO 描述配置")
+    share_cover_data = db.Column(db.Text, nullable=True, comment="社交分享封面图")
     password_hash = db.Column(db.String(255), nullable=True, comment="网页访问密码哈希")
     view_count = db.Column(db.Integer, default=0, comment="网页浏览次数")
     published_at = db.Column(db.DateTime(timezone=True), nullable=True)
@@ -82,6 +85,9 @@ class Resume(db.Model):
             "is_default": self.is_default,
             "is_published": self.is_published,
             "slug": self.slug,
+            "seo_title": self.seo_title,
+            "seo_description": self.seo_description,
+            "share_cover_data": self.share_cover_data,
             "view_count": self.view_count,
             "published_at": self.published_at.isoformat() if self.published_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
