@@ -62,14 +62,30 @@ function toggleTheme() {
 
 </head>
 <body class="resume-builder">
-<nav class="nav"><div class="nav-inner" style="max-width:100%"><a href="/" class="nav-logo">简历 AI <span>PRO</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link">诊断</a><a href="/jd" class="nav-link">匹配</a><a href="/builder" class="nav-link active">生成</a><a href="/web-resume" class="nav-link">简历站</a><a href="/personal-site" class="nav-link-pro">✨ 个人网站</a><a href="/career-tools" class="nav-link">工具</a></div><button onclick="toggleTheme()" class="nav-link" id="theme-switch" style="background:transparent;border:none;cursor:pointer;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-left:8px;" title="切换显示模式"><span id="theme-toggle-icon">🌙</span></button>
+<nav class="nav">
+  <div class="nav-inner" style="max-width:100%">
+    <a href="/" class="nav-logo">简历 AI <span>PRO</span></a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">首页</a>
+      <a href="/resume" class="nav-link">诊断</a>
+      <a href="/jd" class="nav-link">匹配</a>
+      <a href="/builder" class="nav-link active">生成</a>
+      <a href="/web-resume" class="nav-link">简历站</a>
+      <a href="/personal-site" class="nav-link-pro">个人网站</a>
+      <a href="/career-tools" class="nav-link">工具</a>
+      <button onclick="toggleTheme()" class="nav-link" style="background:transparent;border:none;cursor:pointer;font-size:1rem;padding:6px 8px;" title="切换显示模式">
+        <span id="theme-toggle-icon">🌙</span>
+      </button>
+    </div>
+  </div>
+</nav>
 <script>
   setTimeout(function(){
     var t = document.documentElement.getAttribute('data-theme');
     var icon = document.getElementById("theme-toggle-icon");
     if (icon) icon.textContent = t === 'dark' ? '☀️' : '🌙';
   },0);
-</script></div></nav>
+</script>
 
 <div class="editor-layout" id="editor-layout">
 <div class="editor-left">
