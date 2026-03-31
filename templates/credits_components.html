@@ -1,4 +1,4 @@
-<!-- ⚡ Power Badge (top-right floating) -->
+<!-- Power Badge (top-right floating) -->
 <div id="power-badge" class="pw-badge" style="display:none" onclick="PowerSystem.showBind()">
   <span class="pw-icon">⚡</span>
   <span class="pw-num">0</span>
@@ -8,13 +8,12 @@
 <!-- Toast -->
 <div id="pw-toast" class="pw-toast"></div>
 
-<!-- ⭐ Review Modal -->
+<!-- Review Modal -->
 <div id="review-overlay" class="cm-overlay" onclick="if(event.target===this)PowerSystem.closeReview()">
 <div class="cm-box">
   <button class="cm-x" onclick="PowerSystem.closeReview()">&times;</button>
-  <div class="cm-icon">⭐</div>
-  <h2 class="cm-h">评价本次 AI 服务</h2>
-  <p class="cm-p">真实评价可获得 <strong>⚡ 100 算力</strong> 奖励</p>
+  <h2 class="cm-h">评价本次服务</h2>
+  <p class="cm-p">提交真实评价可获得 <strong>100 算力</strong>奖励</p>
   <input type="hidden" id="rv-feat" value="general">
   <div class="rv-stars">
     <span class="rv-s" onclick="PowerSystem.pickStar(1)">★</span>
@@ -23,39 +22,35 @@
     <span class="rv-s" onclick="PowerSystem.pickStar(4)">★</span>
     <span class="rv-s" onclick="PowerSystem.pickStar(5)">★</span>
   </div>
-  <input type="text" id="rv-name" class="cm-input sm" placeholder="您的昵称（选填）">
-  <textarea id="rv-ct" class="cm-ta" rows="2" placeholder="说说您的使用感受（选填）"></textarea>
+  <input type="text" id="rv-name" class="cm-input sm" placeholder="昵称（选填）">
+  <textarea id="rv-ct" class="cm-ta" rows="2" placeholder="使用感受（选填）"></textarea>
   <label class="rv-anon-label"><input type="checkbox" id="rv-anon"> 匿名评价</label>
-  <button id="rv-btn" class="cm-btn primary" onclick="PowerSystem.submitReview()">提交评价，获得 ⚡100 算力</button>
+  <button id="rv-btn" class="cm-btn primary" onclick="PowerSystem.submitReview()">提交评价，获得 100 算力</button>
 </div>
 </div>
 
-<!-- 🛡️ Bind / Asset Protection Modal (改造：加入验证码) -->
+<!-- Bind Modal -->
 <div id="bind-overlay" class="cm-overlay" onclick="if(event.target===this)PowerSystem.closeBind()">
 <div class="cm-box">
   <button class="cm-x" onclick="PowerSystem.closeBind()">&times;</button>
-  <div class="cm-icon">🛡️</div>
-  <h2 class="cm-h">绑定账号，永久保存简历</h2>
-  <p class="cm-p" id="bind-reason">清理浏览器缓存或更换电脑后，您的简历和算力将丢失。<br>绑定后可<strong>跨设备同步</strong>，数据永久保存。</p>
+  <h2 class="cm-h">绑定账号</h2>
+  <p class="cm-p" id="bind-reason">绑定后数据跨设备同步，永久保存。</p>
   <div class="bind-credit-display">
-    <span class="bcd-icon">⚡</span>
     <span class="bcd-num pw-num">0</span>
     <span class="bcd-text">算力待保护</span>
   </div>
 
-  <!-- Step 1: 输入邮箱 -->
+  <!-- Step 1 -->
   <div id="bind-step1">
-    <input type="text" id="bind-val" class="cm-input" placeholder="邮箱 或 手机号">
+    <input type="text" id="bind-val" class="cm-input" placeholder="邮箱或手机号">
     <button id="bind-send-code-btn" class="cm-btn primary" onclick="PowerSystem.sendBindCode()">发送验证码</button>
   </div>
 
-  <!-- Step 2: 输入验证码（初始隐藏） -->
+  <!-- Step 2 -->
   <div id="bind-step2" style="display:none">
-    <div style="font-size:.82rem;color:var(--text-secondary);margin-bottom:10px;text-align:center">
-      验证码已发送至 <strong id="bind-target-display"></strong>
-    </div>
+    <p class="cm-p" style="margin-bottom:10px">验证码已发送至 <strong id="bind-target-display"></strong></p>
     <div class="verify-code-row">
-      <input type="text" id="bind-code" class="cm-input" placeholder="请输入 6 位验证码" maxlength="6"
+      <input type="text" id="bind-code" class="cm-input" placeholder="6 位验证码" maxlength="6"
              style="text-align:center;font-size:1.3rem;font-weight:700;letter-spacing:6px">
     </div>
     <button id="bind-btn" class="cm-btn primary" onclick="PowerSystem.submitBind()">确认绑定</button>
@@ -65,17 +60,16 @@
     </div>
   </div>
 
-  <button class="cm-btn ghost" onclick="PowerSystem.closeBind()">我再想想</button>
+  <button class="cm-btn ghost" onclick="PowerSystem.closeBind()">稍后再说</button>
 </div>
 </div>
 
-<!-- 🔑 Login Modal (新增：已绑定用户换设备恢复) -->
+<!-- Login Modal -->
 <div id="login-overlay" class="cm-overlay" onclick="if(event.target===this)PowerSystem.closeLogin()">
 <div class="cm-box">
   <button class="cm-x" onclick="PowerSystem.closeLogin()">&times;</button>
-  <div class="cm-icon">🔑</div>
   <h2 class="cm-h">欢迎回来</h2>
-  <p class="cm-p">输入绑定的邮箱或手机号，验证后恢复你的简历和算力</p>
+  <p class="cm-p">验证绑定的邮箱或手机号，恢复账号数据</p>
 
   <!-- Step 1 -->
   <div id="login-step1">
@@ -85,10 +79,8 @@
 
   <!-- Step 2 -->
   <div id="login-step2" style="display:none">
-    <div style="font-size:.82rem;color:var(--text-secondary);margin-bottom:10px;text-align:center">
-      验证码已发送至 <strong id="login-target-display"></strong>
-    </div>
-    <input type="text" id="login-code" class="cm-input" placeholder="请输入 6 位验证码" maxlength="6"
+    <p class="cm-p" style="margin-bottom:10px">验证码已发送至 <strong id="login-target-display"></strong></p>
+    <input type="text" id="login-code" class="cm-input" placeholder="6 位验证码" maxlength="6"
            style="text-align:center;font-size:1.3rem;font-weight:700;letter-spacing:6px">
     <button id="login-btn" class="cm-btn primary" onclick="PowerSystem.submitLogin()">验证并恢复</button>
     <div style="text-align:center;margin-top:8px">
@@ -100,6 +92,3 @@
   <button class="cm-btn ghost" onclick="PowerSystem.closeLogin()">取消</button>
 </div>
 </div>
-
-
-

@@ -201,11 +201,13 @@ function compareOffers(){
   })
   .then(function(resp){return resp.json();})
   .then(function(data){
-    text.innerHTML=data.analysis?data.analysis.replace(/\n/g,"<br>"):"AI服务忙，请重试";
+    var raw = data.analysis || "AI服务忙，请重试";
+    text.textContent = raw;
     res.style.display="block";
   })
   .catch(function(err){
-    text.innerHTML="<span style='color:var(--c-danger)'>"+err.message+"</span>";
+    text.textContent = "请求失败：" + err.message;
+    text.style.color = "var(--c-danger)";
     res.style.display="block";
   })
   .finally(function(){

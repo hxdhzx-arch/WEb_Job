@@ -1075,7 +1075,9 @@ body.resume-builder .mobile-toggle{ display:none; }
   transition: opacity 0.3s;
   padding: 20px;
 }
-.cm-overlay.show, .cm-overlay[style*="flex"] {
+.cm-overlay.show,
+.cm-overlay.open,
+.cm-overlay[style*="flex"] {
   opacity: 1; pointer-events: auto;
 }
 .cm-box {
@@ -1086,7 +1088,9 @@ body.resume-builder .mobile-toggle{ display:none; }
   position: relative;
   transform: scale(0.95); transition: transform 0.3s;
 }
-.cm-overlay.show .cm-box, .cm-overlay[style*="flex"] .cm-box {
+.cm-overlay.show .cm-box,
+.cm-overlay.open .cm-box,
+.cm-overlay[style*="flex"] .cm-box {
   transform: scale(1);
 }
 [data-theme="dark"] .cm-box { background: #1C1C1E; border: 1px solid rgba(255,255,255,0.1); }
@@ -1148,7 +1152,7 @@ body.resume-builder .mobile-toggle{ display:none; }
   font-size: 1.8rem; color: var(--c-bg-sub); cursor: pointer;
   transition: color 0.2s, transform 0.2s;
 }
-.rv-s:hover, .rv-s.active { color: #FFD60A; transform: scale(1.15); }
+.rv-s:hover, .rv-s.active, .rv-s.on { color: #FFD60A; transform: scale(1.15); }
 .rv-anon-label {
   display: flex; align-items: center; justify-content: center; gap: 6px;
   font-size: 0.78rem; color: var(--c-text-muted); margin-bottom: 16px;
@@ -1173,3 +1177,170 @@ body.resume-builder .mobile-toggle{ display:none; }
 .cm-countdown {
   font-size: 0.78rem; color: var(--c-text-hint); font-weight: 500;
 }
+
+/* ══════════════════════════════════════
+   Builder Publish Modal (moved from inline)
+   ══════════════════════════════════════ */
+body.resume-builder .ds-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.25); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; z-index: 9999; padding: 20px;
+}
+body.resume-builder .ds-modal-backdrop.show { opacity: 1; pointer-events: auto; }
+body.resume-builder .ds-modal-box {
+  background: var(--c-bg-card); border-radius: var(--r-lg);
+  width: 100%; max-width: 480px;
+  box-shadow: var(--s-modal);
+  transform: translateY(20px); transition: transform 0.3s;
+  overflow: hidden; display: flex; flex-direction: column;
+}
+[data-theme="dark"] body.resume-builder .ds-modal-box { background: #1C1C1E; border: 1px solid rgba(255,255,255,0.1); }
+body.resume-builder .ds-modal-backdrop.show .ds-modal-box { transform: translateY(0); }
+body.resume-builder .ds-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--c-border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+body.resume-builder .ds-modal-title { font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--c-text-main); }
+body.resume-builder .ds-modal-close {
+  background: var(--c-bg-sub); border: none;
+  width: 28px; height: 28px; border-radius: 50%;
+  font-size: 1.1rem; color: var(--c-text-muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background var(--transition);
+}
+body.resume-builder .ds-modal-close:hover { background: var(--c-border); }
+body.resume-builder .ds-modal-body {
+  padding: 24px; display: flex; flex-direction: column; gap: 16px;
+  overflow-y: auto; max-height: 70vh;
+}
+body.resume-builder .ds-form-group { display: flex; flex-direction: column; gap: 6px; }
+body.resume-builder .ds-form-group label { font-size: 0.82rem; font-weight: 600; color: var(--c-text-main); }
+body.resume-builder .ds-form-input {
+  padding: 10px 14px; border: 1px solid var(--c-border);
+  border-radius: var(--r-md); font-size: 0.92rem; font-family: inherit;
+  background: var(--c-bg); color: var(--c-text-main); outline: none;
+  transition: border var(--transition);
+}
+body.resume-builder .ds-form-input:focus {
+  border-color: var(--c-border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-border-focus) 12%, transparent);
+}
+body.resume-builder .ds-form-hint { font-size: 0.76rem; color: var(--c-text-muted); margin-top: 2px; }
+body.resume-builder .ds-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--c-border);
+  display: flex; justify-content: flex-end; gap: 12px;
+  background: transparent;
+}
+body.resume-builder .ds-auto-save-indicator {
+  font-size: 0.78rem; color: var(--c-text-muted);
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-left: auto; margin-right: 16px; font-weight: 500;
+}
+
+/* Builder Advanced Panel */
+body.resume-builder .adv-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 10px;
+}
+body.resume-builder .adv-row label {
+  font-size: 0.78rem; font-weight: 600; color: var(--c-text-muted);
+  display: flex; align-items: center; gap: 4px; white-space: nowrap;
+}
+body.resume-builder .adv-val { font-size: 0.72rem; font-weight: 700; color: var(--c-text-main); }
+body.resume-builder .adv-row input[type="range"] { flex: 1; max-width: 180px; }
+body.resume-builder .adv-row select {
+  flex: 1; max-width: 180px; padding: 6px 8px;
+  border: 1px solid var(--c-border); border-radius: var(--r-sm);
+  font-size: 0.82rem; background: var(--c-bg); color: var(--c-text-main);
+}
+
+/* Segment buttons in builder */
+body.resume-builder .seg-btns { display: flex; gap: 2px; background: var(--c-bg-sub); padding: 2px; border-radius: var(--r-md); }
+body.resume-builder .seg-btn {
+  flex: 1; text-align: center; padding: 5px 8px;
+  font-size: 0.74rem; font-weight: 500; color: var(--c-text-main);
+  cursor: pointer; border: none; background: transparent;
+  border-radius: calc(var(--r-md) - 2px); opacity: 0.6;
+  transition: background var(--transition), opacity var(--transition);
+}
+body.resume-builder .seg-btn.active { background: var(--c-bg-card); opacity: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+body.resume-builder .seg-btn:hover:not(.active) { opacity: 0.85; }
+
+/* Color row */
+body.resume-builder .color-row { display: flex; gap: 14px; flex-wrap: wrap; }
+body.resume-builder .color-item { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+body.resume-builder .color-item label { font-size: 0.74rem; font-weight: 600; color: var(--c-text-muted); }
+body.resume-builder .color-item input[type="color"] {
+  width: 36px; height: 36px; border: 1px solid var(--c-border);
+  border-radius: var(--r-sm); padding: 2px; cursor: pointer; background: var(--c-bg-card);
+}
+
+/* Module order list */
+body.resume-builder .module-order-list { display: flex; flex-direction: column; gap: 6px; }
+body.resume-builder .module-order-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: var(--c-bg-card);
+  border: 1px solid var(--c-border); border-radius: var(--r-sm);
+  font-size: 0.82rem; cursor: grab;
+}
+body.resume-builder .module-order-item .drag-handle { color: var(--c-text-hint); margin-right: 8px; cursor: grab; }
+
+/* Print guide */
+body.resume-builder .print-guide {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(6px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+body.resume-builder .pg-box {
+  background: var(--c-bg-card); border-radius: var(--r-lg);
+  max-width: 420px; width: 100%; padding: 28px;
+  box-shadow: var(--s-modal); text-align: center;
+}
+body.resume-builder .pg-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 20px; }
+body.resume-builder .pg-steps { text-align: left; margin-bottom: 20px; }
+body.resume-builder .pg-step {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
+}
+body.resume-builder .pg-num {
+  width: 24px; height: 24px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--c-bg-sub); border-radius: 50%;
+  font-size: 0.75rem; font-weight: 700; color: var(--c-text-main);
+}
+body.resume-builder .pg-desc { font-size: 0.85rem; color: var(--c-text-main); line-height: 1.5; }
+body.resume-builder .pg-step.highlight .pg-num { background: var(--c-accent); color: #fff; }
+body.resume-builder .pg-step.highlight .pg-desc { font-weight: 600; }
+body.resume-builder .pg-visual {
+  background: var(--c-bg-sub); border-radius: var(--r-md);
+  padding: 12px 16px; margin-bottom: 20px;
+}
+body.resume-builder .pg-mock-row {
+  display: flex; align-items: center; gap: 8px; font-size: 0.82rem;
+}
+body.resume-builder .pg-mock-label { color: var(--c-text-muted); }
+body.resume-builder .pg-mock-check { font-size: 1rem; color: var(--c-success); }
+body.resume-builder .pg-arrow { color: var(--c-danger); font-weight: 600; font-size: 0.78rem; }
+body.resume-builder .pg-btn {
+  width: 100%; padding: 12px; border: none; border-radius: var(--r-pill);
+  background: var(--c-primary); color: var(--c-bg); font-size: 0.88rem;
+  font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: background var(--transition);
+}
+body.resume-builder .pg-btn:hover { background: var(--c-primary-hover); }
+body.resume-builder .pg-skip {
+  margin-top: 10px; font-size: 0.78rem; color: var(--c-text-muted);
+  cursor: pointer;
+}
+body.resume-builder .pg-skip:hover { color: var(--c-text-main); }
+
+/* BG check */
+body.resume-builder .bg-check {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.76rem; color: var(--c-text-muted); cursor: pointer;
+}
+body.resume-builder .bg-check-text { font-weight: 500; }
