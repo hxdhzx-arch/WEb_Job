@@ -5,7 +5,7 @@
 <!-- Theme Init -->
 <script>
 (function(){
-  var theme = localStorage.getItem("resumeAI_theme");
+  var theme = localStorage.getItem("saas_theme");
   if (!theme) {
     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
@@ -14,7 +14,7 @@
 function toggleTheme() {
   var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem("resumeAI_theme", t);
+  localStorage.setItem("saas_theme", t);
   var icon = document.getElementById("theme-toggle-icon");
   if(icon) {
     icon.textContent = t === 'dark' ? '☀️' : '🌙';

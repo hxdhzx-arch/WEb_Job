@@ -8,28 +8,46 @@
     
     <script>
     (function(){
-      var theme = localStorage.getItem("resumeAI_theme");
+      var theme = localStorage.getItem("saas_theme");
       if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', theme);
     })();
     function toggleTheme() {
       var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', t);
-      localStorage.setItem("resumeAI_theme", t);
+      localStorage.setItem("saas_theme", t);
       var icon = document.getElementById("theme-toggle-icon");
       if(icon) icon.textContent = t === 'dark' ? '☀️' : '🌙';
     }
     </script>
     
     <style>
+    /* ═══ Bridge: map design-system vars → dashboard shorthand ═══ */
+    :root {
+      --bg: var(--c-bg);
+      --bg-card: var(--c-bg-card);
+      --bg-hover: var(--c-bg-sub);
+      --bg-nav: var(--c-bg-glass);
+      --text-main: var(--c-text-main);
+      --text-secondary: var(--c-text-muted);
+      --text-hint: var(--c-text-hint);
+      --border: var(--c-border);
+      --border-focus: var(--c-border-focus);
+      --primary: var(--c-accent);
+      --primary-light: color-mix(in srgb, var(--c-accent) 12%, transparent);
+      --danger: var(--c-danger);
+      --shadow-md: var(--s-float);
+      --shadow-lg: var(--s-modal);
+    }
+
     /* Canva-style Dashboard Reset */
-    body { background: var(--bg); color: var(--text-main); font-family: "Inter","PingFang SC",sans-serif; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+    body { background: var(--bg); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
     
     /* Top Header */
-    .ds-header { height: 64px; background: var(--bg-nav); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; position: sticky; top: 0; }
+    .ds-header { height: 64px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; z-index: 100; position: sticky; top: 0; }
     .ds-header-left { display: flex; align-items: center; gap: 24px; }
     .ds-logo { font-size: 1.1rem; font-weight: 800; color: var(--text-main); text-decoration: none; display: flex; align-items: center; gap: 10px; }
-    .ds-logo span { background: linear-gradient(135deg, var(--primary), #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .ds-logo span { background: linear-gradient(135deg, var(--primary), #8B5CF6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .ds-header-right { display: flex; align-items: center; gap: 16px; }
     
     /* Layout */
@@ -74,7 +92,7 @@
     .ds-menu-btn { width: 32px; height: 32px; border-radius: 8px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; font-size: 1.2rem; }
     .ds-menu-btn:hover { background: var(--bg-hover); color: var(--text-main); }
     
-    .ds-dropdown { position: absolute; bottom: 50px; right: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); width: 160px; padding: 8px 0; z-index: 20; opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.2s; }
+    .ds-dropdown { position: absolute; bottom: 50px; right: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow-lg); width: 180px; padding: 8px 0; z-index: 20; opacity: 0; pointer-events: none; transform: translateY(10px); transition: all 0.2s; }
     .ds-dropdown.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
     .ds-dropdown-item { padding: 10px 16px; display: block; width: 100%; text-align: left; border: none; background: transparent; color: var(--text-main); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .ds-dropdown-item:hover { background: var(--bg-hover); color: var(--primary); }
@@ -94,17 +112,35 @@
     /* Modal */
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; padding: 20px; }
     .modal-backdrop.show { opacity: 1; pointer-events: auto; }
-    .modal-box { background: var(--bg-card); border-radius: 16px; padding: 32px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.3s; }
+    .modal-box { background: var(--bg-card); border-radius: 16px; padding: 32px; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); transform: translateY(20px); transition: transform 0.3s; }
     .modal-backdrop.show .modal-box { transform: translateY(0); }
     .modal-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 12px; }
     .modal-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
     
+    /* Version list inside modal */
+    .ver-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .ver-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+    .ver-item-info { display: flex; flex-direction: column; gap: 2px; }
+    .ver-item-note { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+    .ver-item-time { font-size: 0.78rem; color: var(--text-secondary); }
+    .ver-item-btn { font-size: 0.82rem; font-weight: 600; padding: 6px 14px; }
+
     /* Empty State */
     .empty-state { padding: 80px 0; text-align: center; color: var(--text-secondary); }
     .empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
     .empty-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-bottom: 8px; }
     .empty-desc { font-size: 0.95rem; margin-bottom: 24px; }
+
+    /* Login prompt */
+    .login-prompt { max-width: 400px; margin: 80px auto; text-align: center; padding: 40px 32px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-card); }
+    .login-prompt h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+    .login-prompt p { color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 20px; line-height: 1.5; }
+    .login-form-group { margin-bottom: 12px; text-align: left; }
+    .login-form-group label { font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-main); }
+    .login-tabs { display: flex; gap: 0; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .login-tab { flex: 1; padding: 8px; font-size: 0.85rem; font-weight: 600; border: none; background: transparent; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+    .login-tab.active { background: var(--primary); color: #fff; }
     
     @media(max-width: 768px) {
       .ds-layout { flex-direction: column; padding: 24px 16px; gap: 24px; }
@@ -112,7 +148,7 @@
       .ds-nav-item { width: auto; white-space: nowrap; }
     }
     
-    /* Toast (Canva style pill) */
+    /* Toast */
     .ps-toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; padding: 12px 28px; border-radius: 98px; font-size: 0.95rem; font-weight: 700; z-index: 9999; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--shadow-lg); pointer-events: none; color: #fff; }
     .ps-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     .ps-toast.success { background: #1f2937; }
@@ -142,6 +178,36 @@
     </div>
 </header>
 
+<!-- Login prompt (shown when no token) -->
+<div id="login-section" style="display:none">
+  <div class="login-prompt">
+    <h2>🔐 登录以管理您的项目</h2>
+    <p>登录后可查看和管理所有简历与网站项目。</p>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('login',this)">登录</button>
+      <button class="login-tab" onclick="switchLoginTab('register',this)">注册</button>
+    </div>
+    <div id="login-form">
+      <div class="login-form-group">
+        <label>邮箱</label>
+        <input type="email" id="auth-email" class="form-input" placeholder="you@example.com">
+      </div>
+      <div class="login-form-group">
+        <label>密码</label>
+        <input type="password" id="auth-password" class="form-input" placeholder="输入密码">
+      </div>
+      <div id="nickname-field" class="login-form-group" style="display:none">
+        <label>昵称</label>
+        <input type="text" id="auth-nickname" class="form-input" placeholder="您的昵称" value="用户">
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doAuth()" id="auth-btn">登录</button>
+      <p id="auth-error" style="color:var(--danger);font-size:0.82rem;margin-top:8px;display:none"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Main dashboard (shown when has token) -->
+<div id="dashboard-section" style="display:none">
 <div class="ds-layout">
     <!-- Sidebar -->
     <aside class="ds-sidebar">
@@ -184,6 +250,7 @@
         </div>
     </main>
 </div>
+</div>
 
 <!-- Modals -->
 <div class="modal-backdrop" id="rename-modal">
@@ -209,6 +276,21 @@
     </div>
 </div>
 
+<!-- Version Management Modal -->
+<div class="modal-backdrop" id="version-modal">
+    <div class="modal-box">
+        <div class="modal-title">📷 版本管理</div>
+        <div class="modal-desc" id="version-modal-desc">管理此项目的历史快照，可随时恢复到某个版本。</div>
+        <div id="version-list" class="ver-list">
+            <div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:0.85rem">加载中...</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('version')">关闭</button>
+            <button class="btn btn-primary" onclick="saveVersion()" id="save-version-btn">📷 创建当前快照</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div class="ps-toast" id="ps-toast"></div>
 
@@ -217,15 +299,87 @@
 let projects = [];
 let currentFilter = 'all';
 let actionTarget = null; // {id, type}
+let versionTarget = null; // {id, type}
 const TOKEN = localStorage.getItem('token') || localStorage.getItem('admin_token');
+let authMode = 'login';
 
-// API
+// ── Init ──
+window.addEventListener('DOMContentLoaded', function() {
+  var t = document.documentElement.getAttribute('data-theme');
+  var icon = document.getElementById("theme-toggle-icon");
+  if(icon) icon.textContent = t === 'dark' ? '☀️' : '🌙';
+
+  if(TOKEN) {
+    document.getElementById('dashboard-section').style.display = 'block';
+    fetchProjects();
+  } else {
+    document.getElementById('login-section').style.display = 'block';
+  }
+});
+
+// ── Auth ──
+function switchLoginTab(mode, el) {
+  authMode = mode;
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('nickname-field').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('auth-btn').textContent = mode === 'register' ? '注册' : '登录';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function doAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  const btn = document.getElementById('auth-btn');
+  if(!email || !password) { errEl.textContent = '请填写邮箱和密码'; errEl.style.display = 'block'; return; }
+  
+  btn.disabled = true; btn.textContent = '处理中...';
+  errEl.style.display = 'none';
+  
+  const url = authMode === 'register' ? '/api/v1/auth/register' : '/api/v1/auth/login';
+  const body = { email, password };
+  if(authMode === 'register') body.nickname = document.getElementById('auth-nickname').value.trim() || '用户';
+  
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    if(d.success && d.data && d.data.access_token) {
+      localStorage.setItem('token', d.data.access_token);
+      if(d.data.refresh_token) localStorage.setItem('refresh_token', d.data.refresh_token);
+      toast(authMode === 'register' ? '注册成功，正在进入...' : '登录成功', 'success');
+      setTimeout(() => window.location.reload(), 500);
+    } else {
+      errEl.textContent = d.message || '操作失败';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent = '网络错误';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'register' ? '注册' : '登录';
+  }
+}
+
+// ── Projects API ──
 async function fetchProjects() {
-    if(!TOKEN) { window.location.href='/'; return; }
     try {
         const res = await fetch('/api/v1/dashboard/projects', {
             headers: {'Authorization': 'Bearer ' + TOKEN}
         });
+        if(res.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('admin_token');
+            document.getElementById('dashboard-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+            toast('登录已过期，请重新登录', 'error');
+            return;
+        }
         const data = await res.json();
         if(data.success) {
             projects = data.data;
@@ -274,6 +428,7 @@ function renderProjects() {
         const typeLabel = p.project_type === 'site' ? '网站' : '简历';
         const statusClass = p.is_published ? 'online' : 'draft';
         const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '未知时间';
+        const safeTitle = p.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         
         return `
         <div class="ds-card">
@@ -283,7 +438,7 @@ function renderProjects() {
                 <div class="ds-card-status ${statusClass}" title="${p.is_published ? '已上线' : '草稿'}"></div>
             </div>
             <div class="ds-card-body">
-                <div class="ds-card-title" title="${p.title}">${p.title}</div>
+                <div class="ds-card-title" title="${safeTitle}">${p.title}</div>
                 <div class="ds-card-meta">
                     <span>⏱ ${date}</span>
                     <span title="浏览量">👁 ${p.view_count || 0}</span>
@@ -295,7 +450,8 @@ function renderProjects() {
                     <div class="ds-dropdown" id="menu-${p.project_type}-${p.id}">
                         ${p.is_published ? `<button class="ds-dropdown-item" onclick="window.open('${p.public_url}', '_blank')">🌐 预览上线版本</button>` : ''}
                         <button class="ds-dropdown-item" onclick="dupProject(${p.id}, '${p.project_type}')">📑 创建副本</button>
-                        <button class="ds-dropdown-item" onclick="openRename(${p.id}, '${p.project_type}', '${p.title.replace(/'/g, "\\'")}')">🏷️ 重命名</button>
+                        <button class="ds-dropdown-item" onclick="openRename(${p.id}, '${p.project_type}', '${safeTitle}')">🏷️ 重命名</button>
+                        <button class="ds-dropdown-item" onclick="openVersions(${p.id}, '${p.project_type}')">📷 版本管理</button>
                         <button class="ds-dropdown-item danger" onclick="openDelete(${p.id}, '${p.project_type}')">🗑️ 移至回收站</button>
                     </div>
                 </div>
@@ -330,10 +486,10 @@ function openDelete(id, type) {
 }
 function closeModal(type) {
     document.getElementById(`${type}-modal`).classList.remove('show');
-    actionTarget = null;
+    if(type !== 'version') actionTarget = null;
 }
 
-// API Actions
+// ── API Actions ──
 async function dupProject(id, type) {
     toast('正在复制...', 'success');
     document.querySelectorAll('.ds-dropdown').forEach(d => d.classList.remove('show'));
@@ -375,6 +531,101 @@ async function confirmDelete() {
     else toast(d.message, 'error');
 }
 
+// ── Version Management ──
+function openVersions(id, type) {
+    versionTarget = {id, type};
+    document.querySelectorAll('.ds-dropdown').forEach(d => d.classList.remove('show'));
+    document.getElementById('version-modal').classList.add('show');
+    loadVersions();
+}
+
+async function loadVersions() {
+    if(!versionTarget) return;
+    const {id, type} = versionTarget;
+    const listEl = document.getElementById('version-list');
+    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);font-size:0.85rem">加载中...</div>';
+    
+    try {
+        const res = await fetch(`/api/v1/dashboard/versions/list?project_id=${id}&project_type=${type}`, {
+            headers: {'Authorization': 'Bearer ' + TOKEN}
+        });
+        const d = await res.json();
+        if(d.success && Array.isArray(d.data)) {
+            if(d.data.length === 0) {
+                listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary);font-size:0.85rem">暂无版本快照<br><small>点击下方按钮创建第一个快照</small></div>';
+            } else {
+                listEl.innerHTML = d.data.map(v => {
+                    const date = v.created_at ? new Date(v.created_at).toLocaleString() : '未知';
+                    return `<div class="ver-item">
+                        <div class="ver-item-info">
+                            <span class="ver-item-note">${v.version_note || '快照'}</span>
+                            <span class="ver-item-time">${date}</span>
+                        </div>
+                        <button class="btn btn-secondary ver-item-btn" onclick="restoreVersion(${v.id})">⏪ 恢复</button>
+                    </div>`;
+                }).join('');
+            }
+        } else {
+            listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:0.85rem">加载失败</div>';
+        }
+    } catch(e) {
+        listEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:0.85rem">网络错误</div>';
+    }
+}
+
+async function saveVersion() {
+    if(!versionTarget) return;
+    const btn = document.getElementById('save-version-btn');
+    btn.disabled = true; btn.textContent = '保存中...';
+    
+    const note = prompt('版本备注（可选）：', '手动存档') || '手动存档';
+    
+    try {
+        const res = await fetch('/api/v1/dashboard/versions/save', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + TOKEN},
+            body: JSON.stringify({
+                project_id: versionTarget.id,
+                project_type: versionTarget.type,
+                note: note
+            })
+        });
+        const d = await res.json();
+        if(d.success) {
+            toast('快照已创建', 'success');
+            loadVersions();
+        } else {
+            toast(d.message || '保存失败', 'error');
+        }
+    } catch(e) {
+        toast('网络错误', 'error');
+    } finally {
+        btn.disabled = false; btn.textContent = '📷 创建当前快照';
+    }
+}
+
+async function restoreVersion(versionId) {
+    if(!confirm('恢复此版本将覆盖当前数据，确定继续？')) return;
+    
+    try {
+        const res = await fetch('/api/v1/dashboard/versions/restore', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json', 'Authorization': 'Bearer ' + TOKEN},
+            body: JSON.stringify({version_id: versionId})
+        });
+        const d = await res.json();
+        if(d.success) {
+            toast('已恢复到选定版本', 'success');
+            closeModal('version');
+            fetchProjects();
+        } else {
+            toast(d.message || '恢复失败', 'error');
+        }
+    } catch(e) {
+        toast('网络错误', 'error');
+    }
+}
+
 function toast(msg, type) {
   var el = document.getElementById('ps-toast');
   el.textContent = msg;
@@ -382,9 +633,6 @@ function toast(msg, type) {
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 3000);
 }
-
-// Init
-window.addEventListener('DOMContentLoaded', fetchProjects);
 </script>
 </body>
 </html>

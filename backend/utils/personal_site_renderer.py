@@ -1,16 +1,12 @@
 """
-personal_site_renderer.py — AI 个人网站渲染引擎
-4 种风格：minimal / modern / card / blog
-所有输出为纯静态 HTML，零外部依赖
+personal_site_renderer.py — AI 个人网站渲染引擎 (Block 版)
+支持 4 套模板风格 + 区块化渲染 + 动效语言
 """
 import html as _html
 
-# ══════════════════════════════════════
-#  工具函数
-# ══════════════════════════════════════
 
 def E(text):
-    if not text:
+    if text is None:
         return ""
     return _html.escape(str(text))
 
@@ -19,396 +15,401 @@ def _fonts():
     return "-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Segoe UI',Roboto,sans-serif"
 
 
-def _mono():
-    return "'SF Mono','Menlo','Consolas','Courier New',monospace"
+def _as_list(v):
+    if isinstance(v, list):
+        return v
+    if isinstance(v, str):
+        return [i.strip() for i in v.split(",") if i.strip()]
+    return []
 
 
-def _get(data, *keys, default=""):
-    """安全嵌套取值"""
-    d = data
-    for k in keys:
-        if isinstance(d, dict):
-            d = d.get(k, default)
-        else:
-            return default
-    return d or default
+def _style_cls(block):
+    style = block.get("style", {}) if isinstance(block, dict) else {}
+    return f"pb-variant-{style.get('variant', 'card')} pb-layout-{style.get('layout', 'left')}"
 
 
-# ══════════════════════════════════════
-#  Section 渲染器（所有模板共用）
-# ══════════════════════════════════════
-
-def _hero_section(data, config, style_fn):
-    hero = data.get("hero", {})
-    name = E(hero.get("name", "")) or "专属个人网站"
-    tagline = E(hero.get("tagline", "")) or "请在左侧侧边栏更新您的技能或人生格言"
-    avatar = hero.get("avatar", "")
-    cover = hero.get("cover", "")
-    return style_fn["hero"](name, tagline, avatar, cover)
+def _section_open(block, sec_cls):
+    return f'<section class="{sec_cls} {_style_cls(block)}" id="block-{E(block.get("id",""))}"><div class="pb-container">'
 
 
-def _about_section(data, config, style_fn):
-    about = data.get("about", "")
-    if not about:
-        return ""
-    return style_fn["section"]("关于我", f'<p class="ps-text">{E(about)}</p>')
+def _section_close():
+    return "</div></section>"
 
 
-def _experience_section(data, config, style_fn):
-    items = data.get("experience", [])
+def render_hero(b):
+    c = b.get("content", {})
+    name = E(c.get("name", "Your Name"))
+    subtitle = E(c.get("subtitle", "Creative professional"))
+    avatar = E(c.get("avatar", ""))
+    cta = c.get("cta", {}) if isinstance(c.get("cta"), dict) else {}
+    cta_text = E(cta.get("text", "Contact"))
+    cta_url = E(cta.get("url", "#"))
+    links = []
+    if c.get("github"):
+        links.append(f'<a href="{E(c.get("github"))}" target="_blank" rel="noopener">GitHub</a>')
+    if c.get("linkedin"):
+        links.append(f'<a href="{E(c.get("linkedin"))}" target="_blank" rel="noopener">LinkedIn</a>')
+    if c.get("website"):
+        links.append(f'<a href="{E(c.get("website"))}" target="_blank" rel="noopener">Website</a>')
+    links_html = f'<div class="pb-hero-links">{"".join(links)}</div>' if links else ""
+
+    avatar_html = f'<img class="pb-avatar" src="{avatar}" alt="{name}"/>' if avatar else '<div class="pb-avatar pb-avatar-fallback">✦</div>'
+    return (
+        _section_open(b, "pb-hero pb-reveal")
+        + '<div class="pb-hero-glow"></div><div class="pb-hero-line"></div>'
+        + '<div class="pb-hero-grid">'
+        + f'<div class="pb-hero-left">{avatar_html}</div>'
+        + '<div class="pb-hero-right">'
+        + f'<h1 class="pb-title">{name}</h1><p class="pb-subtitle">{subtitle}</p>'
+        + f'<div class="pb-hero-actions"><a href="{cta_url}" class="pb-btn pb-btn-primary">{cta_text}</a></div>{links_html}'
+        + "</div></div>"
+        + _section_close()
+    )
+
+
+def render_about(b):
+    c = b.get("content", {})
+    title = E(b.get("title", "About"))
+    paras = [p.strip() for p in str(c.get("text", "")).split("\n") if p.strip()]
+    body = "".join([f"<p>{E(p)}</p>" for p in paras]) if paras else "<p>Tell your story here.</p>"
+    return _section_open(b, "pb-about pb-reveal") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-prose">{body}</div>' + _section_close()
+
+
+def render_projects(b):
+    items = _as_list(b.get("content", {}).get("items"))
+    title = E(b.get("title", "Projects"))
     if not items:
         return ""
-    html = ""
-    for item in items:
-        if not item.get("company") and not item.get("role"):
-            continue
-        desc = E(item.get("description", ""))
-        desc_html = ""
-        if desc:
-            lines = desc.split("\n")
-            if len(lines) > 1:
-                desc_html = '<ul class="ps-duties">' + "".join(f"<li>{E(l)}</li>" for l in lines if l.strip()) + "</ul>"
-            else:
-                desc_html = f'<p class="ps-text-sm">{desc}</p>'
-        html += f'''<div class="ps-exp-item">
-<div class="ps-exp-header">
-<div><span class="ps-exp-company">{E(item.get("company",""))}</span>
-<span class="ps-exp-role">{E(item.get("role",""))}</span></div>
-<span class="ps-exp-period">{E(item.get("period",""))}</span>
-</div>{desc_html}</div>'''
-    return style_fn["section"]("工作经历", html)
-
-
-def _projects_section(data, config, style_fn):
-    items = data.get("projects", [])
-    if not items:
-        return ""
-    html = '<div class="ps-project-grid">'
+    cards = []
     for p in items:
-        if not p.get("name"):
+        if not isinstance(p, dict):
             continue
-        tags = p.get("tags", [])
-        tags_html = ""
-        if tags:
-            tags_html = '<div class="ps-tags">' + "".join(f'<span class="ps-tag">{E(t)}</span>' for t in tags) + "</div>"
-        link = p.get("link", "")
-        link_html = f' <a href="{E(link)}" class="ps-link" target="_blank">查看 →</a>' if link else ""
-        html += f'''<div class="ps-project-card">
-<h4 class="ps-project-name">{E(p["name"])}{link_html}</h4>
-<p class="ps-text-sm">{E(p.get("description",""))}</p>
-{tags_html}</div>'''
-    html += "</div>"
-    return style_fn["section"]("项目经历", html)
+        cover = E(p.get("cover", ""))
+        cover_html = f'<img class="pb-proj-cover" src="{cover}" alt="{E(p.get("title","Project"))}"/>' if cover else '<div class="pb-proj-cover pb-cover-fallback">Project</div>'
+        tags = _as_list(p.get("tags"))
+        tags_html = "".join([f'<span class="pb-tag">{E(t)}</span>' for t in tags if t])
+        links = []
+        if p.get("link"):
+            links.append(f'<a href="{E(p.get("link"))}" target="_blank" rel="noopener" class="pb-btn pb-btn-sm">Live</a>')
+        if p.get("github"):
+            links.append(f'<a href="{E(p.get("github"))}" target="_blank" rel="noopener" class="pb-btn pb-btn-sm pb-btn-outline">GitHub</a>')
+        links_html = f'<div class="pb-proj-links">{"".join(links)}</div>' if links else ""
+        cards.append(
+            '<article class="pb-proj-card pb-reveal">'
+            + cover_html
+            + '<div class="pb-proj-body">'
+            + f'<h3 class="pb-proj-title">{E(p.get("title",""))}</h3><p class="pb-proj-desc">{E(p.get("desc",""))}</p>'
+            + (f'<div class="pb-tags">{tags_html}</div>' if tags_html else "")
+            + links_html
+            + "</div></article>"
+        )
+    return _section_open(b, "pb-projects") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-grid pb-proj-grid">{"".join(cards)}</div>' + _section_close()
 
 
-def _education_section(data, config, style_fn):
-    items = data.get("education", [])
+def render_skills(b):
+    items = _as_list(b.get("content", {}).get("items"))
+    title = E(b.get("title", "Skills"))
     if not items:
         return ""
-    html = ""
-    for ed in items:
-        if not ed.get("school"):
+    tags = "".join([f'<span class="pb-tag pb-tag-lg">{E(t)}</span>' for t in items if t])
+    return _section_open(b, "pb-skills pb-reveal") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-tags-wrap">{tags}</div>' + _section_close()
+
+
+def render_experience(b):
+    items = _as_list(b.get("content", {}).get("items"))
+    title = E(b.get("title", "Experience"))
+    if not items:
+        return ""
+    rows = []
+    for it in items:
+        if not isinstance(it, dict):
             continue
-        detail = " · ".join(filter(None, [ed.get("degree", ""), ed.get("major", "")]))
-        html += f'''<div class="ps-edu-item">
-<div class="ps-exp-header">
-<span class="ps-exp-company">{E(ed["school"])}</span>
-<span class="ps-exp-period">{E(ed.get("period",""))}</span>
-</div>
-{f'<p class="ps-text-sm">{E(detail)}</p>' if detail else ""}
-</div>'''
-    return style_fn["section"]("教育背景", html)
+        desc = it.get("desc", [])
+        if isinstance(desc, str):
+            desc = [d.strip() for d in desc.split("\n") if d.strip()]
+        desc_html = "".join([f"<li>{E(d)}</li>" for d in desc if d]) if desc else ""
+        rows.append(
+            '<article class="pb-exp-item pb-reveal"><div class="pb-exp-head"><div class="pb-exp-main">'
+            + f'<span class="pb-company">{E(it.get("company",""))}</span><span class="pb-role">{E(it.get("role",""))}</span></div>'
+            + f'<span class="pb-period">{E(it.get("period",""))}</span></div>'
+            + (f'<ul class="pb-list">{desc_html}</ul>' if desc_html else "")
+            + "</article>"
+        )
+    return _section_open(b, "pb-experience") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-items">{"".join(rows)}</div>' + _section_close()
 
 
-def _skills_section(data, config, style_fn):
-    skills = data.get("skills", [])
-    if not skills:
+def render_education(b):
+    items = _as_list(b.get("content", {}).get("items"))
+    title = E(b.get("title", "Education"))
+    if not items:
         return ""
-    html = ""
-    if isinstance(skills, list) and skills:
-        if isinstance(skills[0], dict):
-            # [{"category":"...", "items":["..."]}]
-            for group in skills:
-                cat = E(group.get("category", ""))
-                items = group.get("items", [])
-                tags = "".join(f'<span class="ps-tag">{E(i)}</span>' for i in items)
-                html += f'{f"<h4 class=ps-skill-cat>{cat}</h4>" if cat else ""}<div class="ps-tags">{tags}</div>'
-        else:
-            # ["skill1", "skill2"]
-            html = '<div class="ps-tags">' + "".join(f'<span class="ps-tag">{E(s)}</span>' for s in skills) + "</div>"
-    elif isinstance(skills, str):
-        import re
-        items = [s.strip() for s in re.split(r'[,，、\n]+', skills) if s.strip()]
-        html = '<div class="ps-tags">' + "".join(f'<span class="ps-tag">{E(s)}</span>' for s in items) + "</div>"
-    return style_fn["section"]("技能", html)
+    rows = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        rows.append(
+            '<article class="pb-edu-item pb-reveal"><div class="pb-exp-head"><div class="pb-exp-main">'
+            + f'<span class="pb-company">{E(it.get("school",""))}</span><span class="pb-role">{E(it.get("degree",""))}</span></div>'
+            + f'<span class="pb-period">{E(it.get("period",""))}</span></div></article>'
+        )
+    return _section_open(b, "pb-education") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-items">{"".join(rows)}</div>' + _section_close()
 
 
-def _contact_section(data, config, style_fn):
-    contact = data.get("contact", {})
-    if not contact:
-        return ""
+def render_contact(b):
+    c = b.get("content", {}) if isinstance(b.get("content"), dict) else {}
+    title = E(b.get("title", "Contact"))
     items = []
-    labels = {"email": "📧 邮箱", "phone": "📱 手机", "github": "🔗 GitHub", "linkedin": "🔗 LinkedIn", "website": "🌐 网站", "wechat": "💬 微信"}
-    for key, label in labels.items():
-        val = contact.get(key, "")
-        if val:
-            if key in ("github", "linkedin", "website") and val.startswith("http"):
-                items.append(f'<div class="ps-contact-item">{label}: <a href="{E(val)}" target="_blank">{E(val)}</a></div>')
-            else:
-                items.append(f'<div class="ps-contact-item">{label}: {E(val)}</div>')
+    defs = [("email", "Email", "mailto:"), ("phone", "Phone", "tel:"), ("github", "GitHub", ""), ("linkedin", "LinkedIn", ""), ("wechat", "WeChat", "")]
+    for key, label, prefix in defs:
+        val = c.get(key)
+        if not val:
+            continue
+        val = str(val)
+        if key in ("github", "linkedin") and not val.startswith("http"):
+            val = "https://" + val
+        href = val if val.startswith("http") else prefix + val if prefix else ""
+        if href:
+            items.append(f'<div class="pb-cnt-item"><span class="pb-cnt-label">{label}</span><a href="{E(href)}" target="_blank" rel="noopener">{E(c.get(key))}</a></div>')
+        else:
+            items.append(f'<div class="pb-cnt-item"><span class="pb-cnt-label">{label}</span><span>{E(c.get(key))}</span></div>')
+    return _section_open(b, "pb-contact pb-reveal") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-cnt-list">{"".join(items)}</div>' + _section_close()
+
+
+def render_stats(b):
+    items = _as_list(b.get("content", {}).get("items"))
     if not items:
         return ""
-    return style_fn["section"]("联系方式", "\n".join(items))
+    html = []
+    for i in items:
+        if isinstance(i, dict):
+            html.append(f'<div class="pb-stat-item pb-reveal"><div class="pb-stat-val">{E(i.get("value",""))}</div><div class="pb-stat-label">{E(i.get("label",""))}</div></div>')
+    return _section_open(b, "pb-stats") + f'<div class="pb-stats-grid">{"".join(html)}</div>' + _section_close()
 
 
-SECTION_ORDER = ["about", "experience", "projects", "education", "skills", "contact"]
-SECTION_RENDERERS = {
-    "about": _about_section,
-    "experience": _experience_section,
-    "projects": _projects_section,
-    "education": _education_section,
-    "skills": _skills_section,
-    "contact": _contact_section,
+def render_services(b):
+    items = _as_list(b.get("content", {}).get("items"))
+    title = E(b.get("title", "Services"))
+    if not items:
+        return ""
+    html = []
+    for i in items:
+        if isinstance(i, dict):
+            html.append(f'<article class="pb-srv-card pb-reveal"><h3 class="pb-srv-title">{E(i.get("title",""))}</h3><p class="pb-srv-desc">{E(i.get("desc",""))}</p></article>')
+    return _section_open(b, "pb-services") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-grid">{"".join(html)}</div>' + _section_close()
+
+
+def render_testimonials(b):
+    items = _as_list(b.get("content", {}).get("items"))
+    title = E(b.get("title", "Testimonials"))
+    if not items:
+        return ""
+    html = []
+    for i in items:
+        if isinstance(i, dict):
+            html.append(
+                '<article class="pb-tst-card pb-reveal">'
+                + f'<p class="pb-tst-text">"{E(i.get("text",""))}"</p>'
+                + f'<div class="pb-tst-author"><strong>{E(i.get("author",""))}</strong> · {E(i.get("role",""))}</div>'
+                + "</article>"
+            )
+    return _section_open(b, "pb-testimonials") + f'<h2 class="pb-sec-title">{title}</h2><div class="pb-grid">{"".join(html)}</div>' + _section_close()
+
+
+def render_cta(b):
+    c = b.get("content", {}) if isinstance(b.get("content"), dict) else {}
+    title = E(c.get("title", b.get("title", "Ready to build something great?")))
+    desc = E(c.get("desc", "Let's collaborate on your next project."))
+    btn_text = E(c.get("button_text", "Get in touch"))
+    btn_url = E(c.get("button_url", "#"))
+    return (
+        _section_open(b, "pb-cta pb-reveal")
+        + f'<div class="pb-cta-box"><h2 class="pb-sec-title">{title}</h2><p class="pb-subtitle">{desc}</p>'
+        + f'<a href="{btn_url}" class="pb-btn pb-btn-primary">{btn_text}</a></div>'
+        + _section_close()
+    )
+
+
+def render_footer(b):
+    c = b.get("content", {}) if isinstance(b.get("content"), dict) else {}
+    text = E(c.get("text", "© 2026 All Rights Reserved"))
+    return f'<footer class="pb-footer" id="block-{E(b.get("id",""))}"><div class="pb-container"><p>{text}</p></div></footer>'
+
+
+BLOCK_RENDERERS = {
+    "hero": render_hero,
+    "about": render_about,
+    "projects": render_projects,
+    "skills": render_skills,
+    "experience": render_experience,
+    "education": render_education,
+    "contact": render_contact,
+    "stats": render_stats,
+    "services": render_services,
+    "testimonials": render_testimonials,
+    "cta": render_cta,
+    "footer": render_footer,
 }
 
 
-def _render_all_sections(data, config, style_fn):
-    order = config.get("section_order", SECTION_ORDER) if config else SECTION_ORDER
-    html = ""
-    for key in order:
-        fn = SECTION_RENDERERS.get(key)
-        if fn:
-            html += fn(data, config, style_fn)
-    return html
+def _base_css(theme, template_id):
+    accent = theme.get("primaryColor", "#4f46e5")
+    bg = theme.get("bgColor", "#0b1020" if template_id == "developer" else "#ffffff")
+    text = theme.get("textColor", "#e5e7eb" if template_id == "developer" else "#121826")
+    radius = theme.get("radius", "16px")
 
-
-# ══════════════════════════════════════
-#  公共 CSS
-# ══════════════════════════════════════
-
-def _base_css(accent="#8B5CF6"):
     return f"""
-*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-html{{scroll-behavior:smooth}}
-body{{font-family:{_fonts()};line-height:1.7;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}}
-a{{color:{accent};text-decoration:none}}
-a:hover{{text-decoration:underline}}
-.ps-container{{max-width:820px;margin:0 auto;padding:0 24px}}
-.ps-section{{margin-bottom:40px}}
-.ps-section-title{{font-size:1.2rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}}
-.ps-text{{line-height:1.8;font-size:.95rem}}
-.ps-text-sm{{font-size:.9rem;line-height:1.7}}
-.ps-exp-item{{margin-bottom:22px}}
-.ps-exp-header{{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:4px}}
-.ps-exp-company{{font-weight:700;font-size:1rem}}
-.ps-exp-role{{font-size:.9rem;margin-left:8px}}
-.ps-exp-period{{font-size:.82rem;white-space:nowrap}}
-.ps-duties{{margin:6px 0 0;padding-left:18px;font-size:.9rem}}
-.ps-duties li{{margin-bottom:4px}}
-.ps-project-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}}
-.ps-project-card{{padding:20px;border-radius:12px}}
-.ps-project-name{{font-weight:700;font-size:.95rem;margin-bottom:6px}}
-.ps-link{{font-size:.82rem}}
-.ps-tags{{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}}
-.ps-tag{{padding:4px 12px;border-radius:6px;font-size:.82rem;font-weight:500}}
-.ps-skill-cat{{font-size:.88rem;font-weight:600;margin:12px 0 6px}}
-.ps-edu-item{{margin-bottom:14px}}
-.ps-contact-item{{padding:6px 0;font-size:.9rem}}
-.ps-footer{{text-align:center;padding:32px 0;font-size:.78rem;border-top:1px solid #eee;margin-top:48px}}
-.ps-dark-btn{{position:fixed;bottom:20px;right:20px;width:42px;height:42px;border-radius:50%;border:none;
-  background:{accent};color:#fff;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.15);
-  display:flex;align-items:center;justify-content:center;transition:all .3s;z-index:100}}
-.ps-dark-btn:hover{{transform:scale(1.1)}}
-@media(max-width:600px){{
-  .ps-container{{padding:0 16px}}
-  .ps-exp-header{{flex-direction:column}}
-  .ps-project-grid{{grid-template-columns:1fr}}
+*{{box-sizing:border-box}}
+html,body{{margin:0;padding:0}}
+:root{{
+  --pb-primary:{accent};
+  --pb-bg:{bg};
+  --pb-text:{text};
+  --pb-muted: color-mix(in srgb, var(--pb-text) 62%, transparent);
+  --pb-border: color-mix(in srgb, var(--pb-text) 12%, transparent);
+  --pb-card: color-mix(in srgb, var(--pb-text) 6%, transparent);
+  --pb-radius:{radius};
 }}
-@media print{{.ps-dark-btn,.ps-footer{{display:none}}body{{background:#fff!important;color:#1f2937!important}}}}
+body{{font-family:{_fonts()};background:var(--pb-bg);color:var(--pb-text);line-height:1.65;-webkit-font-smoothing:antialiased}}
+a{{color:inherit;text-decoration:none}}
+.pb-container{{width:100%;max-width:1120px;margin:0 auto;padding:0 22px}}
+section{{position:relative;padding:64px 0;overflow:hidden}}
+.pb-sec-title{{font-size:clamp(1.35rem,2.6vw,2.2rem);line-height:1.18;margin:0 0 18px;font-weight:800;letter-spacing:-.02em}}
+.pb-subtitle{{margin:0;color:var(--pb-muted);font-size:clamp(1rem,1.6vw,1.2rem)}}
+.pb-grid{{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}}
+.pb-reveal{{animation:pbReveal .6s ease both}}
+@keyframes pbReveal{{from{{opacity:0;transform:translateY(10px)}}to{{opacity:1;transform:none}}}}
+@keyframes pbBeam{{from{{transform:translateX(-120%)}}to{{transform:translateX(120%)}}}}
+.pb-btn{{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;border-radius:12px;border:1px solid transparent;font-weight:700;transition:.25s transform,.25s box-shadow,.25s background,.25s border-color;cursor:pointer}}
+.pb-btn:hover{{transform:translateY(-1px)}}
+.pb-btn-primary{{background:var(--pb-primary);color:#fff;box-shadow:0 8px 20px color-mix(in srgb,var(--pb-primary) 35%,transparent)}}
+.pb-btn-outline{{border-color:var(--pb-border);background:transparent}}
+.pb-btn-sm{{padding:7px 12px;font-size:.86rem}}
+.pb-tag{{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid var(--pb-border);background:var(--pb-card);font-size:.78rem}}
+.pb-tag-lg{{padding:7px 14px;font-size:.84rem}}
+.pb-hero .pb-container{{position:relative}}
+.pb-hero-grid{{display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:center}}
+.pb-avatar{{width:184px;height:184px;border-radius:24px;object-fit:cover;border:1px solid var(--pb-border);box-shadow:0 14px 30px color-mix(in srgb,var(--pb-primary) 22%,transparent)}}
+.pb-avatar-fallback{{display:flex;align-items:center;justify-content:center;background:var(--pb-card);font-size:42px}}
+.pb-title{{margin:0 0 10px;font-size:clamp(2rem,5vw,3.8rem);line-height:1.05;font-weight:900;letter-spacing:-.03em}}
+.pb-hero-actions{{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}}
+.pb-hero-links{{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}}
+.pb-hero-links a{{font-size:.9rem;color:var(--pb-muted);border-bottom:1px dashed var(--pb-border)}}
+.pb-hero-glow{{position:absolute;inset:auto -30% -140px auto;width:420px;height:420px;pointer-events:none;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--pb-primary) 35%,transparent) 0%,transparent 70%);filter:blur(35px);opacity:.45}}
+.pb-hero-line{{position:absolute;top:0;left:-30%;width:120%;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--pb-primary) 75%,#fff),transparent);opacity:.4;animation:pbBeam 5.2s linear infinite}}
+.pb-prose p{{margin:0 0 12px;color:var(--pb-muted)}}
+.pb-proj-grid>.pb-proj-card{{grid-column:span 4}}
+.pb-proj-card{{display:flex;flex-direction:column;border:1px solid var(--pb-border);border-radius:16px;background:var(--pb-card);overflow:hidden;transition:.3s transform,.3s box-shadow,.3s border-color}}
+.pb-proj-card:hover{{transform:translateY(-4px);border-color:color-mix(in srgb,var(--pb-primary) 35%,var(--pb-border));box-shadow:0 16px 34px color-mix(in srgb,var(--pb-primary) 15%,transparent)}}
+.pb-proj-cover{{width:100%;aspect-ratio:16/9;object-fit:cover}}
+.pb-cover-fallback{{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--pb-card),color-mix(in srgb,var(--pb-primary) 14%,transparent));font-weight:700}}
+.pb-proj-body{{padding:14px 14px 16px;display:flex;flex-direction:column;gap:10px}}
+.pb-proj-title{{margin:0;font-size:1.06rem;font-weight:800}}
+.pb-proj-desc{{margin:0;color:var(--pb-muted);font-size:.95rem}}
+.pb-tags{{display:flex;gap:7px;flex-wrap:wrap}}
+.pb-proj-links{{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}}
+.pb-items{{display:flex;flex-direction:column;gap:14px}}
+.pb-exp-item,.pb-edu-item{{border:1px solid var(--pb-border);background:var(--pb-card);padding:14px;border-radius:14px}}
+.pb-exp-head{{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}}
+.pb-company{{font-weight:800}}
+.pb-role{{margin-left:8px;color:var(--pb-muted)}}
+.pb-period{{font-size:.88rem;color:var(--pb-muted)}}
+.pb-list{{margin:8px 0 0;padding-left:18px;color:var(--pb-muted)}}
+.pb-list li{{margin-bottom:4px}}
+.pb-tags-wrap{{display:flex;gap:10px;flex-wrap:wrap}}
+.pb-stats-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}}
+.pb-stat-item{{padding:14px;border:1px solid var(--pb-border);background:var(--pb-card);border-radius:14px;text-align:center}}
+.pb-stat-val{{font-size:1.5rem;font-weight:900;line-height:1.1}}
+.pb-stat-label{{margin-top:4px;color:var(--pb-muted);font-size:.9rem}}
+.pb-srv-card,.pb-tst-card{{grid-column:span 4;padding:14px;border:1px solid var(--pb-border);background:var(--pb-card);border-radius:14px;transition:.25s transform,.25s border-color}}
+.pb-srv-card:hover,.pb-tst-card:hover{{transform:translateY(-2px);border-color:color-mix(in srgb,var(--pb-primary) 35%,var(--pb-border))}}
+.pb-tst-text{{margin:0 0 10px;color:var(--pb-muted);font-style:italic}}
+.pb-tst-author{{font-size:.9rem;color:var(--pb-muted)}}
+.pb-cnt-list{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
+.pb-cnt-item{{display:flex;gap:8px;align-items:center;padding:10px;border:1px solid var(--pb-border);border-radius:12px;background:var(--pb-card)}}
+.pb-cnt-label{{color:var(--pb-muted);font-size:.88rem;min-width:74px}}
+.pb-cnt-item a{{color:var(--pb-primary);text-decoration:underline dotted}}
+.pb-cta-box{{padding:26px;border:1px solid var(--pb-border);background:linear-gradient(120deg,var(--pb-card),color-mix(in srgb,var(--pb-primary) 11%,transparent));border-radius:20px;text-align:center}}
+.pb-footer{{padding:28px 0 38px;color:var(--pb-muted);text-align:center;font-size:.9rem}}
+
+/* template skins */
+body.pb-template-professional .pb-title{{letter-spacing:-.02em}}
+body.pb-template-professional .pb-hero-line{{opacity:.28}}
+body.pb-template-professional .pb-btn-primary{{border-radius:10px}}
+
+body.pb-template-developer{{background:radial-gradient(circle at 10% -10%,#1e293b 0%,var(--pb-bg) 55%) fixed}}
+body.pb-template-developer .pb-card,body.pb-template-developer .pb-proj-card,body.pb-template-developer .pb-exp-item,body.pb-template-developer .pb-edu-item,body.pb-template-developer .pb-cnt-item{{backdrop-filter:blur(8px)}}
+body.pb-template-developer .pb-title{{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}}
+body.pb-template-developer .pb-btn-outline{{border-style:dashed}}
+
+body.pb-template-creator .pb-title{{font-size:clamp(2.2rem,6vw,4.3rem)}}
+body.pb-template-creator .pb-hero-glow{{opacity:.58}}
+body.pb-template-creator .pb-proj-card,.pb-template-creator .pb-srv-card,.pb-template-creator .pb-tst-card{{border-radius:20px}}
+body.pb-template-creator .pb-btn-primary{{background:linear-gradient(135deg,var(--pb-primary),color-mix(in srgb,var(--pb-primary) 50%,#fff))}}
+
+body.pb-template-minimal .pb-hero-glow,body.pb-template-minimal .pb-hero-line{{display:none}}
+body.pb-template-minimal .pb-card,body.pb-template-minimal .pb-proj-card,body.pb-template-minimal .pb-exp-item,body.pb-template-minimal .pb-edu-item,body.pb-template-minimal .pb-cnt-item{{background:transparent}}
+body.pb-template-minimal .pb-btn-primary{{box-shadow:none}}
+body.pb-template-minimal .pb-sec-title{{font-weight:700}}
+body.pb-template-minimal .pb-proj-card:hover{{transform:none;box-shadow:none}}
+
+@media (max-width:980px){{
+  .pb-proj-grid>.pb-proj-card,.pb-srv-card,.pb-tst-card{{grid-column:span 6}}
+  .pb-stats-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}
+}}
+@media (max-width:760px){{
+  section{{padding:48px 0}}
+  .pb-hero-grid{{grid-template-columns:1fr}}
+  .pb-avatar{{width:124px;height:124px;border-radius:18px}}
+  .pb-cnt-list{{grid-template-columns:1fr}}
+  .pb-proj-grid>.pb-proj-card,.pb-srv-card,.pb-tst-card{{grid-column:span 12}}
+}}
 """
 
 
-def _dark_css():
-    return """
-body.dark{background:#0B0F19;color:#E2E8F0}
-body.dark .ps-exp-company,body.dark .ps-project-name{color:#F1F5F9}
-body.dark .ps-text,body.dark .ps-text-sm,body.dark .ps-exp-role,body.dark .ps-duties,body.dark .ps-contact-item{color:#94A3B8}
-body.dark .ps-exp-period{color:#64748B}
-body.dark .ps-tag{background:rgba(139,92,246,.15)!important;color:#A78BFA!important}
-body.dark .ps-project-card{background:#111827!important;border-color:#1E293B!important}
-body.dark .ps-footer{border-color:#1E293B;color:#475569}
-body.dark .ps-section-title{color:#F1F5F9}
-"""
+def _normalize_template(site_data, site_config, style):
+    template_id = ""
+    if isinstance(site_data, dict):
+        template_id = site_data.get("template_id") or ""
+    if not template_id and isinstance(site_config, dict):
+        template_id = site_config.get("template_id") or ""
+    if not template_id and style:
+        template_id = str(style)
+    if template_id in ("professional", "developer", "creator", "minimal"):
+        return template_id
+    return "professional"
 
 
-def _toggle_js():
-    return """
-(function(){
-  var btn=document.getElementById('ps-dark-btn');
-  if(!btn)return;
-  var dark=localStorage.getItem('ps-dark')==='1';
-  if(dark)document.body.classList.add('dark');
-  btn.textContent=dark?'☀':'🌙';
-  btn.addEventListener('click',function(){
-    dark=!dark;
-    document.body.classList.toggle('dark',dark);
-    btn.textContent=dark?'☀':'🌙';
-    localStorage.setItem('ps-dark',dark?'1':'0');
-  });
-})();
-"""
+def render_personal_site(site_data, site_config=None, style=None):
+    blocks = site_data.get("blocks", []) if isinstance(site_data, dict) else []
+    theme = site_data.get("theme", {}) if isinstance(site_data, dict) else {}
+    seo = site_data.get("seo", {}) if isinstance(site_data, dict) else {}
+    template_id = _normalize_template(site_data or {}, site_config or {}, style)
 
+    if not blocks:
+        blocks = [
+            {"id": "tmp1", "type": "hero", "visible": True, "content": {"name": "Personal Site", "subtitle": "Build your presence"}},
+            {"id": "tmp2", "type": "about", "visible": True, "content": {"text": "No blocks to render yet."}},
+        ]
 
-# ══════════════════════════════════════
-#  Style 1: minimal — 极简风
-# ══════════════════════════════════════
+    title = E(seo.get("title") or "Personal Site")
+    desc = E(seo.get("description") or "Personal portfolio website")
+    og_image = E(seo.get("og_image") or "")
 
-def _style_minimal():
-    accent = "#1E293B"
-    extra_css = f"""
-body{{background:#FAFAF9;color:#1C1C1E}}
-.ps-section-title{{padding-bottom:8px;border-bottom:1.5px solid #1C1C1E;color:#1C1C1E}}
-.ps-tag{{background:#F1F5F9;color:#475569}}
-.ps-project-card{{background:#fff;border:1px solid #E5E7EB}}
-.ps-exp-role,.ps-exp-period,.ps-text-sm{{color:#6B7280}}
-"""
-    def hero(name, tagline, avatar, cover):
-        avatar_html = f'<img src="{avatar}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #E5E7EB;margin-bottom:16px" alt="">' if avatar else ""
-        return f'''<header style="text-align:center;padding:60px 0 40px">
-<div class="ps-container">
-{avatar_html}
-<h1 style="font-size:2.2rem;font-weight:800;letter-spacing:-.02em;color:#1C1C1E">{name}</h1>
-{f'<p style="font-size:1rem;color:#6B7280;margin-top:8px">{tagline}</p>' if tagline else ""}
-</div></header>'''
+    body = []
+    for b in blocks:
+        if not isinstance(b, dict):
+            continue
+        if b.get("visible", True) is False:
+            continue
+        renderer = BLOCK_RENDERERS.get(b.get("type"))
+        if not renderer:
+            continue
+        try:
+            body.append(renderer(b))
+        except Exception as ex:
+            body.append(f"<!-- block render error {E(b.get('id',''))}: {E(str(ex))} -->")
 
-    def section(title, content):
-        return f'<section class="ps-section"><div class="ps-container"><div class="ps-section-title">{title}</div>{content}</div></section>'
-
-    return {"hero": hero, "section": section, "accent": accent, "extra_css": extra_css}
-
-
-# ══════════════════════════════════════
-#  Style 2: modern — 现代科技感
-# ══════════════════════════════════════
-
-def _style_modern():
-    accent = "#8B5CF6"
-    extra_css = f"""
-body{{background:#0B0F19;color:#E2E8F0}}
-.ps-section-title{{color:{accent};position:relative;padding-left:18px}}
-.ps-section-title::before{{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:4px;height:20px;border-radius:2px;background:{accent}}}
-.ps-tag{{background:rgba(139,92,246,.12);color:#A78BFA}}
-.ps-project-card{{background:#111827;border:1px solid #1E293B;transition:transform .2s,box-shadow .2s}}
-.ps-project-card:hover{{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3)}}
-.ps-exp-company{{color:#F1F5F9}}
-.ps-exp-role,.ps-text-sm,.ps-duties,.ps-contact-item{{color:#94A3B8}}
-.ps-exp-period{{color:#64748B}}
-.ps-footer{{border-color:#1E293B;color:#475569}}
-"""
-    def hero(name, tagline, avatar, cover):
-        bg = f'background-image:linear-gradient(rgba(11,15,25,.7),rgba(11,15,25,.95)),url({cover});background-size:cover;background-position:center;' if cover else f'background:linear-gradient(135deg,{accent}22,#3B82F622);'
-        avatar_html = f'<img src="{avatar}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid {accent}44;margin-bottom:16px" alt="">' if avatar else ""
-        return f'''<header style="{bg}padding:80px 0 50px;text-align:center">
-<div class="ps-container">
-{avatar_html}
-<h1 style="font-size:2.4rem;font-weight:800;background:linear-gradient(135deg,{accent},#3B82F6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">{name}</h1>
-{f'<p style="font-size:1.05rem;color:#94A3B8;margin-top:10px">{tagline}</p>' if tagline else ""}
-</div></header>'''
-
-    def section(title, content):
-        return f'<section class="ps-section"><div class="ps-container"><div class="ps-section-title">{title}</div>{content}</div></section>'
-
-    return {"hero": hero, "section": section, "accent": accent, "extra_css": extra_css}
-
-
-# ══════════════════════════════════════
-#  Style 3: card — 卡片式
-# ══════════════════════════════════════
-
-def _style_card():
-    accent = "#0EA5E9"
-    extra_css = f"""
-body{{background:#F1F5F9;color:#1E293B}}
-.ps-section{{background:#fff;border-radius:16px;padding:28px;box-shadow:0 1px 6px rgba(0,0,0,.05);border:1px solid #E2E8F0}}
-.ps-section-title{{color:{accent}}}
-.ps-tag{{background:{accent}12;color:{accent}}}
-.ps-project-card{{background:#F8FAFC;border:1px solid #E2E8F0}}
-.ps-exp-role,.ps-text-sm{{color:#64748B}}
-.ps-exp-period{{color:#9CA3AF}}
-.ps-container{{display:flex;flex-direction:column;gap:20px;padding-top:24px;padding-bottom:40px}}
-"""
-    def hero(name, tagline, avatar, cover):
-        bg_style = f'background:linear-gradient(135deg,{accent},#6366F1);' if not cover else f'background-image:linear-gradient(rgba(14,165,233,.8),rgba(99,102,241,.9)),url({cover});background-size:cover;'
-        avatar_html = f'<img src="{avatar}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);margin-bottom:16px" alt="">' if avatar else ""
-        return f'''<header style="{bg_style}color:#fff;padding:56px 24px;text-align:center;border-radius:0 0 24px 24px;margin-bottom:-8px">
-{avatar_html}
-<h1 style="font-size:2rem;font-weight:800">{name}</h1>
-{f'<p style="font-size:1rem;opacity:.85;margin-top:6px">{tagline}</p>' if tagline else ""}
-</header>'''
-
-    def section(title, content):
-        return f'<section class="ps-section"><div class="ps-section-title">{title}</div>{content}</section>'
-
-    return {"hero": hero, "section": section, "accent": accent, "extra_css": extra_css}
-
-
-# ══════════════════════════════════════
-#  Style 4: blog — 博客风格
-# ══════════════════════════════════════
-
-def _style_blog():
-    accent = "#059669"
-    extra_css = f"""
-body{{background:#FFFBEB;color:#1C1917}}
-.ps-section-title{{font-size:1.3rem;color:{accent};letter-spacing:-.01em;margin-bottom:20px;padding-bottom:10px;border-bottom:2px dashed {accent}44}}
-.ps-tag{{background:#ECFDF5;color:{accent}}}
-.ps-project-card{{background:#FFFEF0;border:1px solid #FDE68A;border-radius:8px}}
-.ps-exp-role,.ps-text-sm,.ps-duties{{color:#78716C}}
-.ps-exp-company{{color:#292524}}
-.ps-exp-period{{color:#A8A29E}}
-.ps-text{{font-size:1rem;line-height:1.9}}
-"""
-    def hero(name, tagline, avatar, cover):
-        avatar_html = f'<img src="{avatar}" style="width:100px;height:100px;border-radius:16px;object-fit:cover;border:3px solid #FDE68A" alt="">' if avatar else ""
-        return f'''<header style="padding:60px 0 40px;border-bottom:1px solid #FDE68A">
-<div class="ps-container" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
-{avatar_html}
-<div>
-<h1 style="font-size:2rem;font-weight:800;color:#1C1917">{name}</h1>
-{f'<p style="font-size:1rem;color:#78716C;margin-top:4px">{tagline}</p>' if tagline else ""}
-</div>
-</div></header>'''
-
-    def section(title, content):
-        return f'<section class="ps-section"><div class="ps-container"><div class="ps-section-title">{title}</div>{content}</div></section>'
-
-    return {"hero": hero, "section": section, "accent": accent, "extra_css": extra_css}
-
-
-# ══════════════════════════════════════
-#  页面包装
-# ══════════════════════════════════════
-
-STYLES = {
-    "minimal": _style_minimal,
-    "modern": _style_modern,
-    "card": _style_card,
-    "blog": _style_blog,
-}
-
-DEFAULT_STYLE = "modern"
-
-
-def _wrap_page(data, config, style_fn, css, body):
-    hero = data.get("hero", {})
-    name = E(hero.get("name", "个人网站"))
-    tagline = E(hero.get("tagline", ""))
-    title = f"{name} — 个人主页"
-    desc = tagline or E((data.get("about", "") or "")[:160])
-
-    footer = '<footer class="ps-footer"><div class="ps-container">由 <strong>简历 AI</strong> 生成</div></footer>'
-
-    return f'''<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -417,60 +418,19 @@ def _wrap_page(data, config, style_fn, css, body):
 <meta name="description" content="{desc}">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta name="robots" content="noindex,nofollow">
-<style>
-{_base_css(style_fn["accent"])}
-{_dark_css()}
-{style_fn["extra_css"]}
-</style>
+{f'<meta property="og:image" content="{og_image}">' if og_image else ''}
+<style>{_base_css(theme, template_id)}</style>
 </head>
-<body>
-{body}
-{footer}
-<button class="ps-dark-btn" id="ps-dark-btn" title="切换暗色模式">🌙</button>
-<script>{_toggle_js()}</script>
+<body class="pb-template-{template_id}">
+{''.join(body)}
 </body>
-</html>'''
-
-
-# ══════════════════════════════════════
-#  公开 API
-# ══════════════════════════════════════
-
-def render_personal_site(site_data, site_config=None, style=None):
-    """
-    渲染个人网站 HTML。
-
-    Args:
-        site_data: structured profile data dict
-        site_config: style/theme config dict
-        style: style name (minimal/modern/card/blog)
-
-    Returns:
-        Complete HTML string
-    """
-    if not style:
-        style = (site_config or {}).get("style", DEFAULT_STYLE)
-    if style not in STYLES:
-        style = DEFAULT_STYLE
-
-    style_fn = STYLES[style]()
-    hero_html = _hero_section(site_data, site_config, style_fn)
-    sections_html = _render_all_sections(site_data, site_config, style_fn)
-
-    # Card style uses container differently
-    if style == "card":
-        body = hero_html + '<div class="ps-container">' + sections_html + '</div>'
-    else:
-        body = hero_html + '<main style="padding:40px 0">' + sections_html + '</main>'
-
-    return _wrap_page(site_data, site_config, style_fn, "", body)
+</html>"""
 
 
 def list_styles():
     return [
-        {"id": "minimal", "name": "极简白", "description": "大留白、清爽、专注内容", "emoji": "📃"},
-        {"id": "modern", "name": "科技感", "description": "暗色主题、渐变色、现代感", "emoji": "🚀"},
-        {"id": "card", "name": "卡片式", "description": "圆角卡片、微阴影、分区清晰", "emoji": "🃏"},
-        {"id": "blog", "name": "博客风", "description": "暖色调、轻松亲切、适合个人品牌", "emoji": "📝"},
+        {"id": "professional", "name": "Professional Resume Site", "description": "稳重专业，求职导向", "emoji": "💼"},
+        {"id": "developer", "name": "Developer Portfolio", "description": "技术感暗色，项目导向", "emoji": "💻"},
+        {"id": "creator", "name": "Personal Brand Page", "description": "创作者品牌与视觉表达", "emoji": "✨"},
+        {"id": "minimal", "name": "Minimal Landing Page", "description": "极简留白，信息密度克制", "emoji": "◻️"},
     ]

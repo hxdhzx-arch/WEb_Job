@@ -170,9 +170,17 @@ function printResume(){
   }
 }
 
-function polishField(fieldId,fieldLabel){
+function polishField(eOrFieldId, fieldIdMaybe, fieldLabelMaybe){
+  // Backward compatible:
+  // - old: polishField('b-intro','自我评价') relies on global event
+  // - new: polishField(event,'b-intro','自我评价')
+  var ev = (eOrFieldId && typeof eOrFieldId === "object" && ("target" in eOrFieldId)) ? eOrFieldId : (typeof event !== "undefined" ? event : null);
+  var fieldId = (typeof eOrFieldId === "string") ? eOrFieldId : fieldIdMaybe;
+  var fieldLabel = (typeof eOrFieldId === "string") ? fieldIdMaybe : fieldLabelMaybe;
+
   var ta=document.getElementById(fieldId);if(!ta||!ta.value.trim()){return;}
-  var btn=event.target.closest(".btn-ai-mini");
+  var btn = ev && ev.target && ev.target.closest ? ev.target.closest(".btn-ai-mini") : null;
+  if(!btn){ alert("操作失败：按钮状态异常，请刷新页面重试"); return; }
   var origHTML=btn.innerHTML;
   btn.disabled=true;btn.innerHTML='<span class="mini-spin"></span> 润色中';
   var prompt="你是专业简历润色专家。请只对以下【"+fieldLabel+"】部分进行润色优化，要求：更专业、更精炼、突出量化成果。只输出润色后的文本，不加任何解释。\n\n原文：\n"+ta.value;
@@ -446,8 +454,23 @@ function renderPreview(){
   else if(id>=7&&id<=9)area.innerHTML=renderTech(id);
   else if(id>=10&&id<=12)area.innerHTML=renderCreative(id);
   else area.innerHTML=renderAcademic(id);
+  updateBuilderPreviewScale();
 }
 function generateResume(){renderPreview();}
+
+// ══ Builder: Preview scaling (screen only, print unaffected) ══
+function updateBuilderPreviewScale(){
+  var area=document.getElementById("preview-area");
+  if(!area) return;
+  // Screen-fit A4 width into right pane; keep 1:1 for print (handled by CSS @media print)
+  var right = area.closest ? area.closest(".editor-right") : null;
+  if(!right) return;
+  var pad = 48; // container padding estimate
+  var maxW = Math.max(320, right.clientWidth - pad);
+  var a4w = 794; // px @ 96dpi for A4 width
+  var scale = Math.min(1, maxW / a4w);
+  area.style.setProperty("--preview-scale", String(scale));
+}
 
 // ── Campus (T1-T3) Single column, strict ──
 // Shared: render modules in user-defined order
@@ -734,6 +757,8 @@ document.addEventListener("DOMContentLoaded",function(){
     initTitleEditing();syncTitlesToDOM();
     document.getElementById("mode-label-rec").classList.add("active-label");
     renderPreview();
+    updateBuilderPreviewScale();
+    window.addEventListener("resize", debounce(updateBuilderPreviewScale, 120));
   }
   var p=new URLSearchParams(window.location.search);
   if(p.get("intro")){var el=document.getElementById("b-intro");if(el){el.value=decodeURIComponent(p.get("intro"));resumeData.intro=el.value;saveToLocal();}}

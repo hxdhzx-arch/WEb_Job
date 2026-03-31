@@ -18,6 +18,27 @@ def create_web_resume_bp():
     def get_templates(current_user):
         return jsonify({"success": True, "data": list_templates()})
 
+    # ── 获取单份简历数据 (Load Resume) ──
+    @bp.route("/resume/<int:resume_id>", methods=["GET"])
+    @auth_required()
+    def get_resume(current_user, resume_id):
+        resume = Resume.query.filter_by(id=resume_id, user_id=current_user.id).first()
+        if not resume:
+            return jsonify({"success": False, "message": "简历不存在"}), 404
+            
+        return jsonify({
+            "success": True,
+            "data": {
+                "id": resume.id,
+                "title": resume.title,
+                "resume_data": resume.resume_data,
+                "web_config": resume.web_config,
+                "template_config": resume.template_config,
+                "is_published": resume.is_published,
+                "slug": resume.slug
+            }
+        })
+
     # ── 预览渲染 ──
     @bp.route("/resume/render-preview", methods=["POST"])
     @auth_required()
@@ -48,23 +69,34 @@ def create_web_resume_bp():
         web_config = data.get("web_config", {})
         password = data.get("password", "")
 
-        # 如果提供了 resume_id，从数据库加载
+        # 尝试读取名字（旧版从 basic.name，新版从 hero block）
+        name = ""
+        resume_data = data.get("resume_data", {})
+        try:
+            if "blocks" in resume_data:
+                for b in resume_data["blocks"]:
+                    if b.get("type") == "hero":
+                        name = b.get("content", {}).get("name", "")
+                        break
+            else:
+                name = resume_data.get("basic", {}).get("name", "")
+        except Exception:
+            pass
+
+        # 如果提供了 resume_id，从数据库加载并更细
         if resume_id:
             resume = Resume.query.filter_by(id=resume_id, user_id=current_user.id).first()
             if not resume:
                 return jsonify({"success": False, "message": "简历不存在"}), 404
             resume.web_config = web_config
+            if resume_data:
+                resume.resume_data = resume_data
+            if name:
+                resume.title = f"{name}的网页简历"
         else:
             # 从请求体创建新简历记录
-            resume_data = data.get("resume_data", {})
             if not resume_data:
                 return jsonify({"success": False, "message": "缺少简历数据"}), 400
-
-            name = ""
-            try:
-                name = resume_data.get("basic", {}).get("name", "")
-            except (AttributeError, TypeError):
-                pass
 
             resume = Resume(
                 user_id=current_user.id,
@@ -122,11 +154,25 @@ def create_web_resume_bp():
             resume = Resume(user_id=current_user.id)
             db.session.add(resume)
             
-        name = data.get("resume_data", {}).get("basic", {}).get("name", "未命名")
+        name = "未命名"
+        resume_data = data.get("resume_data", {})
+        try:
+            if "blocks" in resume_data:
+                for b in resume_data["blocks"]:
+                    if b.get("type") == "hero":
+                        name = b.get("content", {}).get("name", "未命名")
+                        break
+            else:
+                name = resume_data.get("basic", {}).get("name", "未命名")
+        except Exception:
+            pass
+            
         resume.title = data.get("title") or f"{name}的简历"
         
         if "resume_data" in data:
             resume.resume_data = data["resume_data"]
+        if "web_config" in data:
+            resume.web_config = data["web_config"]
         if "template_config" in data:
             resume.template_config = data["template_config"]
         if "seo_title" in data:

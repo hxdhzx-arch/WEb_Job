@@ -11,7 +11,7 @@
 <!-- Theme Init -->
 <script>
 (function(){
-  var theme = localStorage.getItem("resumeAI_theme");
+  var theme = localStorage.getItem("saas_theme");
   if (!theme) {
     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
@@ -20,7 +20,7 @@
 function toggleTheme() {
   var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem("resumeAI_theme", t);
+  localStorage.setItem("saas_theme", t);
   var icon = document.getElementById("theme-toggle-icon");
   if(icon) {
     icon.textContent = t === 'dark' ? '☀️' : '🌙';
@@ -61,7 +61,7 @@ function toggleTheme() {
 </style>
 
 </head>
-<body>
+<body class="resume-builder">
 <nav class="nav"><div class="nav-inner" style="max-width:100%"><a href="/" class="nav-logo">简历 AI <span>PRO</span></a><div class="nav-links"><a href="/" class="nav-link">首页</a><a href="/resume" class="nav-link">诊断</a><a href="/jd" class="nav-link">匹配</a><a href="/builder" class="nav-link active">生成</a><a href="/web-resume" class="nav-link">简历站</a><a href="/personal-site" class="nav-link-pro">✨ 个人网站</a><a href="/career-tools" class="nav-link">工具</a></div><button onclick="toggleTheme()" class="nav-link" id="theme-switch" style="background:transparent;border:none;cursor:pointer;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-left:8px;" title="切换显示模式"><span id="theme-toggle-icon">🌙</span></button>
 <script>
   setTimeout(function(){
@@ -214,8 +214,8 @@ function toggleTheme() {
   </div>
   <div class="form-section"><h3 class="template-title section-title" data-title-key="education">教育背景</h3><div id="edu-list"></div><button type="button" class="btn-add" onclick="addEducationEntry()">+ 添加教育经历</button></div>
   <div class="form-section"><h3 class="template-title section-title" data-title-key="work">工作经历</h3><div id="work-list"></div><button type="button" class="btn-add" onclick="addWorkEntry()">+ 添加工作经历</button></div>
-  <div class="form-section"><h3 class="template-title section-title" data-title-key="skills">技能特长 <button class="btn-ai-mini" onclick="polishField('b-skills','技能描述')">✨ AI润色</button></h3><textarea id="b-skills" rows="3" placeholder="JavaScript, React, Vue.js..."></textarea></div>
-  <div class="form-section"><h3 class="template-title section-title" data-title-key="intro">自我评价 <button class="btn-ai-mini" onclick="polishField('b-intro','自我评价')">✨ AI润色</button></h3><textarea id="b-intro" rows="3" placeholder="5年经验，擅长..."></textarea></div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="skills">技能特长 <button class="btn-ai-mini" onclick="polishField(event,'b-skills','技能描述')">✨ AI润色</button></h3><textarea id="b-skills" rows="3" placeholder="JavaScript, React, Vue.js..."></textarea></div>
+  <div class="form-section"><h3 class="template-title section-title" data-title-key="intro">自我评价 <button class="btn-ai-mini" onclick="polishField(event,'b-intro','自我评价')">✨ AI润色</button></h3><textarea id="b-intro" rows="3" placeholder="5年经验，擅长..."></textarea></div>
   <div class="form-section"><h3 class="template-title section-title" data-title-key="certs">证书</h3><input type="text" id="b-certs" placeholder="CPA、PMP..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.86rem;background:var(--bg)"></div>
   <div style="height:60px"></div>
 </div>
@@ -295,19 +295,39 @@ function indicateSaved() {
   if(saveIndicator) { saveIndicator.textContent = '✓ 已云端保存'; saveIndicator.style.color = '#10B981'; }
   hasUnsavedChanges = false;
 }
+function indicateLocalSaved() {
+  if(saveIndicator) { saveIndicator.textContent = '✓ 已本地保存'; saveIndicator.style.color = 'var(--text-secondary)'; }
+  hasUnsavedChanges = false;
+}
+function indicateSaveError() {
+  if(saveIndicator) { saveIndicator.textContent = '⚠ 保存失败（将重试）'; saveIndicator.style.color = '#F59E0B'; }
+}
 
 // Intercept window.CloudSync if defined outside, or create auto save logic
 window.CloudSync = {
   scheduleAutoSave: function() {
+    // 未登录：只做本地保存提示，不阻止离开页面
+    if(!TOKEN) { indicateLocalSaved(); return; }
     hasUnsavedChanges = true;
     indicateSaving();
     clearTimeout(autoSaveTimer);
     autoSaveTimer = setTimeout(performAutoSave, 1500);
+  },
+  // Stubs for credits.js compatibility
+  init: function() {},
+  onBound: function() {},
+  applyResume: function(resumeData) {
+    if(resumeData && typeof syncFormFromState === 'function') {
+      window.resumeData = resumeData.resume_data || resumeData;
+      window.TC = resumeData.template_config || window.TC;
+      syncFormFromState();
+      if(typeof renderPreview === 'function') renderPreview();
+    }
   }
 };
 
 async function performAutoSave() {
-  if(!TOKEN) return; // Only auto-save if logged in
+  if(!TOKEN) { indicateLocalSaved(); return; } // Only cloud-save if logged in
   try {
     const payload = {
       resume_id: currentResumeId,
@@ -329,8 +349,13 @@ async function performAutoSave() {
         window.history.replaceState({}, '', url);
       }
       indicateSaved();
+    } else {
+      indicateSaveError();
     }
-  } catch(e) { console.error('AutoSave failed:', e); }
+  } catch(e) {
+    console.error('AutoSave failed:', e);
+    indicateSaveError();
+  }
 }
 
 window.onbeforeunload = function(e) {
@@ -369,7 +394,12 @@ async function confirmPublish() {
   const payload = {
     resume_id: currentResumeId,
     resume_data: window.resumeData,
-    web_config: window.TC,
+    template_config: window.TC,
+    web_config: {
+      slug: document.getElementById('pub-slug').value.trim(),
+      seo_title: document.getElementById('pub-seo-title').value.trim(),
+      seo_description: document.getElementById('pub-seo-desc').value.trim()
+    },
     slug: document.getElementById('pub-slug').value.trim(),
     password: document.getElementById('pub-pwd').value,
     seo_title: document.getElementById('pub-seo-title').value.trim(),
@@ -415,12 +445,21 @@ async function confirmPublish() {
 window.addEventListener('DOMContentLoaded', async () => {
     if(currentResumeId && TOKEN) {
       try {
-        const res = await fetch('/api/resumes/load?user_id=placeholder&resume_id=' + currentResumeId, {
-          // Temporarily hack since old load_resume still uses session query!
-          // We can use the dashboard list since it loads all. 
+        const res = await fetch('/api/v1/resume/' + currentResumeId, {
+          headers: { "Authorization": "Bearer " + TOKEN }
         });
-        // Note: For full compatibility, we should fetch from db if the UI dictates it.
-      } catch(e) {}
+        const d = await res.json();
+        if(d.success && d.data) {
+           window.resumeData = d.data.resume_data || window.resumeData;
+           window.TC = d.data.template_config || window.TC || d.data.web_config; // fallback
+           // sync form
+           if(typeof syncFormFromState === 'function') syncFormFromState();
+           if(typeof syncControlsFromTC === 'function') syncControlsFromTC();
+           if(typeof renderWorkExperience === 'function') renderWorkExperience();
+           if(typeof renderEducation === 'function') renderEducation();
+           if(typeof renderPreview === 'function') renderPreview();
+        }
+      } catch(e) { console.error('Load Error:', e); }
     }
 });
 </script>

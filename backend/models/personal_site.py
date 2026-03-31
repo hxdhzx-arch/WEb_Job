@@ -44,7 +44,15 @@ class PersonalSite(db.Model):
         """生成唯一 slug"""
         name = ""
         try:
-            name = (self.site_data or {}).get("hero", {}).get("name", "")
+            # blocks-based structure: find hero block
+            data = self.site_data or {}
+            if "blocks" in data and isinstance(data["blocks"], list):
+                for b in data["blocks"]:
+                    if b.get("type") == "hero":
+                        name = b.get("content", {}).get("name", "")
+                        break
+            elif "hero" in data:
+                name = data["hero"].get("name", "")
         except (AttributeError, TypeError):
             pass
         if name:

@@ -3,276 +3,555 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>简历 AI — 让你的简历脱颖而出</title>
+<title>SaaS 工作平台 — 智能配置与云端架构</title>
+<meta name="description" content="一站式的职业履历管理与独立建站部署协议。AI 驱动的智能语义分析、结构化文稿编写与云端响应式建站。">
 <link rel="stylesheet" href="/static/style.css">
 <style>
-/* ═══ Canva-Inspired Index ═══ */
-body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif}
+/* ═══════════════════════════════════════════
+   Homepage-only styles — no global impact
+   ═══════════════════════════════════════════ */
 
-/* Hero */
-.hero{max-width:960px;margin:0 auto;padding:100px 24px 60px;text-align:center}
-.hero-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:980px;background:linear-gradient(135deg,#EEF2FF,#F0E6FF);font-size:.82rem;font-weight:600;color:#7C3AED;margin-bottom:22px;opacity:0;transform:translateY(20px)}
-.hero h1{font-size:clamp(36px,6vw,62px);font-weight:800;line-height:1.08;letter-spacing:-.03em;color:var(--text-main);margin-bottom:16px;opacity:0;transform:translateY(30px)}
-.hero h1 em{font-style:normal;background:linear-gradient(135deg,#7C3AED,#2563EB,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-sub{font-size:clamp(16px,2.2vw,20px);color:var(--text-secondary);max-width:560px;margin:0 auto 8px;line-height:1.6;opacity:0;transform:translateY(20px)}
+/* Canvas background layer */
+#flowCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
 
-/* Typing ticker */
-.hero-ticker{height:36px;display:flex;align-items:center;justify-content:center;margin-bottom:32px;opacity:0;transform:translateY(20px)}
-.ticker-text{font-size:clamp(14px,1.8vw,17px);color:var(--text-hint);font-weight:500}
-.ticker-cursor{display:inline-block;width:2px;height:1.1em;background:linear-gradient(180deg,#7C3AED,#2563EB);margin-left:3px;vertical-align:text-bottom;border-radius:1px;animation:tblink .9s ease-in-out infinite}
-@keyframes tblink{0%,100%{opacity:1}50%{opacity:0}}
+/* Override ambient for homepage — softer */
+.ambient-container { opacity: 0.35; }
 
-/* CTA */
-.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;opacity:0;transform:translateY(20px)}
-.cta-main{padding:15px 36px;border-radius:14px;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;font-size:1rem;font-weight:700;text-decoration:none;transition:all .3s;box-shadow:0 4px 20px rgba(124,58,237,.25)}
-.cta-main:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(124,58,237,.35)}
-.cta-alt{padding:15px 28px;border-radius:14px;background:var(--bg);color:var(--text-main);font-size:.95rem;font-weight:600;text-decoration:none;transition:all .3s}
-.cta-alt:hover{background:#E5E7EB}
-.hero-trust{font-size:.78rem;color:var(--text-hint);opacity:0;transform:translateY(10px)}
+/* ── Hero ── */
+.hero {
+  padding: 180px 20px 120px;
+  text-align: center;
+  max-width: 820px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: heroFadeUp 0.8s 0.15s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+.hero-headline {
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: heroFadeUp 0.9s 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+.hero-sub {
+  color: var(--c-text-muted);
+  font-size: 1.2rem;
+  max-width: 580px;
+  margin: 0 auto 40px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.65;
+  opacity: 0;
+  animation: heroFadeUp 0.9s 0.45s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  opacity: 0;
+  animation: heroFadeUp 0.9s 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
 
-/* Before/After */
-.ba-section{max-width:680px;margin:48px auto 0;opacity:0;transform:translateY(30px)}
-.ba-case-label{text-align:center;font-size:.85rem;font-weight:600;color:var(--text-main);margin-bottom:18px;padding:8px 16px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border)}
-.ba-wrap{display:flex;align-items:stretch;gap:0}
-.ba-card{flex:1;padding:24px 20px;border-radius:16px;position:relative}
-.ba-before{background:var(--bg);border:1px solid var(--border)}
-.ba-after{background:var(--bg-card);border:1.5px solid rgba(16,185,129,.3);box-shadow:0 8px 30px rgba(16,185,129,.08)}
-.ba-badge{position:absolute;top:-10px;left:18px;padding:3px 12px;border-radius:980px;font-size:.68rem;font-weight:700}
-.ba-badge.bad{background:#FEE2E2;color:#DC2626}.ba-badge.good{background:#D1FAE5;color:#059669}
-.ba-head{display:flex;justify-content:space-between;align-items:center;margin:8px 0 14px}
-.ba-nm{width:56px;height:10px;border-radius:3px}.ba-nm.dim{background:#D1D5DB}.ba-nm.dark{background:#1d1d1f}
-.ba-sc{font-size:1.3rem;font-weight:800;line-height:1}.ba-sc span{font-size:.6rem;font-weight:500;margin-left:1px}.ba-sc.bad{color:#DC2626}.ba-sc.good{color:#059669}
-.ba-ln{height:5px;border-radius:3px;margin-bottom:5px}.ba-ln.dim{background:#E5E7EB}.ba-ln.lit{background:linear-gradient(90deg,#C7D2FE,#93C5FD)}
-.ba-ln.w50{width:50%}.ba-ln.w60{width:60%}.ba-ln.w70{width:70%}.ba-ln.w80{width:80%}.ba-ln.w85{width:85%}.ba-ln.w90{width:90%}
-.ba-gap{height:10px}
-.ba-list{display:flex;flex-direction:column;gap:3px;margin-top:10px}
-.ba-list div{font-size:.68rem;font-weight:500}
-.ba-list .bad{color:#DC2626}.ba-list .good{color:#059669}
-.ba-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;flex-shrink:0}
-.ba-arrow-dot{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:700;animation:apulse 2s ease-in-out infinite}
-.ba-arrow-txt{font-size:.62rem;font-weight:600;color:#7C3AED;margin-top:4px}
-@keyframes apulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(124,58,237,.3)}50%{transform:scale(1.06);box-shadow:0 0 0 8px rgba(124,58,237,0)}}
+@keyframes heroFadeUp {
+  0%   { opacity: 0; transform: translateY(24px); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0);    filter: blur(0); }
+}
 
-/* Demo Section */
-.demo-section{max-width:1080px;margin:0 auto;padding:80px 24px}
-.demo-header{text-align:center;margin-bottom:48px;opacity:0;transform:translateY(30px)}
-.demo-header h2{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;color:var(--text-main);margin-bottom:10px}
-.demo-header p{font-size:1rem;color:var(--text-secondary)}
-.demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-.demo-card{background:var(--bg-card);border-radius:20px;padding:0;overflow:hidden;text-decoration:none;transition:all .4s cubic-bezier(.16,1,.3,1);border:1px solid var(--border);opacity:0;transform:translateY(30px)}
-.demo-card:hover{transform:translateY(-5px);box-shadow:0 16px 48px rgba(0,0,0,.08);border-color:#E5E7EB}
-.demo-card-visual{height:180px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.demo-card-visual.purple{background:linear-gradient(135deg,#EDE9FE,#DDD6FE)}
-.demo-card-visual.blue{background:linear-gradient(135deg,#DBEAFE,#BFDBFE)}
-.demo-card-visual.green{background:linear-gradient(135deg,#D1FAE5,#A7F3D0)}
-.dcv-mockup{width:70%;height:80%;background:var(--bg-card);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;overflow:hidden}
-.dcv-bar{height:16px;background:var(--bg);display:flex;align-items:center;gap:3px;padding:0 6px}
-.dcv-bar span{width:5px;height:5px;border-radius:50%}.dcv-bar .r{background:#FF5F57}.dcv-bar .y{background:#FEBC2E}.dcv-bar .g{background:#28C840}
-.dcv-body{flex:1;padding:8px;display:flex;flex-direction:column;gap:4px}
-.dcv-line{height:4px;border-radius:2px;background:#E5E7EB}
-.dcv-line.accent-p{background:#C4B5FD}.dcv-line.accent-b{background:#93C5FD}.dcv-line.accent-g{background:#6EE7B7}
-.dcv-ring{width:40px;height:40px;border-radius:50%;border:4px solid #E5E7EB;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;margin:4px auto 0}
-.dcv-ring.purple{border-color:#7C3AED;color:#7C3AED}.dcv-ring.blue{border-color:#2563EB;color:#2563EB}
-.demo-card-info{padding:22px 24px}
-.demo-card-info h3{font-size:1.05rem;font-weight:700;color:var(--text-main);margin-bottom:6px}
-.demo-card-info p{font-size:.85rem;color:var(--text-secondary);line-height:1.55}
-.demo-card-info .demo-tag{display:inline-block;margin-top:10px;padding:4px 10px;border-radius:6px;font-size:.7rem;font-weight:600}
-.demo-tag.purple{background:#EDE9FE;color:#7C3AED}.demo-tag.blue{background:#DBEAFE;color:#2563EB}.demo-tag.green{background:#D1FAE5;color:#059669}
+/* CTA Shimmer */
+.cta-primary {
+  position: relative;
+  overflow: hidden;
+}
+.cta-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  animation: shimmer 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes shimmer {
+  0%   { left: -100%; }
+  40%  { left: 120%; }
+  100% { left: 120%; }
+}
 
-/* Stats */
-.stats-bar{max-width:800px;margin:0 auto;padding:48px 24px 80px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap;opacity:0;transform:translateY(20px)}
-.stat{text-align:center}
-.stat-n{font-size:clamp(32px,4vw,44px);font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#7C3AED,#2563EB);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-l{font-size:.82rem;color:var(--text-hint);margin-top:4px;font-weight:500}
+/* ── Features Section ── */
+.features-section {
+  max-width: 980px;
+  margin: 0 auto 100px;
+  padding: 0 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+}
+.feat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.7s cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.feat-item.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.feat-icon {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--c-accent);
+  font-variant-numeric: tabular-nums;
+}
+.feat-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--c-text-main);
+}
+.feat-desc {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--c-text-muted);
+}
 
-.idx-footer{text-align:center;padding:36px 24px;font-size:.8rem;color:var(--text-hint);border-top:1px solid #F3F4F6}
+/* ── Social proof strip ── */
+.proof-section {
+  max-width: 640px;
+  margin: 0 auto 120px;
+  padding: 0 22px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s 0.1s cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 0.7s 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.proof-section.revealed { opacity: 1; transform: translateY(0); }
+.proof-divider {
+  width: 32px;
+  height: 2px;
+  background: var(--c-border-hover);
+  margin: 0 auto 32px;
+  border-radius: 2px;
+}
+.proof-quote {
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--c-text-main);
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.proof-attr {
+  font-size: 0.82rem;
+  color: var(--c-text-muted);
+  font-weight: 400;
+}
 
-.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
-.reveal.visible{opacity:1;transform:translateY(0)}
-.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.18s}.reveal-d3{transition-delay:.26s}
+/* ── Bottom CTA band ── */
+.bottom-cta {
+  max-width: 640px;
+  margin: 0 auto 120px;
+  padding: 48px 32px;
+  text-align: center;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-bg-card);
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.25, 0.1, 0.25, 1),
+              transform 0.7s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.bottom-cta.revealed { opacity: 1; transform: translateY(0); }
+.bottom-cta h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+.bottom-cta p {
+  font-size: 0.95rem;
+  color: var(--c-text-muted);
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
 
-@media(max-width:768px){
-  .hero{padding:80px 20px 40px}
-  .ba-wrap{flex-direction:column;align-items:center;gap:14px}
-  .ba-card{max-width:300px;width:100%}
-  .ba-arrow{transform:rotate(90deg);padding:0}
-  .demo-grid{grid-template-columns:1fr}
-  .stats-bar{gap:32px}
-  .hero-cta{flex-direction:column;align-items:center}
+/* ── Footer ── */
+.home-footer {
+  text-align: center;
+  padding: 40px 20px;
+  border-top: 1px solid var(--c-border);
+}
+.home-footer p {
+  font-size: 0.75rem;
+  color: var(--c-text-muted);
+}
+.home-footer .footer-links {
+  margin-top: 10px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+.home-footer .footer-links a {
+  font-size: 0.72rem;
+  color: var(--c-text-muted);
+  opacity: 0.7;
+  transition: opacity var(--transition);
+}
+.home-footer .footer-links a:hover { opacity: 1; }
+
+/* Theme Toggle (keeps existing) */
+.theme-toggle { background: transparent; border: none; color: var(--c-text-main); cursor: pointer; opacity: 0.6; transition: opacity var(--transition); display: flex; align-items: center;}
+.theme-toggle:hover { opacity: 1; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .hero { padding: 140px 20px 80px; }
+  .c-h1 { font-size: 2.4rem !important; }
+  .hero-sub { font-size: 1.05rem; }
+  .features-section { gap: 28px; }
+  .proof-quote { font-size: 1.1rem; }
 }
 </style>
 
-<!-- Theme Init -->
 <script>
+/* Theme persistence (identical to original) */
 (function(){
-  var theme = localStorage.getItem("resumeAI_theme");
-  if (!theme) {
-    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
+  var theme = localStorage.getItem("saas_theme");
+  if (!theme) { theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
   document.documentElement.setAttribute('data-theme', theme);
 })();
 function toggleTheme() {
   var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem("resumeAI_theme", t);
-  var icon = document.getElementById("theme-toggle-icon");
-  if(icon) {
-    icon.textContent = t === 'dark' ? '☀️' : '🌙';
-  }
+  localStorage.setItem("saas_theme", t);
+  document.getElementById("t-icon").innerHTML = t === 'dark' ? 'Light' : 'Dark';
+  /* Update canvas palette on theme switch */
+  if (window._flowField) window._flowField.updatePalette();
 }
+window.addEventListener('DOMContentLoaded', function() {
+  var t = document.documentElement.getAttribute('data-theme');
+  document.getElementById("t-icon").innerHTML = t === 'dark' ? 'Light' : 'Dark';
+});
 </script>
-
 </head>
 <body>
-<nav class="nav" style="border-bottom:none;background:rgba(var(--bg-rgb, 255,255,255), 0.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)">
-<div class="nav-inner" style="max-width:1080px">
-  <a href="/" class="nav-logo">简历 AI <span>BETA</span></a>
-  <div class="nav-links"><a href="/" class="nav-link active">首页</a><a href="/resume" class="nav-link">简历诊断</a><a href="/jd" class="nav-link">JD 匹配</a><a href="/builder" class="nav-link">生成简历</a><a href="/web-resume" class="nav-link">简历站</a><a href="/personal-site" class="nav-link-pro">✨ 个人网站专家</a><a href="/career-tools" class="nav-link">职场通工具</a>
-<button onclick="toggleTheme()" class="nav-link" id="theme-switch" style="background:transparent;border:none;cursor:pointer;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-left:8px;" title="切换显示模式"><span id="theme-toggle-icon">🌙</span></button>
-<script>
-  setTimeout(function(){
-    var t = document.documentElement.getAttribute('data-theme');
-    var icon = document.getElementById("theme-toggle-icon");
-    if (icon) icon.textContent = t === 'dark' ? '☀️' : '🌙';
-  },0);
-</script>
-</div>
-</div></nav>
 
-<!-- Hero -->
-<section class="hero">
-  <div class="hero-pill reveal">🔥 全新功能：一句话让 AI 为你生成炫酷个人主页</div>
-  <h1 class="reveal reveal-d1">30 秒把你的经历变成<br><em>惊艳的 AI 个人网站</em></h1>
-  <p class="hero-sub reveal reveal-d2">输入描述或上传简历 → AI 智能整理与排版 → 一键发布你的专属静态网站</p>
-  <div class="hero-ticker reveal reveal-d2"><span class="ticker-text" id="ticker"></span><span class="ticker-cursor"></span></div>
-  <div class="hero-cta reveal reveal-d3">
-    <a href="/personal-site" class="cta-main">✨ 免费生成专属网站 →</a>
-    <a href="/builder" class="cta-alt">去写普通简历</a>
+<!-- Canvas flowing line background -->
+<canvas id="flowCanvas" aria-hidden="true"></canvas>
+
+<div class="ambient-container"><div class="ambient-glow"></div></div>
+
+<nav class="c-nav glass">
+  <a href="/" class="c-nav-brand">Platform</a>
+  <div class="c-nav-links">
+    <a href="/dashboard" class="c-nav-link">工作台</a>
+    <a href="/resume" class="c-nav-link">简历分析</a>
+    <a href="/personal-site" class="c-nav-link">云端主页</a>
+    <div style="width:1px; height:12px; background:var(--c-border); margin:0 4px;"></div>
+    <button onclick="toggleTheme()" class="theme-toggle c-nav-link" id="t-icon">Dark</button>
   </div>
-  <p class="hero-trust reveal reveal-d3">告别干瘪的 PDF 面试文档，用互动个人网站脱颖而出 · 免部署</p>
-  <div class="reveal reveal-d3" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;font-size:.78rem;color:#059669"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>生成即部署，拥有专属链接如 /site/jack，完全免费使用</span></div>
+</nav>
 
-  <!-- Before/After Case -->
-  <div class="ba-section reveal">
-    <div class="ba-case-label">💼 真实转化效果：从发干瘪文档 → 在社交媒体吸粉接单</div>
-    <div class="ba-wrap">
-      <div class="ba-card ba-before">
-        <div class="ba-badge bad">优化前</div>
-        <div class="ba-head"><div class="ba-nm dim"></div><div class="ba-sc bad" id="sc-b">文档<span>简历</span></div></div>
-        <div class="ba-ln w70 dim"></div><div class="ba-ln w90 dim"></div><div class="ba-ln w50 dim"></div>
-        <div class="ba-gap"></div><div class="ba-ln w80 dim"></div><div class="ba-ln w60 dim"></div>
-        <div class="ba-list"><div class="bad">📄 呆板枯燥，缺乏记忆点</div><div class="bad">✗ 千篇一律毫无设计感</div><div class="bad">✗ 难以直观分享给外包客户或 HR</div></div>
-      </div>
-      <div class="ba-arrow"><div class="ba-arrow-dot">→</div><div class="ba-arrow-txt">AI 重写</div></div>
-      <div class="ba-card ba-after">
-        <div class="ba-badge good">优化后</div>
-        <div class="ba-head"><div class="ba-nm dark"></div><div class="ba-sc good" id="sc-a">酷站<span>100%</span></div></div>
-        <div class="ba-ln w90 lit"></div><div class="ba-ln w80 lit"></div><div class="ba-ln w85 lit"></div>
-        <div class="ba-gap"></div><div class="ba-ln w70 lit"></div><div class="ba-ln w90 lit"></div>
-        <div class="ba-list"><div class="good">✨ 科技/极简等4大独立互动主题</div><div class="good">✓ 自动生成专属在线链接</div><div class="good">✓ 面试官/客户点开直呼“专业极致”</div></div>
-      </div>
-    </div>
+<section class="hero" id="hero">
+  <div class="hero-eyebrow">AI-Powered Architecture</div>
+  <h1 class="c-h1 hero-headline">智能配置与云端架构。</h1>
+  <p class="c-p hero-sub">一站式的职业履历管理与独立建站部署协议。没有复杂配置，纯粹的结构化输出。</p>
+  <div class="hero-actions">
+    <a href="/personal-site" class="c-btn c-btn-primary cta-primary" id="cta-main">进入引擎</a>
+    <a href="/builder" class="c-btn c-btn-secondary" id="cta-builder">文档编辑器 ></a>
   </div>
 </section>
 
-<!-- Product Demo Cards -->
-<section class="demo-section">
-  <div class="demo-header reveal"><h2>别人还在排版，你已经拿到面试</h2><p>每个功能都在帮你省时间、拿 Offer——不是帮你"做简历"</p></div>
-  <div class="demo-grid">
-    <a href="/resume" class="demo-card reveal reveal-d1">
-      <div class="demo-card-visual purple">
-        <div class="dcv-mockup"><div class="dcv-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="dcv-body"><div class="dcv-line w80 accent-p"></div><div class="dcv-line w60"></div><div class="dcv-line w90"></div><div class="dcv-ring purple">96</div></div></div>
-      </div>
-      <div class="demo-card-info"><h3>📊 AI 诊断 — 知道简历哪里烂</h3><p>5 维度打分，逐条告诉你「哪里让 HR 3 秒划走」，AI 一键改成 STAR 法则。</p><span class="demo-tag purple">5 维度 · AI 改写</span></div>
-    </a>
-    <a href="/jd" class="demo-card reveal reveal-d2">
-      <div class="demo-card-visual blue">
-        <div class="dcv-mockup"><div class="dcv-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="dcv-body"><div class="dcv-line w90 accent-b"></div><div class="dcv-line w70"></div><div class="dcv-line w80 accent-b"></div><div class="dcv-ring blue">88%</div></div></div>
-      </div>
-      <div class="demo-card-info"><h3>🎯 ATS 机筛 — 别被机器刷掉</h3><p>模拟大厂 ATS 系统筛简历，找出你缺的关键词，一键融入，通过率翻倍。</p><span class="demo-tag blue">ATS · 关键词融合</span></div>
-    </a>
-    <a href="/builder" class="demo-card reveal reveal-d3">
-      <div class="demo-card-visual green">
-        <div class="dcv-mockup"><div class="dcv-bar"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="dcv-body"><div class="dcv-line w70 accent-g"></div><div class="dcv-line w90 accent-g"></div><div class="dcv-line w50"></div><div style="margin-top:4px;text-align:center;font-size:.5rem;font-weight:700;color:#059669">14 套模板</div></div></div>
-      </div>
-      <div class="demo-card-info"><h3>✨ 一键生成 — 比你自己排版好 10 倍</h3><p>拖拽旧简历 PDF 自动填充，AI 扩写大白话，14 套 ATS 友好模板一键导出。</p><span class="demo-tag green">基础免费 · Pro ¥9.9</span></div>
-    </a>
+<div class="features-section" id="features">
+  <div class="feat-item" data-reveal>
+    <div class="feat-icon">01.</div>
+    <div class="feat-title">智能语义分析</div>
+    <div class="feat-desc">依托强大的算法逻辑，提取您的原始 PDF 核心节点进行 ATS 标准化评定与修正。</div>
   </div>
+  <div class="feat-item" data-reveal>
+    <div class="feat-icon">02.</div>
+    <div class="feat-title">结构化文稿编写</div>
+    <div class="feat-desc">提供清晰规范的界面生成专业级别履历布局，一键将排版封存至干净的 PDF 存档。</div>
+  </div>
+  <div class="feat-item" data-reveal>
+    <div class="feat-icon">03.</div>
+    <div class="feat-title">独立响应式建站</div>
+    <div class="feat-desc">应用区块引擎模型，结合系统推荐自动构建 SEO 友好的云端组件主页，极速部署。</div>
+  </div>
+</div>
+
+<section class="proof-section" data-reveal id="proof">
+  <div class="proof-divider"></div>
+  <p class="proof-quote">「从简历解析到云端主页部署，一条链路、零摩擦。」</p>
+  <p class="proof-attr">— 结构化输出协议 · 为效率而生</p>
 </section>
 
-<!-- Value Props -->
-<div class="stats-bar reveal">
-  <div class="stat"><div class="stat-n">5</div><div class="stat-l">维度 AI 诊断</div></div>
-  <div class="stat"><div class="stat-n">14</div><div class="stat-l">ATS 友好模板</div></div>
-  <div class="stat"><div class="stat-n">30s</div><div class="stat-l">出诊断报告</div></div>
-  <div class="stat"><div class="stat-n">¥9.9</div><div class="stat-l">Pro 版起步价</div></div>
-</div>
-<div style="max-width:1000px;margin:0 auto 70px;padding:0 24px">
-  <a href="/career-tools" style="display:block;text-decoration:none;background:#0f172a;color:#e2e8f0;border-radius:16px;padding:22px 24px;transition:.2s">
-    <div style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:6px">🧰 新增「职场通工具箱」</div>
-    <div style="font-size:.88rem;line-height:1.7">支持税后薪资 / 五险一金计算、Offer 对比、JD 解析 + 简历定制建议，并统一聚合 PDF 工具主线能力。</div>
-  </a>
-</div>
+<section class="bottom-cta" data-reveal id="bottom-cta">
+  <h2>准备好开始了吗？</h2>
+  <p>无需复杂配置，即刻体验 AI 驱动的职业工具链。</p>
+  <a href="/personal-site" class="c-btn c-btn-primary cta-primary">立即开始 →</a>
+</section>
 
-<footer class="idx-footer">简历 AI — 基础诊断免费 · Pro 低至 ¥9.9<br><a href="/privacy" style="color:var(--text-hint);font-size:.72rem">隐私政策</a> · <a href="/terms" style="color:var(--text-hint);font-size:.72rem">用户协议</a></footer>
+<footer class="home-footer">
+  <p class="c-p">Platform Architecture. 2026</p>
+  <div class="footer-links">
+    <a href="/terms">使用条款</a>
+    <a href="/privacy">隐私政策</a>
+  </div>
+</footer>
 
-<!-- Reveal -->
+<!-- ═══════════════════════════════════════════
+     Canvas Flow Field — Soft RGB Flowing Lines
+     ═══════════════════════════════════════════ -->
 <script>
-(function(){
-  var els=document.querySelectorAll('.reveal');
-  if(!('IntersectionObserver' in window)){for(var i=0;i<els.length;i++)els[i].classList.add('visible');return;}
-  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -30px 0px'});
-  els.forEach(function(el){obs.observe(el);});
-})();
-</script>
+(function() {
+  'use strict';
 
-<!-- Typing ticker -->
-<script>
-(function(){
-  var phrases=[
-    "📊 粘贴简历 → 30 秒出诊断报告，告诉你 HR 3 秒划走的原因",
-    "🎯 模拟字节/阿里 ATS 机筛，缺的关键词一键补进简历",
-    "✨ 把「负责前端开发」→ AI 改写成「主导平台重构，QPS 提升 300%」",
-    "📥 拖拽旧简历 PDF → AI 自动识别填充，不用从头打字",
-    "🤖 ATS 关键词覆盖率从 31% → 100%，不再被机器刷掉",
-    "🎨 14 套 ATS 友好模板，一键切换，导出 PDF 直接投",
-    "💡 不会写自我评价？AI 帮你编成 HR 爱看的 STAR 法则",
-    "⚡ 比你自己调 ChatGPT 快 10 倍，因为我们专门训练了简历语料"
-  ];
-  var el=document.getElementById("ticker");if(!el)return;
-  var idx=0,speed=55,pause=2200,delSpeed=25;
-  function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
-  async function run(){
-    while(true){
-      var t=phrases[idx];
-      for(var i=0;i<=t.length;i++){el.textContent=t.substring(0,i);await sleep(speed);}
-      await sleep(pause);
-      for(var j=t.length;j>=0;j--){el.textContent=t.substring(0,j);await sleep(delSpeed);}
-      await sleep(300);
-      idx=(idx+1)%phrases.length;
+  /* ──────────────────────────────────────────
+   *  CONFIGURABLE PARAMETERS
+   *  Adjust these to change the visual feel
+   * ────────────────────────────────────────── */
+  const CONFIG = {
+    /* Line count — more lines = denser field */
+    lineCount:       40,
+
+    /* How many segments per line (longer = smoother curves) */
+    lineSegments:    90,
+
+    /* Speed of line movement — lower = slower drift */
+    speed:           0.0004,
+
+    /* Noise scale — lower = larger/smoother curves; higher = tighter curls */
+    noiseScale:      0.0015,
+
+    /* Line opacity (0–1) — keep low for subtlety */
+    lineOpacity:     0.12,
+
+    /* Line width range [min, max] */
+    lineWidthRange:  [0.5, 1.8],
+
+    /* Color cycle speed — how fast RGB shifts */
+    colorCycleSpeed: 0.00008,
+
+    /* Color saturation (0–100) and lightness (0–100) for HSL */
+    saturation:      55,
+    lightnessLight:  62,   /* lightness on light theme */
+    lightnessDark:   50,   /* lightness on dark theme */
+
+    /* Fade-out distance from edges (px) */
+    edgeFade:        120,
+
+    /* How often lines reset (frames) — larger = longer lived lines */
+    lineLife:        600,
+  };
+
+  const canvas = document.getElementById('flowCanvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, lines, time = 0, colorTime = 0;
+  let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  /* ── Simplex-like noise (lightweight Perlin noise) ── */
+  const permutation = [];
+  (function initPerm() {
+    const p = [];
+    for (let i = 0; i < 256; i++) p[i] = i;
+    for (let i = 255; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [p[i], p[j]] = [p[j], p[i]];
+    }
+    for (let i = 0; i < 512; i++) permutation[i] = p[i & 255];
+  })();
+
+  function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+  function lerp(a, b, t) { return a + t * (b - a); }
+  function grad(hash, x, y) {
+    const h = hash & 3;
+    const u = h < 2 ? x : y;
+    const v = h < 2 ? y : x;
+    return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+  }
+
+  function noise(x, y) {
+    const xi = Math.floor(x) & 255;
+    const yi = Math.floor(y) & 255;
+    const xf = x - Math.floor(x);
+    const yf = y - Math.floor(y);
+    const u = fade(xf);
+    const v = fade(yf);
+    const aa = permutation[permutation[xi] + yi];
+    const ab = permutation[permutation[xi] + yi + 1];
+    const ba = permutation[permutation[xi + 1] + yi];
+    const bb = permutation[permutation[xi + 1] + yi + 1];
+    return lerp(
+      lerp(grad(aa, xf, yf),     grad(ba, xf - 1, yf),     u),
+      lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u),
+      v
+    );
+  }
+
+  /* ── Line creation ── */
+  function createLine(randomAge) {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      hueOffset: Math.random() * 360,
+      age: randomAge ? Math.floor(Math.random() * CONFIG.lineLife) : 0,
+      width: CONFIG.lineWidthRange[0] + Math.random() * (CONFIG.lineWidthRange[1] - CONFIG.lineWidthRange[0]),
+    };
+  }
+
+  function initLines() {
+    lines = [];
+    for (let i = 0; i < CONFIG.lineCount; i++) {
+      lines.push(createLine(true));
     }
   }
-  setTimeout(function(){run();},1500);
+
+  /* ── Resize ── */
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    initLines();
+  }
+
+  /* ── Edge fade alpha ── */
+  function edgeAlpha(x, y) {
+    const ef = CONFIG.edgeFade;
+    const ax = Math.min(x / ef, (W - x) / ef, 1);
+    const ay = Math.min(y / ef, (H - y) / ef, 1);
+    return Math.max(0, Math.min(1, ax)) * Math.max(0, Math.min(1, ay));
+  }
+
+  /* ── Draw ── */
+  function draw() {
+    time += CONFIG.speed;
+    colorTime += CONFIG.colorCycleSpeed;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const lightness = isDark ? CONFIG.lightnessDark : CONFIG.lightnessLight;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      line.age++;
+
+      /* Reset line when it expires */
+      if (line.age > CONFIG.lineLife) {
+        lines[i] = createLine(false);
+        continue;
+      }
+
+      /* Life-based fade in/out */
+      const lifeFrac = line.age / CONFIG.lineLife;
+      const lifeFade = lifeFrac < 0.1
+        ? lifeFrac / 0.1
+        : lifeFrac > 0.85
+          ? (1 - lifeFrac) / 0.15
+          : 1;
+
+      let px = line.x;
+      let py = line.y;
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+
+      const segStep = 3; /* pixels per segment step */
+      for (let s = 0; s < CONFIG.lineSegments; s++) {
+        const n = noise(px * CONFIG.noiseScale, py * CONFIG.noiseScale + time);
+        const angle = n * Math.PI * 4;
+        px += Math.cos(angle) * segStep;
+        py += Math.sin(angle) * segStep;
+
+        ctx.lineTo(px, py);
+      }
+
+      /* Hue shifts slowly across the palette */
+      const hue = ((colorTime * 360) + line.hueOffset + i * (360 / CONFIG.lineCount)) % 360;
+      const alpha = CONFIG.lineOpacity * lifeFade * edgeAlpha(line.x, line.y);
+
+      ctx.strokeStyle = `hsla(${hue}, ${CONFIG.saturation}%, ${lightness}%, ${alpha})`;
+      ctx.lineWidth = line.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      /* Slowly drift the line origin */
+      const originNoise = noise(line.x * CONFIG.noiseScale * 0.5 + 100, line.y * CONFIG.noiseScale * 0.5 + time);
+      const originAngle = originNoise * Math.PI * 4;
+      line.x += Math.cos(originAngle) * 0.25;
+      line.y += Math.sin(originAngle) * 0.25;
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  /* ── Public API for theme switching ── */
+  window._flowField = {
+    updatePalette: function() {
+      isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    },
+    config: CONFIG
+  };
+
+  /* ── Init ── */
+  window.addEventListener('resize', function() {
+    clearTimeout(window._flowResize);
+    window._flowResize = setTimeout(resize, 200);
+  });
+  resize();
+  draw();
+
+
+  /* ═══════════════════════════════════════════
+   *  Scroll Reveal — IntersectionObserver
+   * ═══════════════════════════════════════════ */
+  const revealEls = document.querySelectorAll('[data-reveal]');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry, idx) {
+        if (entry.isIntersecting) {
+          /* Stagger delay for sibling items */
+          const siblings = entry.target.parentElement.querySelectorAll('[data-reveal]');
+          let index = 0;
+          siblings.forEach(function(sib, i) { if (sib === entry.target) index = i; });
+          entry.target.style.transitionDelay = (index * 0.12) + 's';
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+    revealEls.forEach(function(el) { observer.observe(el); });
+  } else {
+    /* Fallback: just show everything */
+    revealEls.forEach(function(el) { el.classList.add('revealed'); });
+  }
+
 })();
 </script>
 
-<!-- Score counter -->
-<script>
-(function(){
-  var ba=document.querySelector('.ba-section');if(!ba)return;
-  var done=false;
-  var obs=new IntersectionObserver(function(entries){
-    if(entries[0].isIntersecting&&!done){
-      done=true;
-      var b=0,a=0,sb=document.getElementById('sc-b'),sa=document.getElementById('sc-a');
-      var t=setInterval(function(){
-        if(b<47){b+=2;if(b>47)b=47;sb.innerHTML=b+'<span>分</span>';}
-        if(a<93){a+=3;if(a>93)a=93;sa.innerHTML=a+'<span>分</span>';}
-        if(b>=47&&a>=93)clearInterval(t);
-      },30);
-    }
-  },{threshold:.3});
-  obs.observe(ba);
-})();
-</script>
-</body></html>
+</body>
+</html>

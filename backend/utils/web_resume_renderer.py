@@ -522,6 +522,9 @@ def render_resume(resume_data, web_config=None, template=None):
     Returns:
         完整 HTML 字符串
     """
+    if resume_data and "blocks" in resume_data:
+        return _render_blocks_engine(resume_data, web_config)
+        
     if not template:
         template = (web_config or {}).get("template", DEFAULT_TEMPLATE)
     if template not in TEMPLATES:
@@ -530,6 +533,161 @@ def render_resume(resume_data, web_config=None, template=None):
     theme = _get_theme(web_config)
     renderer = TEMPLATES[template]
     return renderer(resume_data, web_config, theme)
+
+# ══════════════════════════════════════
+#  NEW BLOCK ENGINE (Canva Style Editor)
+# ══════════════════════════════════════
+def _render_blocks_engine(resume_data, web_config):
+    blocks = resume_data.get("blocks", [])
+    theme = (web_config or {}).get("theme", {})
+    
+    primary = theme.get("primaryColor", "#8B5CF6")
+    bg = theme.get("bgColor", "#ffffff")
+    text = theme.get("textColor", "#1f2937")
+    radius = theme.get("radius", "16px")
+    
+    css = f"""
+    *, *::before, *::after {{ box-sizing: border-box; }}
+    :root {{
+        --primary: {primary};
+        --bg: {bg};
+        --text: {text};
+        --radius: {radius};
+    }}
+    body {{ margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; -webkit-font-smoothing:antialiased; }}
+    .wr2-container {{ max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; display: flex; flex-direction: column; gap: 24px; }}
+    .wr2-block {{ padding: 32px; border-radius: var(--radius); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }}
+    .wr2-block-title {{ font-size: 1.35rem; font-weight: 800; color: var(--primary); margin-bottom: 24px; display:flex; align-items:center; letter-spacing: -0.01em; }}
+    
+    /* Layouts */
+    .wr2-layout-center {{ text-align: center; }}
+    .wr2-layout-left {{ text-align: left; }}
+    .wr2-layout-right {{ text-align: right; }}
+    .wr2-layout-center .wr2-item-header {{ justify-content: center; text-align: center; }}
+    .wr2-layout-center .wr2-skill-tags {{ justify-content: center; }}
+    
+    /* Variants */
+    .wr2-style-card {{ background: #ffffff; box-shadow: 0 8px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05); }}
+    .wr2-style-minimal {{ background: transparent; padding-left: 0; padding-right: 0; border-bottom: 1px solid rgba(0,0,0,0.06); border-radius: 0; }}
+    .wr2-style-outline {{ background: transparent; border: 2px solid var(--primary); }}
+    .wr2-style-solid {{ background: var(--primary); color: #fff; }}
+    .wr2-style-solid .wr2-block-title {{ color: #fff; opacity: 0.9; }}
+    .wr2-style-solid .wr2-skill-tag {{ background: rgba(0,0,0,0.2); color: #fff; }}
+    .wr2-style-solid .wr2-item-subtitle, .wr2-style-solid .wr2-item-time {{ opacity: 0.8; color: #fff; }}
+    
+    /* Elements */
+    .wr2-hero-avatar {{ width: 110px; height: 110px; border-radius: 50%; object-fit: cover; margin-bottom: 20px; border: 4px solid var(--primary); box-shadow: 0 4px 14px rgba(0,0,0,0.1); }}
+    .wr2-hero-name {{ font-size: 2.8rem; font-weight: 900; margin-bottom: 8px; line-height: 1.2; letter-spacing: -0.02em; }}
+    .wr2-hero-job {{ font-size: 1.15rem; font-weight: 600; opacity: 0.85; margin-bottom: 16px; }}
+    .wr2-hero-meta {{ display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.95rem; opacity: 0.7; font-weight: 500; }}
+    .wr2-layout-center .wr2-hero-meta {{ justify-content: center; }}
+    .wr2-layout-right .wr2-hero-meta {{ justify-content: flex-end; }}
+    
+    .wr2-item {{ margin-bottom: 24px; }}
+    .wr2-item:last-child {{ margin-bottom: 0; }}
+    .wr2-item-header {{ display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; margin-bottom: 10px; gap: 8px; }}
+    .wr2-item-title {{ font-weight: 800; font-size: 1.1rem; }}
+    .wr2-item-subtitle {{ font-size: 0.95rem; font-weight: 600; margin-left:8px; opacity: 0.8; }}
+    .wr2-item-time {{ font-size: 0.85rem; font-weight: 600; opacity: 0.5; }}
+    .wr2-item-desc {{ list-style-position: outside; margin-left: 20px; padding-left:0; margin-top:0; }}
+    .wr2-item-desc li {{ margin-bottom: 6px; font-size: 0.95rem; opacity: 0.85; line-height:1.6; }}
+    
+    .wr2-skill-tags {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+    .wr2-skill-tag {{ padding: 8px 16px; background: rgba(0,0,0,0.04); border-radius: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text); }}
+    
+    .wr2-intro-text {{ font-size: 1.05rem; line-height: 1.8; opacity: 0.85; white-space: pre-wrap; }}
+    
+    @media (max-width: 600px) {{
+        .wr2-item-header {{ flex-direction: column; align-items: flex-start; gap: 4px; }}
+        .wr2-item-subtitle {{ margin-left: 0; display: block; }}
+        .wr2-container {{ padding: 20px 16px; gap: 16px; }}
+        .wr2-block {{ padding: 24px 20px; }}
+        .wr2-hero-name {{ font-size: 2.2rem; }}
+    }}
+    
+    /* Custom Scoped Overrides generated dynamically */
+    """
+    
+    def render_block(b):
+        if not b.get("visible", True): return ""
+        b_type = b.get("type", "")
+        style = b.get("style", {})
+        layout = style.get("layout", "left")
+        variant = style.get("variant", "minimal")
+        c = b.get("content", {})
+        title = b.get("title", "")
+        
+        classes = f"wr2-block wr2-layout-{layout} wr2-style-{variant}"
+        title_html = f'<div class="wr2-block-title">{_html.escape(title)}</div>' if title else ""
+        content_html = ""
+        
+        if b_type == "hero":
+            avatar_html = f'<img src="{_html.escape(c.get("avatar",""))}" class="wr2-hero-avatar">' if c.get('avatar') else ""
+            meta_items = c.get("meta", [])
+            meta_html = f'<div class="wr2-hero-meta">' + "".join(f"<span>{_html.escape(m)}</span>" for m in meta_items if m) + "</div>"
+            content_html = f'''
+                {avatar_html}
+                <div class="wr2-hero-name">{_html.escape(c.get("name",""))}</div>
+                <div class="wr2-hero-job">{_html.escape(c.get("job",""))}</div>
+                {meta_html}
+            '''
+        elif b_type == "intro":
+            content_html = f'{title_html}<div class="wr2-intro-text">{_html.escape(c.get("text",""))}</div>'
+            
+        elif b_type in ["list_work", "list_edu", "list_projects"]:
+            items = c.get("items", [])
+            items_html = ""
+            for item in items:
+                desc_html = ""
+                if item.get("desc"):
+                    desc_html = '<ul class="wr2-item-desc">' + "".join(f"<li>{_html.escape(d)}</li>" for d in item["desc"] if d) + '</ul>'
+                
+                items_html += f'''
+                <div class="wr2-item">
+                    <div class="wr2-item-header">
+                        <div>
+                            <span class="wr2-item-title">{_html.escape(item.get("title",""))}</span>
+                            <span class="wr2-item-subtitle">{_html.escape(item.get("subtitle",""))}</span>
+                        </div>
+                        <span class="wr2-item-time">{_html.escape(item.get("time",""))}</span>
+                    </div>
+                    {desc_html}
+                </div>
+                '''
+            content_html = title_html + items_html
+            
+        elif b_type == "skills":
+            tags = c.get("tags", [])
+            tags_html = '<div class="wr2-skill-tags">' + "".join(f'<span class="wr2-skill-tag">{_html.escape(t)}</span>' for t in tags if t) + '</div>'
+            content_html = title_html + tags_html
+            
+        elif b_type == "certs":
+             content_html = f'{title_html}<div class="wr2-intro-text">{_html.escape(c.get("text",""))}</div>'
+
+        return f'<div class="{classes}" id="wr2-block-{_html.escape(b.get("id",""))}">{content_html}</div>'
+
+    body_html = '<div class="wr2-container">' + "".join(render_block(b) for b in blocks) + '</div>'
+    
+    page_title = (web_config or {}).get("meta", {}).get("pageTitle", "简历")
+    if not page_title:
+        # try to find hero block name
+        for b in blocks:
+            if b.get("type") == "hero" and b.get("content", {}).get("name"):
+                page_title = f"{b['content']['name']} 的简历"
+                break
+    
+    return f'''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{_html.escape(page_title or '网页简历')}</title>
+<style>{css}</style>
+</head>
+<body>
+{body_html}
+</body>
+</html>'''
 
 
 def list_templates():

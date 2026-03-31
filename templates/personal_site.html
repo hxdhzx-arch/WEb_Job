@@ -3,898 +3,495 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AI 个人网站专家 - 简历 AI (Canva 版)</title>
+<title>Personal Site Designer</title>
 <link rel="stylesheet" href="/static/style.css">
-
-<!-- Theme Init -->
-<script>
-(function(){
-  var theme = localStorage.getItem("resumeAI_theme");
-  if (!theme) {
-    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  document.documentElement.setAttribute('data-theme', theme);
-})();
-function toggleTheme() {
-  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem("resumeAI_theme", t);
-  var icon = document.getElementById("theme-toggle-icon");
-  if(icon) {
-    icon.textContent = t === 'dark' ? '☀️' : '🌙';
-  }
-}
-</script>
-
 <style>
-/* Canva-style Reset & Scope */
-body {
-    margin: 0; padding: 0;
-    height: 100vh;
-    display: flex; flex-direction: column;
-    overflow: hidden;
-    background: #f1f2f6;
-    color: #1f2937;
-    font-family: "Inter","PingFang SC","Microsoft YaHei",sans-serif;
-}
-
-/* Nav */
-.editor-navbar {
-    height: 64px;
-    background: linear-gradient(90deg, #33b6d8 0%, #3a68f3 52%, #7a3ff0 100%);
-    border-bottom: none;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px; flex-shrink: 0; z-index: 100;
-    color: #fff;
-}
-.editor-navbar-left { display: flex; align-items: center; gap: 16px; }
-.editor-navbar-left .back-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px; border-radius: 10px; color: #fff; font-weight: 700; transition: background 0.2s;
-}
-.editor-navbar-left .back-btn:hover { background: rgba(255,255,255,0.14); }
-.editor-navbar-left .title { font-weight: 700; font-size: 1.02rem; display: flex; align-items: center; gap: 8px;}
-.editor-navbar-left .title .badge { background: rgba(255,255,255,0.2); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; }
-
-.editor-navbar-right { display: flex; align-items: center; gap: 12px; }
-
-/* Workspace */
-.editor-workspace {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    background: #eceef3;
-}
-
-/* Left Slim Toolbar */
-.slim-sidebar {
-    width: 72px;
-    background: #f7f8fa;
-    display: flex; flex-direction: column; align-items: center;
-    padding-top: 18px; gap: 6px; flex-shrink: 0; z-index: 50;
-    border-right: 1px solid #e5e7eb;
-}
-.slim-tab {
-    width: 54px; height: 58px;
-    border-radius: 10px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #4b5563; cursor: pointer; transition: all 0.2s;
-    font-size: 0.72rem; font-weight: 600; gap: 4px;
-}
-.slim-tab:hover { background: #eceff5; color: #111827; }
-.slim-tab.active { background: #1f1f1f; color: #fff; }
-.slim-tab .icon { font-size: 1.25rem; }
-
-/* Panel Area */
-.panel-area {
-    width: 360px;
-    background: #ffffff;
-    border-right: 1px solid #e5e7eb;
-    display: flex; flex-direction: column;
-    flex-shrink: 0;
-    transition: width 0.3s;
-    position: relative;
-    z-index: 40;
-    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.03);
-}
-
-.panel-content {
-    padding: 24px 20px;
-    overflow-y: auto;
-    flex: 1;
-    display: none;
-}
-.panel-content::-webkit-scrollbar { width: 4px; }
-.panel-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-.panel-content.active { display: block; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from{opacity:0; transform:translateX(-10px);} to{opacity:1; transform:translateX(0);} }
-
-.panel-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 20px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
-
-/* Canvas Area */
-.canvas-area {
-    flex: 1;
-    background: #eceef3;
-    padding: 22px 24px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overflow-y: auto;
-    position: relative;
-}
-.canvas-area::-webkit-scrollbar { width: 8px; }
-.canvas-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-.canvas-container {
-    width: 100%;
-    max-width: 1120px;
-    height: calc(100vh - 132px);
-    min-height: 560px;
-    background: #fff;
-    box-shadow: 0 8px 28px rgba(31,41,55,0.08);
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.3s;
-    border: 1px solid #d7d9e2;
-}
-
-.canvas-container iframe { width: 100%; height: 100%; border: none; background: #fff; }
-
-.canvas-overlay {
-    position: absolute; inset: 0;
-    background: rgba(var(--bg-rgb, 255,255,255), 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 16px;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 20;
-}
-.canvas-overlay.show { opacity: 1; pointer-events: auto; }
-.canvas-overlay-content { text-align: center; }
-.canvas-overlay h2 { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin-top: 16px; }
-.canvas-overlay p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px; }
-
-/* Custom Controls */
-.c-prompt-wrap { position: relative; margin-bottom: 24px; }
-.c-textarea {
-    width: 100%; min-height: 140px; padding: 16px; border: 1.5px solid var(--border);
-    border-radius: 12px; font-family: inherit; font-size: 0.9rem; line-height: 1.6;
-    background: #f6f7fb; color: var(--text-main); resize: vertical;
-    transition: all 0.2s;
-}
-.c-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-light); background: var(--bg-card);}
-.c-prompt-wrap::after { content: "✨"; position: absolute; right: 14px; top: 14px; font-size: 1.2rem; opacity: 0.6; pointer-events: none;}
-
-.c-upload-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;}
-.c-upload {
-    border: 1.5px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center;
-    cursor: pointer; transition: all 0.2s; position: relative;
-    background: #f8f9fc;
-}
-.c-upload:hover { border-color: var(--primary); background: var(--primary-light); }
-.c-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.c-upload-icon { font-size: 1.8rem; margin-bottom: 8px; color: var(--text-secondary);}
-.c-upload-label { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
-.c-upload-name { font-size: 0.75rem; color: var(--primary); margin-top: 6px; }
-.c-upload-preview { max-width: 100%; max-height: 100px; border-radius: 8px; margin-top: 10px; object-fit: cover; display: none; }
-
-.c-style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;}
-.c-style-item {
-    border: 2px solid var(--border); border-radius: 12px; padding: 18px 12px; text-align: center;
-    cursor: pointer; transition: all 0.2s; background: var(--bg-card);
-}
-.c-style-item:hover { border-color: var(--border-focus); transform: translateY(-2px); box-shadow: var(--shadow-sm);}
-.c-style-item.selected { border-color: var(--primary); background: var(--primary-light); }
-.c-style-icon { font-size: 2rem; margin-bottom: 10px; }
-.c-style-name { font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px;}
-.c-style-desc { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
-
-.c-btn {
-    width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 800;
-    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    font-family: inherit; letter-spacing: -0.01em;
-}
-.c-btn-primary { background: linear-gradient(135deg, #0A84FF, #5E5CE6); color: #FFF; box-shadow: 0 4px 16px rgba(10,132,255,0.25); }
-.c-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(10,132,255,0.35); }
-.c-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.c-btn-success { background: linear-gradient(135deg, #30D158, #34C759); color: #FFF; box-shadow: 0 4px 16px rgba(48,209,88,0.25); }
-.c-btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(48,209,88,0.35); }
-
-.c-btn-secondary { background: var(--bg); color: var(--text-main); border: 1.5px solid var(--border); }
-.c-btn-secondary:hover { background: var(--border); }
-.c-btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
-.c-btn-sm { padding: 8px 16px; font-size: 0.85rem; width: auto; border-radius: 8px;}
-
-/* Data Editor */
-.c-json-editor {
-    width: 100%; min-height: 400px; padding: 16px; border: 1px solid var(--border);
-    border-radius: 12px; font-family: monospace; font-size: 0.8rem; line-height: 1.5;
-    background: var(--bg); color: var(--text-main); resize: vertical; margin-bottom: 16px;
-}
-.c-json-editor:focus { outline: none; border-color: var(--primary); }
-
-.c-form-group { margin-bottom: 20px; }
-.c-form-label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
-.c-form-input { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text-main); font-family: inherit; font-size: 0.95rem; outline: none; transition: border-color 0.2s;}
-.c-form-input:focus { border-color: var(--primary); background: var(--bg-card); }
-
-/* Import Banner */
-.c-import-banner {
-    display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--primary-light);
-    border: 1.5px solid rgba(0,122,255,0.2); border-radius: 12px; margin-bottom: 24px;
-}
-.c-import-banner p { font-size: 0.85rem; font-weight: 600; color: var(--primary); line-height: 1.5;}
-
-/* Spinner Animation */
-.ps-spinner{display:inline-block;width:20px;height:20px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s cubic-bezier(0.5, 0, 0.5, 1) infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.c-blank-state {
-    text-align: center; color: #9ca3af;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px;
-    background: linear-gradient(180deg, #fbfcff 0%, #f1f3f9 100%);
-}
-.c-blank-icon { font-size: 3rem; opacity: 0.5; }
-
-/* Result Modal equivalent */
-.c-result-box {
-    background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
-    padding: 20px; margin-top: 24px; display: none;
-}
-.c-result-box.show { display: block; animation: fadeIn 0.4s ease;}
-.c-result-url-wrap { display: flex; gap: 8px; margin: 12px 0; }
-.c-result-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;}
-
-/* Custom Scrollbars for the whole app */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-hint); }
-
-/* Toasts */
-.ps-toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);opacity:0;padding:12px 28px;border-radius:98px;font-size:.95rem;font-weight:700;z-index:9999;transition:all .3s cubic-bezier(.16,1,.3,1);box-shadow:var(--shadow-lg);pointer-events:none; letter-spacing: -0.01em;}
-.ps-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.ps-toast.success{background:var(--accent);color:#fff}
-.ps-toast.error{background:var(--danger);color:#fff}
-
-/* Publish Modal Styles */
-.ds-modal-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none;
-  transition: opacity 0.3s; z-index: 9999; padding: 20px;
-}
-.ds-modal-backdrop.show { opacity: 1; pointer-events: auto; }
-.ds-modal-box {
-  background: var(--bg-card, #fff); border-radius: 12px; width: 100%; max-width: 480px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.1); transform: translateY(20px); transition: transform 0.3s;
-  overflow: hidden; display: flex; flex-direction: column;
-}
-[data-theme="dark"] .ds-modal-box { background: #1C1C1E; border: 1px solid #333; }
-.ds-modal-backdrop.show .ds-modal-box { transform: translateY(0); }
-.ds-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border, #eee); display: flex; justify-content: space-between; align-items: center; }
-.ds-modal-title { font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--text-main); }
-.ds-modal-close { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); }
-.ds-modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; max-height: 70vh; }
-.ds-form-group { display: flex; flex-direction: column; gap: 6px; }
-.ds-form-group label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
-.ds-form-input { padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 0.95rem; background: var(--bg, #fafafa); color: var(--text-main); outline: none; }
-.ds-form-input:focus { border-color: var(--primary, #3B82F6); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
-.ds-form-hint { font-size: 0.8rem; color: var(--text-secondary, #666); margin-top: 2px; }
-.ds-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border, #eee); display: flex; justify-content: flex-end; gap: 12px; background: var(--bg-hover, #fafafa); }
-
-/* Auto Save Indicator */
-.ds-auto-save-indicator {
-  font-size: 0.8rem; color: rgba(255,255,255,0.8); display: inline-flex; align-items: center; gap: 6px; font-weight: 500;
-}
-
-@media(max-width: 768px) {
-    .editor-workspace { flex-direction: column; height: auto;}
-    .slim-sidebar { width: 100%; height: 64px; flex-direction: row; padding: 0 16px; justify-content: space-around; }
-    .slim-tab { width: auto; height: 100%; padding: 0 12px; border-radius: 0; }
-    .panel-area { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
-    .canvas-area { padding: 16px; min-height: 60vh;}
-    .canvas-container { height: 100%; min-height: 500px;}
-}
+.ps-tab-content{padding:14px;overflow-y:auto;display:none;flex-direction:column;gap:12px}
+.ps-tab-content.active{display:flex}
+.ps-upload{border:1px dashed var(--c-border);border-radius:12px;background:var(--c-bg-card);padding:10px;position:relative;text-align:center}
+.ps-upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.ps-upload small{display:block;color:var(--c-text-muted);font-size:.75rem}
+.ps-thumb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ps-thumb{border:1px solid var(--c-border);border-radius:12px;background:var(--c-bg-card);padding:8px;cursor:pointer;transition:.22s transform,.22s border-color,.22s box-shadow}
+.ps-thumb:hover{transform:translateY(-1px)}
+.ps-thumb.active{border-color:var(--c-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--c-accent) 20%,transparent)}
+.ps-mini{height:62px;border-radius:8px;overflow:hidden;border:1px solid var(--c-border);display:flex;position:relative}
+.ps-mini .a{flex:1}
+.ps-mini .b{width:28%}
+.ps-mini.prof .a{background:linear-gradient(180deg,#f8fafc,#e2e8f0)}
+.ps-mini.prof .b{background:#bfdbfe}
+.ps-mini.dev .a{background:linear-gradient(180deg,#111827,#0b1020)}
+.ps-mini.dev .b{background:#0f766e}
+.ps-mini.creator .a{background:linear-gradient(180deg,#faf5ff,#f3e8ff)}
+.ps-mini.creator .b{background:#e879f9}
+.ps-mini.minimal .a{background:#fff}
+.ps-mini.minimal .b{background:#f1f5f9}
+.ps-mini::after{content:"";position:absolute;left:8px;right:8px;top:9px;height:2px;background:rgba(255,255,255,.45)}
+.ps-name{margin-top:6px;font-size:.78rem;font-weight:700}
+.ps-sec-list{display:flex;flex-direction:column;gap:8px}
+.ps-sec-item{display:flex;align-items:center;gap:8px;border:1px solid var(--c-border);background:var(--c-bg-card);border-radius:10px;padding:8px}
+.ps-sec-item input[type=checkbox]{transform:scale(.9)}
+.ps-sec-item .nm{font-size:.8rem;font-weight:600;flex:1}
+.ps-sec-item button{border:1px solid var(--c-border);background:var(--c-bg-sub);border-radius:8px;padding:3px 7px;font-size:.73rem;cursor:pointer}
+.ps-ins-row{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.ps-ins-row label{font-size:.74rem;color:var(--c-text-muted);font-weight:700}
+.ps-ins-row input,.ps-ins-row textarea,.ps-ins-row select{width:100%;border:1px solid var(--c-border);background:var(--c-bg-card);color:var(--c-text-main);border-radius:8px;padding:8px;font-size:.82rem}
+.ps-array-item{border:1px solid var(--c-border);border-radius:10px;background:var(--c-bg-card);padding:8px;margin-bottom:8px}
+.ps-array-item h5{font-size:.76rem;margin-bottom:6px}
+.ps-array-item .row{display:flex;gap:6px}
+.ps-array-item .row>*{flex:1}
+.ps-ins-actions{display:flex;gap:8px;margin-bottom:10px}
+.ps-ins-actions button{border:1px solid var(--c-border);background:var(--c-bg-sub);border-radius:8px;padding:4px 8px;font-size:.73rem;cursor:pointer}
+.ps-ins-actions .danger{background:#ef4444;color:#fff;border-color:#ef4444}
+.ps-empty{padding:30px 8px;text-align:center;color:var(--c-text-muted);font-size:.82rem}
 </style>
 </head>
 <body>
+<div class="ambient-container"><div class="ambient-glow"></div></div>
 
-<!-- Header -->
-<nav class="editor-navbar">
-    <div class="editor-navbar-left">
-        <a href="/" class="back-btn">⌂</a>
-        <div class="title">个人网站专家 <span class="badge">PRO</span></div>
-    </div>
-    <div class="editor-navbar-right">
-        <div id="save-indicator" class="ds-auto-save-indicator"></div>
-        <button class="c-btn c-btn-secondary c-btn-sm" onclick="doPreview()" id="refresh-btn" style="display:none;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.24);color:#fff">↻ 刷新画布</button>
-        <button class="c-btn c-btn-primary c-btn-sm" onclick="openPublishModal()" id="nav-publish-btn" style="display:none;background:#ffffff;color:#374151">🚀 发布网站</button>
-        <button onclick="toggleTheme()" class="c-btn c-btn-secondary c-btn-sm" id="theme-switch" style="border:none;background:rgba(255,255,255,0.14);color:#fff;font-size:1.2rem;padding:4px"><span id="theme-toggle-icon">🌙</span></button>
-    </div>
+<nav class="c-nav glass">
+  <div class="c-nav-brand">
+    <a href="/" class="c-btn c-btn-ghost" style="padding:4px 8px;margin-right:8px;">← 返回</a>
+    Personal Site 设计器
+  </div>
+  <div class="c-nav-links">
+    <div id="save-indicator" style="font-size:.78rem;color:var(--c-text-muted);margin-right:8px;">已就绪</div>
+    <button class="c-btn c-btn-secondary" style="height:30px;padding:0 12px;font-size:.78rem" onclick="exportHTML()">导出 HTML</button>
+    <button class="c-btn c-btn-primary" style="height:30px;padding:0 14px;font-size:.78rem" onclick="openPublishModal()">发布</button>
+  </div>
 </nav>
 
-<!-- Main Workspace -->
-<div class="editor-workspace">
-
-    <!-- 1. Slim Sidebar -->
-    <div class="slim-sidebar">
-        <div class="slim-tab active" data-target="tab-design" onclick="switchTab('tab-design')">
-            <span class="icon">✨</span>
-            <span>生成</span>
-        </div>
-        <div class="slim-tab" data-target="tab-style" onclick="switchTab('tab-style')">
-            <span class="icon">🎨</span>
-            <span>模板</span>
-        </div>
-        <div class="slim-tab" data-target="tab-data" onclick="switchTab('tab-data')">
-            <span class="icon">⚙️</span>
-            <span>数据</span>
-        </div>
-        <div class="slim-tab" data-target="tab-publish" onclick="switchTab('tab-publish')">
-            <span class="icon">🚀</span>
-            <span>发布</span>
-        </div>
+<div class="ed-layout">
+  <div class="ed-sidebar glass">
+    <div class="ed-tabs">
+      <div class="ed-tab active" onclick="switchTab(0)">模板/生成</div>
+      <div class="ed-tab" onclick="switchTab(1)">区块结构</div>
+      <div class="ed-tab" onclick="switchTab(2)">视觉设置</div>
     </div>
-
-    <!-- 2. Action Panel Area -->
-    <div class="panel-area">
-
-        <!-- Tab 1: Design / Generation -->
-        <div class="panel-content active" id="tab-design">
-            <div class="panel-title">AI 一键生成</div>
-
-            <div class="c-import-banner" id="import-hint" style="display:none">
-                <p>💡 检测到您的简历编辑器中有缓存数据，可以无需输入直接一键转换！</p>
-                <button class="c-btn c-btn-primary c-btn-sm" onclick="importFromBuilder()">从该简历生成</button>
-            </div>
-
-            <div class="c-prompt-wrap">
-                <textarea class="c-textarea" id="prompt-input" placeholder="描述你的理想设计，例如：极简科技风、适合前端求职、突出项目和联系方式"></textarea>
-            </div>
-
-            <div class="c-upload-group">
-                <div class="c-upload" id="pdf-zone">
-                    <input type="file" accept=".pdf" id="pdf-input" onchange="handlePdf(this)">
-                    <div class="c-upload-icon">📄</div>
-                    <div class="c-upload-label">上传 PDF 简历辅助生成 (可选)</div>
-                    <div id="pdf-name" class="c-upload-name" style="display:none"></div>
-                </div>
-                <div class="c-upload" id="avatar-zone">
-                    <input type="file" accept="image/*" id="avatar-input" onchange="handleAvatar(this)">
-                    <div class="c-upload-icon">📷</div>
-                    <div class="c-upload-label">上传网站头像 (可选)</div>
-                    <img id="avatar-preview" class="c-upload-preview">
-                </div>
-            </div>
-
-            <button class="c-btn c-btn-primary" id="btn-generate" onclick="doGenerate()">生成网站方案</button>
-        </div>
-
-        <!-- Tab 2: Style / Templates -->
-        <div class="panel-content" id="tab-style">
-            <div class="panel-title">模板库</div>
-            <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:20px;line-height:1.5">随时无损切换模板，内容将被自动重新排布为新风格。</p>
-
-            <div class="c-style-grid" id="style-grid">
-                <div class="c-style-item selected" data-style="modern" onclick="pickStyle('modern',this)">
-                    <div class="c-style-icon">🚀</div>
-                    <div class="c-style-name">科技感</div>
-                    <div class="c-style-desc">苹果风 · 毛玻璃效果</div>
-                </div>
-                <div class="c-style-item" data-style="minimal" onclick="pickStyle('minimal',this)">
-                    <div class="c-style-icon">📃</div>
-                    <div class="c-style-name">大白极简</div>
-                    <div class="c-style-desc">干净留白 · 重点清晰</div>
-                </div>
-                <div class="c-style-item" data-style="card" onclick="pickStyle('card',this)">
-                    <div class="c-style-icon">🃏</div>
-                    <div class="c-style-name">区块卡片</div>
-                    <div class="c-style-desc">模块化展示 · 直观体验</div>
-                </div>
-                <div class="c-style-item" data-style="blog" onclick="pickStyle('blog',this)">
-                    <div class="c-style-icon">📝</div>
-                    <div class="c-style-name">博文展示</div>
-                    <div class="c-style-desc">温和色调 · 注重阅读</div>
-                </div>
-            </div>
-
-            <div style="margin-top:20px; text-align:center">
-                <button class="c-btn c-btn-primary" id="btn-apply-style" onclick="doPreview()" style="display:none">应用到画布</button>
-                <p id="style-hint" style="color:var(--text-hint); font-size:0.8rem">请先在「生成」面板创建内容</p>
-            </div>
-        </div>
-
-        <!-- Tab 3: Data JSON -->
-        <div class="panel-content" id="tab-data">
-            <div class="panel-title">高级：数据源配置</div>
-            <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:16px;">在这里您可以手动微调 AI 生成的节点，点击应用即可呈现。</p>
-
-            <textarea class="c-json-editor" id="data-json" placeholder="这里将显示生成的 JSON 原始数据..."></textarea>
-
-            <button class="c-btn c-btn-secondary" id="btn-save-data" onclick="applyDataEdit()" disabled>覆盖并渲染</button>
-        </div>
-
-        <!-- Tab 4: Publish & Export -->
-        <div class="panel-content" id="tab-publish">
-            <div class="panel-title">发布分享</div>
-
-            <div class="c-form-group">
-                <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">一键将右侧画布中的静态代码部署上线，获得属于你的永久公网链接。</p>
-            </div>
-
-            <button class="c-btn c-btn-success" id="btn-publish" onclick="openPublishModal()" disabled>🚀 在线发布</button>
-            <button class="c-btn c-btn-outline" id="btn-export" onclick="doExport()" disabled style="margin-top:16px">⬇️ 导出离线 HTML</button>
-
-            <!-- Result Box -->
-            <div class="c-result-box" id="publish-result">
-                <h3 style="font-size:1rem;color:#34C759;margin-bottom:8px">🎉 网站成功上线！</h3>
-                <p style="font-size:0.8rem;color:var(--text-secondary);">你可以把这个链接挂在求职信或微信基本信息里。</p>
-                <div class="c-result-url-wrap">
-                    <input type="text" id="result-url" class="c-form-input" readonly style="padding:10px;font-size:0.8rem">
-                </div>
-                <div class="c-result-actions">
-                    <button class="c-btn c-btn-secondary c-btn-sm" onclick="copyUrl()">🔗 复制链接</button>
-                    <a id="result-link" href="#" target="_blank" class="c-btn c-btn-primary c-btn-sm" style="text-decoration:none">🌐 访问主页</a>
-                </div>
-            </div>
-        </div>
-
+    <div class="ps-tab-content active" id="tab-0">
+      <div class="ps-thumb-grid" id="preset-grid"></div>
+      <textarea class="c-textarea" id="prompt-input" placeholder="补充你的个人定位、行业与目标（可选）" style="min-height:94px"></textarea>
+      <div class="ps-upload">
+        <input type="file" accept=".pdf" id="pdf-input" onchange="handleFile(this,'pdf')">
+        <strong style="font-size:.8rem">上传 PDF 简历（可选）</strong><small id="pdf-name"></small>
+      </div>
+      <div class="ps-upload">
+        <input type="file" accept="image/*" id="avatar-input" onchange="handleFile(this,'img')">
+        <strong style="font-size:.8rem">上传头像（可选）</strong>
+        <img id="avatar-preview" style="display:none;max-height:72px;margin:8px auto 0;border-radius:8px;">
+      </div>
+      <button class="c-btn c-btn-primary w-full" id="btn-generate" onclick="doGenerate()">生成网站方案</button>
     </div>
-
-    <!-- 3. Main Canvas Area -->
-    <div class="canvas-area">
-        <div class="canvas-container">
-            <div class="c-blank-state" id="canvas-blank">
-                <div class="c-blank-icon">✨</div>
-                <h3 style="font-size:1.2rem;font-weight:800;color:var(--text-main);">您的排版画布</h3>
-                <p style="font-size:0.9rem">在左侧栏使用 AI 生成您的网站数据<br>结果会在这里实时展现</p>
-            </div>
-            <iframe id="preview-iframe" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
-
-            <!-- Loading Overlay -->
-            <div class="canvas-overlay" id="canvas-overlay">
-                <div class="ps-spinner" style="width:40px;height:40px;border-width:4px;"></div>
-                <div class="canvas-overlay-content">
-                    <h2 id="overlay-title">AI 设计引擎渲染中</h2>
-                    <p id="overlay-desc">正在组合模板风格与您的个人信息...</p>
-                </div>
-            </div>
-        </div>
+    <div class="ps-tab-content" id="tab-1">
+      <div style="font-size:.75rem;color:var(--c-text-muted);font-weight:700">Section 显隐与排序</div>
+      <div class="ps-sec-list" id="section-list"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button class="c-btn c-btn-secondary" onclick="addBlock('projects')" style="font-size:.76rem">+ Projects</button>
+        <button class="c-btn c-btn-secondary" onclick="addBlock('experience')" style="font-size:.76rem">+ Experience</button>
+        <button class="c-btn c-btn-secondary" onclick="addBlock('skills')" style="font-size:.76rem">+ Skills</button>
+        <button class="c-btn c-btn-secondary" onclick="addBlock('education')" style="font-size:.76rem">+ Education</button>
+        <button class="c-btn c-btn-secondary" onclick="addBlock('contact')" style="font-size:.76rem">+ Contact</button>
+        <button class="c-btn c-btn-secondary" onclick="addBlock('cta')" style="font-size:.76rem">+ CTA</button>
+      </div>
     </div>
+    <div class="ps-tab-content" id="tab-2">
+      <div class="ps-ins-row"><label>主色</label><input type="color" id="g-primary" onchange="updateTheme()"></div>
+      <div class="ps-ins-row"><label>背景</label><input type="color" id="g-bg" onchange="updateTheme()"></div>
+      <div class="ps-ins-row"><label>文字</label><input type="color" id="g-text" onchange="updateTheme()"></div>
+      <div class="ps-ins-row"><label>圆角</label><select id="g-radius" onchange="updateTheme()"><option value="8px">8px</option><option value="10px">10px</option><option value="14px">14px</option><option value="18px">18px</option></select></div>
+      <div class="ps-ins-row"><label>SEO 标题</label><input type="text" id="seo-title" oninput="updateSEO('title',this.value)"></div>
+      <div class="ps-ins-row"><label>SEO 描述</label><textarea id="seo-desc" rows="3" oninput="updateSEO('description',this.value)"></textarea></div>
+      <div class="ps-ins-row"><label>OG 图片 URL</label><input type="text" id="seo-og" oninput="updateSEO('og_image',this.value)"></div>
+    </div>
+  </div>
+
+  <div class="ed-canvas-wrapper">
+    <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px;background:var(--c-bg-glass);padding:4px;border-radius:999px;border:1px solid var(--c-border)">
+      <button class="c-btn c-btn-ghost active" style="padding:4px 10px;font-size:.74rem" onclick="setDevice('desktop',this)">桌面</button>
+      <button class="c-btn c-btn-ghost" style="padding:4px 10px;font-size:.74rem" onclick="setDevice('mobile',this)">移动</button>
+    </div>
+    <div class="ed-canvas-container">
+      <div class="ed-frame" id="canvas-frame"><iframe id="preview-iframe" sandbox="allow-same-origin allow-scripts allow-popups"></iframe></div>
+    </div>
+  </div>
+
+  <div class="ed-sidebar ed-sidebar-right glass">
+    <div class="ed-panel-header">区块编辑器</div>
+    <div id="inspector-empty" class="ps-empty">点击预览区块后可编辑内容</div>
+    <div id="inspector-content" style="display:none;padding:12px"></div>
+  </div>
 </div>
 
-<!-- Publish Modal -->
-<div class="ds-modal-backdrop" id="publish-modal">
-  <div class="ds-modal-box">
-    <div class="ds-modal-header">
-      <h3 class="ds-modal-title">🚀 发布个人网站</h3>
-      <button class="ds-modal-close" onclick="closePublishModal()">×</button>
+<div class="c-modal-overlay" id="publish-modal">
+  <div class="c-modal glass">
+    <div class="c-modal-header">
+      <h3 class="c-modal-title">发布网站</h3>
+      <button class="c-modal-close" onclick="closePublishModal()">×</button>
     </div>
-    <div class="ds-modal-body">
-      <div class="ds-form-group">
-        <label>专属链接 (Slug)</label>
-        <div style="display:flex;align-items:center;">
-          <span style="color:var(--text-secondary);font-size:0.95rem;background:var(--bg-hover);padding:10px;border:1px solid var(--border);border-right:none;border-radius:6px 0 0 6px;">/site/</span>
-          <input type="text" id="pub-slug" class="ds-form-input ds-form-input" style="border-radius:0 6px 6px 0;flex:1;" placeholder="为空则自动生成">
-        </div>
-        <div class="ds-form-hint">定制你的专属短链，如 /site/alex</div>
-      </div>
-      <div class="ds-form-group">
-        <label>SEO 标题</label>
-        <input type="text" id="pub-seo-title" class="ds-form-input ds-form-input" placeholder="展示在浏览器标签页上的标题">
-      </div>
-      <div class="ds-form-group">
-        <label>SEO 描述</label>
-        <textarea id="pub-seo-desc" class="ds-form-input ds-form-input" rows="2" placeholder="展示在搜索引擎或社交媒体卡片上的描述"></textarea>
-      </div>
+    <div class="c-modal-body">
+      <div class="ps-ins-row"><label>Slug</label><input type="text" id="pub-slug" placeholder="可留空自动生成"></div>
+      <div class="ps-ins-row"><label>SEO 标题</label><input type="text" id="pub-seo-title"></div>
+      <div class="ps-ins-row"><label>SEO 描述</label><textarea id="pub-seo-desc" rows="3"></textarea></div>
     </div>
-    <div class="ds-modal-footer">
-      <button class="c-btn c-btn-secondary c-btn-sm" onclick="closePublishModal()">取消</button>
-      <button class="c-btn c-btn-primary c-btn-sm" onclick="doPublish()" id="pub-confirm-btn">立即发布</button>
+    <div class="c-modal-footer">
+      <button class="c-btn c-btn-primary w-full" id="pub-confirm-btn" onclick="confirmPublish()">立即发布</button>
     </div>
   </div>
 </div>
 
-<div class="ds-modal-backdrop" id="publish-success-modal">
-  <div class="ds-modal-box" style="align-items:center;padding:40px 20px;text-align:center;">
-    <div style="font-size:3rem;margin-bottom:16px;">🎉</div>
-    <h3 class="ds-modal-title" style="margin-bottom:8px;">发布成功！</h3>
-    <p style="color:var(--text-secondary);margin-bottom:24px;font-size:0.95rem;">您的个人网站已成功上线</p>
-    <div style="background:var(--bg-hover);padding:12px 16px;border-radius:8px;border:1px solid var(--border);margin-bottom:24px;width:100%;">
-      <a href="#" id="pub-success-url" target="_blank" style="color:var(--primary);font-weight:600;word-break:break-all;"></a>
-    </div>
-    <button class="c-btn c-btn-secondary c-btn-sm" style="width:100%" onclick="closeSuccessModal()">完成</button>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="ps-toast" id="ps-toast"></div>
+<div class="c-toast" id="wr-toast"></div>
 
 <script>
-let currentSiteId = new URLSearchParams(window.location.search).get('id') || null;
-let hasUnsavedChanges = false;
-let autoSaveTimer = null;
-const saveIndicator = document.getElementById('save-indicator');
-
-function indicateSaving() {
-  if(saveIndicator) { saveIndicator.textContent = '⟳ 保存中...'; }
-}
-function indicateSaved() {
-  if(saveIndicator) { saveIndicator.textContent = '✓ 已云端保存'; }
-  hasUnsavedChanges = false;
-}
-
-function scheduleAutoSave() {
-  hasUnsavedChanges = true;
-  indicateSaving();
-  clearTimeout(autoSaveTimer);
-  autoSaveTimer = setTimeout(performAutoSave, 2000);
-}
-
-async function performAutoSave() {
-  if(!TOKEN || !siteData) return;
-  try {
-    const payload = {
-      site_id: currentSiteId,
-      site_data: siteData,
-      site_config: { style: selectedStyle },
-      prompt: document.getElementById('prompt-input').value.trim()
-    };
-    const res = await fetch('/api/v1/personal-site/auto-save', {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
-      body: JSON.stringify(payload)
-    });
-    const d = await res.json();
-    if(d.success) {
-      currentSiteId = d.data.site_id;
-      const url = new URL(window.location);
-      if(!url.searchParams.get('id')) {
-        url.searchParams.set('id', currentSiteId);
-        window.history.replaceState({}, '', url);
-      }
-      indicateSaved();
-    }
-  } catch(e) { console.error('AutoSave failed:', e); }
-}
-
-window.onbeforeunload = function(e) {
-  if (hasUnsavedChanges) {
-    const msg = "您有未保存的更改，确定要离开吗？";
-    e.returnValue = msg;
-    return msg;
-  }
+const TOKEN = localStorage.getItem("token") || localStorage.getItem("admin_token");
+let currentSiteId = new URLSearchParams(window.location.search).get("id") || null;
+const EditorState = {
+  blocks: [],
+  theme: { primaryColor:"#2563eb", bgColor:"#f8fafc", textColor:"#0f172a", radius:"14px" },
+  seo: { title:"", description:"", og_image:"" },
+  template_id: "professional",
+  selectedBlockId: null,
+  hasUnsavedChanges: false,
+  autoSaveTimer: null,
+  rendering: false,
+  files: { pdf: null, avatar_b64: "" },
+  presets: []
 };
 
-/* ══ State variables ══ */
-var selectedStyle = 'modern';
-var siteData = null;
-var previewHtml = '';
-var pdfFile = null;
-var avatarB64 = '';
-var TOKEN = localStorage.getItem('admin_token') || '';
+function gid(){ return Math.random().toString(36).slice(2,10); }
+function toast(msg,type){ const t=document.getElementById("wr-toast"); t.textContent=msg; t.className="c-toast show "+(type||""); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove("show"),2200); }
+function switchTab(i){ document.querySelectorAll(".ed-tab").forEach((e,idx)=>e.classList.toggle("active",idx===i)); document.querySelectorAll(".ps-tab-content").forEach((e,idx)=>e.classList.toggle("active",idx===i)); }
+function setDevice(type,el){ el.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active")); el.classList.add("active"); document.getElementById("canvas-frame").classList.toggle("mobile",type==="mobile"); }
 
-/* ══ UI Interactions ══ */
-function switchTab(tabId) {
-    document.querySelectorAll('.slim-tab').forEach(function(el) { el.classList.remove('active'); });
-    document.querySelector('.slim-tab[data-target="'+tabId+'"]').classList.add('active');
-
-    document.querySelectorAll('.panel-content').forEach(function(el) { el.classList.remove('active'); });
-    document.getElementById(tabId).classList.add('active');
+function defaultBlock(type){
+  const b={id:gid(),type,visible:true,style:{layout:"left",variant:"card"},content:{}};
+  if(type==="hero") b.content={name:"Your Name",subtitle:"Your Subtitle",cta:{text:"Contact",url:"#"}};
+  if(type==="about") b.content={text:"Introduce yourself."};
+  if(type==="projects") b.content={items:[{title:"Project",desc:"Description",tags:["Tag"],link:"",github:"",cover:""}]};
+  if(type==="experience") b.content={items:[{company:"Company",role:"Role",period:"2024 - Now",desc:["Achievement"]}]};
+  if(type==="education") b.content={items:[{school:"University",degree:"Degree",period:"2018 - 2022"}]};
+  if(type==="skills") b.content={items:["Skill A","Skill B"]};
+  if(type==="contact") b.content={email:"",phone:"",github:"",linkedin:"",wechat:""};
+  if(type==="cta") b.content={title:"Ready to collaborate?",desc:"Let's build together.",button_text:"Contact",button_url:"#"};
+  if(type==="stats") b.content={items:[{value:"10+",label:"Projects"}]};
+  if(type==="services") b.content={items:[{title:"Service",desc:"Service description"}]};
+  if(type==="testimonials") b.content={items:[{author:"Name",role:"Role",text:"Feedback"}]};
+  if(type==="footer") b.content={text:"© 2026"};
+  return b;
 }
 
-function toast(msg, type) {
-  var el = document.getElementById('ps-toast');
-  el.textContent = msg;
-  el.className = 'ps-toast ' + (type || 'success') + ' show';
-  clearTimeout(el._t);
-  el._t = setTimeout(function() { el.classList.remove('show'); }, 3500);
-}
-
-function showOverlay(title, desc) {
-    document.getElementById('overlay-title').textContent = title || "AI 执行中";
-    document.getElementById('overlay-desc').textContent = desc || "请稍候...";
-    document.getElementById('canvas-overlay').classList.add('show');
-}
-function hideOverlay() {
-    document.getElementById('canvas-overlay').classList.remove('show');
-}
-
-/* ══ Setup Pick Style ══ */
-function pickStyle(s, el) {
-    selectedStyle = s;
-    document.querySelectorAll('.c-style-item').forEach(function(c){c.classList.remove('selected');});
-    el.classList.add('selected');
-
-    // Auto refresh if we have data
-    if (siteData) {
-        doPreview();
-    }
-}
-
-/* ══ Setup Uploads ══ */
-function handlePdf(input) {
-  if (!input.files || !input.files[0]) return;
-  pdfFile = input.files[0];
-  var el = document.getElementById('pdf-name');
-  el.textContent = '📄 ' + pdfFile.name;
-  el.style.display = 'block';
-}
-
-function handleAvatar(input) {
-  if (!input.files || !input.files[0]) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    avatarB64 = e.target.result;
-    var img = document.getElementById('avatar-preview');
-    img.src = avatarB64;
-    img.style.display = 'block';
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-
-/* ══ Core: Generate from API ══ */
-function doGenerate() {
-  var prompt = document.getElementById('prompt-input').value.trim();
-  if (!prompt && !pdfFile && !siteData) {
-    toast('请输入描述或上传 PDF', 'error');
-    return;
+function migrateLegacyToBlocks(d){
+  if(d && Array.isArray(d.blocks) && d.blocks.length) return d;
+  const blocks=[];
+  if(d && d.hero) blocks.push({id:gid(),type:"hero",visible:true,style:{layout:"left",variant:"card"},content:{name:d.hero.name||"",subtitle:d.hero.tagline||"",avatar:d.hero.avatar||""}});
+  if(d && d.about) blocks.push({id:gid(),type:"about",visible:true,style:{layout:"left",variant:"minimal"},content:{text:d.about}});
+  if(d && Array.isArray(d.projects) && d.projects.length){
+    blocks.push({id:gid(),type:"projects",title:"Projects",visible:true,style:{layout:"grid",variant:"card"},content:{items:d.projects.map(p=>({title:p.name||"",desc:p.description||"",tags:p.tags||[],link:p.link||"",github:p.github||"",cover:p.cover||""}))}});
   }
+  if(d && Array.isArray(d.skills) && d.skills.length){
+    const items = typeof d.skills[0] === "string" ? d.skills : (d.skills[0].items||[]);
+    blocks.push({id:gid(),type:"skills",title:"Skills",visible:true,style:{layout:"left",variant:"card"},content:{items}});
+  }
+  if(!blocks.length) blocks.push(defaultBlock("hero"));
+  if(!blocks.some(b=>b.type==="cta")) blocks.push(defaultBlock("cta"));
+  if(!blocks.some(b=>b.type==="footer")) blocks.push(defaultBlock("footer"));
+  return { blocks, template_id: d && d.template_id ? d.template_id : "professional", theme: d && d.theme ? d.theme : undefined, seo: d && d.seo ? d.seo : undefined };
+}
 
-  showOverlay("AI 提取架构中", "正在从您的描述解析模块结构...");
-  var btn = document.getElementById('btn-generate');
-  btn.disabled = true;
+function applyPresetData(siteData, schedule){
+  const migrated = migrateLegacyToBlocks(siteData || {});
+  EditorState.blocks = migrated.blocks || [];
+  EditorState.template_id = migrated.template_id || "professional";
+  if(migrated.theme) EditorState.theme = migrated.theme;
+  if(migrated.seo) EditorState.seo = migrated.seo;
+  updateThemeUI();
+  renderPresetGrid();
+  renderSectionList();
+  renderCanvas();
+  if(schedule) scheduleAutoSave();
+}
 
-  if (pdfFile) {
-    var fd = new FormData();
-    fd.append('prompt', prompt);
-    fd.append('pdf', pdfFile);
-    if (avatarB64) {
-      var avatarInput = document.getElementById('avatar-input');
-      if (avatarInput.files && avatarInput.files[0]) {
-        fd.append('avatar', avatarInput.files[0]);
-      }
+async function loadPresets(){
+  try{
+    const r=await fetch("/api/v1/personal-site/presets");
+    const d=await r.json();
+    if(d.success && Array.isArray(d.data)) EditorState.presets=d.data;
+  }catch(e){}
+  renderPresetGrid();
+}
+
+function renderPresetGrid(){
+  const g=document.getElementById("preset-grid");
+  g.innerHTML="";
+  const order=["professional","developer","creator","minimal"];
+  const labels={professional:"求职型 Professional Resume Site",developer:"开发者型 Developer Portfolio",creator:"创作者型 Personal Brand Page",minimal:"极简型 Minimal Landing Page"};
+  order.forEach(id=>{
+    const item=document.createElement("div");
+    item.className="ps-thumb"+(EditorState.template_id===id?" active":"");
+    item.onclick=()=>applyPreset(id);
+    item.innerHTML=`<div class="ps-mini ${id==='professional'?'prof':id}"><div class="a"></div><div class="b"></div></div><div class="ps-name">${labels[id]}</div>`;
+    g.appendChild(item);
+  });
+}
+
+async function applyPreset(id){
+  const p = EditorState.presets.find(x=>x.id===id);
+  if(p && p.site_data){ applyPresetData(JSON.parse(JSON.stringify(p.site_data)), true); return; }
+  try{
+    const r = await fetch("/api/v1/personal-site/generate",{method:"POST",headers:{"Content-Type":"application/json",...(TOKEN?{"Authorization":"Bearer "+TOKEN}:{})},body:JSON.stringify({preset_id:id})});
+    const d = await r.json();
+    if(d.success && d.data && d.data.site_data){ applyPresetData(d.data.site_data, true); toast("模板已套用"); }
+  }catch(e){ toast("模板加载失败","error"); }
+}
+
+function handleFile(input,mode){
+  if(!input.files || !input.files[0]) return;
+  if(mode==="pdf"){ EditorState.files.pdf=input.files[0]; document.getElementById("pdf-name").textContent=input.files[0].name; return; }
+  const fr=new FileReader();
+  fr.onload=e=>{ EditorState.files.avatar_b64=e.target.result; const img=document.getElementById("avatar-preview"); img.src=e.target.result; img.style.display="block"; };
+  fr.readAsDataURL(input.files[0]);
+}
+
+async function doGenerate(){
+  const prompt=document.getElementById("prompt-input").value.trim();
+  if(!prompt && !EditorState.files.pdf){ toast("请输入描述或上传 PDF","error"); return; }
+  const btn=document.getElementById("btn-generate");
+  btn.disabled=true; btn.textContent="生成中...";
+  try{
+    const fd=new FormData();
+    fd.append("prompt",prompt);
+    fd.append("preset_id",EditorState.template_id);
+    if(EditorState.files.pdf) fd.append("pdf",EditorState.files.pdf);
+    if(EditorState.files.avatar_b64){ const blob=await (await fetch(EditorState.files.avatar_b64)).blob(); fd.append("avatar",blob,"avatar.jpg"); }
+    const r=await fetch("/api/v1/personal-site/generate",{method:"POST",headers:{...(TOKEN?{"Authorization":"Bearer "+TOKEN}:{})},body:fd});
+    const d=await r.json();
+    if(d.success && d.data && d.data.site_data){ applyPresetData(d.data.site_data,true); toast("方案已生成"); }
+    else toast(d.message||"生成失败","error");
+  }catch(e){ toast("生成失败","error"); }
+  finally{ btn.disabled=false; btn.textContent="生成网站方案"; }
+}
+
+function addBlock(type){ const b=defaultBlock(type); EditorState.blocks.push(b); renderSectionList(); selectBlock(b.id); scheduleAutoSave(); renderCanvas(); }
+function removeBlock(id){ EditorState.blocks=EditorState.blocks.filter(b=>b.id!==id); if(EditorState.selectedBlockId===id) EditorState.selectedBlockId=null; renderSectionList(); scheduleAutoSave(); renderCanvas(); selectBlock(EditorState.selectedBlockId); }
+function duplicateBlock(i){ const cp=JSON.parse(JSON.stringify(EditorState.blocks[i])); cp.id=gid(); EditorState.blocks.splice(i+1,0,cp); renderSectionList(); scheduleAutoSave(); renderCanvas(); selectBlock(cp.id); }
+function moveBlock(i,dir){ const j=i+dir; if(j<0||j>=EditorState.blocks.length)return; const t=EditorState.blocks[i]; EditorState.blocks[i]=EditorState.blocks[j]; EditorState.blocks[j]=t; renderSectionList(); scheduleAutoSave(); renderCanvas(); }
+function toggleVisible(id,v){ const b=EditorState.blocks.find(x=>x.id===id); if(!b)return; b.visible=v; scheduleAutoSave(); renderCanvas(); }
+
+function secLabel(t){ const m={hero:"Hero",about:"About",projects:"Projects",skills:"Skills",experience:"Experience",education:"Education",contact:"Contact",cta:"CTA",stats:"Stats",services:"Services",testimonials:"Testimonials",footer:"Footer"}; return m[t]||t; }
+function renderSectionList(){
+  const c=document.getElementById("section-list"); c.innerHTML="";
+  EditorState.blocks.forEach((b,i)=>{
+    const row=document.createElement("div");
+    row.className="ps-sec-item";
+    row.innerHTML=`<input type="checkbox" ${b.visible!==false?"checked":""}><span class="nm">${secLabel(b.type)}</span><button>↑</button><button>↓</button><button>编辑</button>`;
+    row.querySelector("input").onchange=e=>toggleVisible(b.id,e.target.checked);
+    row.querySelectorAll("button")[0].onclick=()=>moveBlock(i,-1);
+    row.querySelectorAll("button")[1].onclick=()=>moveBlock(i,1);
+    row.querySelectorAll("button")[2].onclick=()=>{ switchTab(1); selectBlock(b.id); };
+    c.appendChild(row);
+  });
+}
+
+function updateThemeUI(){
+  document.getElementById("g-primary").value=EditorState.theme.primaryColor||"#2563eb";
+  document.getElementById("g-bg").value=EditorState.theme.bgColor||"#f8fafc";
+  document.getElementById("g-text").value=EditorState.theme.textColor||"#0f172a";
+  document.getElementById("g-radius").value=EditorState.theme.radius||"14px";
+  document.getElementById("seo-title").value=EditorState.seo.title||"";
+  document.getElementById("seo-desc").value=EditorState.seo.description||"";
+  document.getElementById("seo-og").value=EditorState.seo.og_image||"";
+}
+function updateTheme(){ EditorState.theme.primaryColor=document.getElementById("g-primary").value; EditorState.theme.bgColor=document.getElementById("g-bg").value; EditorState.theme.textColor=document.getElementById("g-text").value; EditorState.theme.radius=document.getElementById("g-radius").value; scheduleAutoSave(); renderCanvas(); }
+function updateSEO(k,v){ EditorState.seo[k]=v; scheduleAutoSave(); renderCanvas(); }
+
+function patchBlock(id,fn){ const b=EditorState.blocks.find(x=>x.id===id); if(!b)return; fn(b); scheduleAutoSave(); renderCanvas(); }
+function updateBlockTitle(id,v){ patchBlock(id,b=>{ b.title=v; }); }
+function updateBlockStyle(id,key,v){ patchBlock(id,b=>{ b.style=b.style||{}; b.style[key]=v; }); }
+function updateBlockContent(id,key,v){ patchBlock(id,b=>{ b.content=b.content||{}; b.content[key]=v; }); }
+function updateItemField(id,idx,key,v){ patchBlock(id,b=>{ b.content=b.content||{}; if(!Array.isArray(b.content.items)) b.content.items=[]; if(!b.content.items[idx]) b.content.items[idx]={}; b.content.items[idx][key]=v; }); }
+function removeItem(id,idx){ patchBlock(id,b=>{ if(!b.content||!Array.isArray(b.content.items))return; b.content.items.splice(idx,1); }); selectBlock(id); }
+function addItem(id,type){
+  const seed={
+    projects:{title:"Project",desc:"Description",tags:["Tag"],link:"",github:"",cover:""},
+    experience:{company:"Company",role:"Role",period:"2024 - Now",desc:["Achievement"]},
+    education:{school:"School",degree:"Degree",period:""},
+    stats:{value:"10+",label:"Metric"},
+    services:{title:"Service",desc:"Description"},
+    testimonials:{author:"Name",role:"Role",text:"Feedback"}
+  }[type] || {};
+  patchBlock(id,b=>{ b.content=b.content||{}; if(!Array.isArray(b.content.items)) b.content.items=[]; b.content.items.push(seed); });
+  selectBlock(id);
+}
+
+function renderArrayEditor(id,b,type){
+  const items=(b.content&&Array.isArray(b.content.items))?b.content.items:[];
+  let html='<div class="ps-ins-row"><label>列表项</label></div>';
+  items.forEach((it,idx)=>{
+    if(typeof it==="string"){
+      html+=`<div class="ps-array-item"><h5>Item ${idx+1}</h5><div class="ps-ins-row"><input type="text" value="${String(it).replace(/"/g,"&quot;")}" oninput="patchBlock('${id}',function(b){b.content.items[${idx}]=this.value}.bind(this))"></div><button class="c-btn c-btn-secondary" style="font-size:.72rem" onclick="removeItem('${id}',${idx})">删除</button></div>`;
+      return;
     }
-    fetch('/api/v1/personal-site/generate', { method: 'POST', body: fd })
-      .then(handleGenResponse)
-      .catch(handleGenError)
-      .finally(function() { btn.disabled = false; hideOverlay(); });
-  } else {
-    fetch('/api/v1/personal-site/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt, resume_data: siteData ? null : undefined}) // fallback
-    })
-      .then(handleGenResponse)
-      .catch(handleGenError)
-      .finally(function() { btn.disabled = false; hideOverlay(); });
+    const e=(v)=>String(v||"").replace(/"/g,"&quot;");
+    html+=`<div class="ps-array-item"><h5>Item ${idx+1}</h5>`;
+    if(type==="projects"){
+      html+=`<div class="row"><input placeholder="标题" value="${e(it.title)}" oninput="updateItemField('${id}',${idx},'title',this.value)"><input placeholder="封面URL" value="${e(it.cover)}" oninput="updateItemField('${id}',${idx},'cover',this.value)"></div>
+      <div class="ps-ins-row"><textarea rows="2" placeholder="描述" oninput="updateItemField('${id}',${idx},'desc',this.value)">${e(it.desc)}</textarea></div>
+      <div class="row"><input placeholder="链接" value="${e(it.link)}" oninput="updateItemField('${id}',${idx},'link',this.value)"><input placeholder="GitHub" value="${e(it.github)}" oninput="updateItemField('${id}',${idx},'github',this.value)"></div>
+      <div class="ps-ins-row"><input placeholder="tags 逗号分隔" value="${Array.isArray(it.tags)?it.tags.join(', '):e(it.tags)}" oninput="updateItemField('${id}',${idx},'tags',this.value.split(',').map(function(s){return s.trim()}).filter(Boolean))"></div>`;
+    }else if(type==="experience"){
+      html+=`<div class="row"><input placeholder="公司" value="${e(it.company)}" oninput="updateItemField('${id}',${idx},'company',this.value)"><input placeholder="职位" value="${e(it.role)}" oninput="updateItemField('${id}',${idx},'role',this.value)"></div>
+      <div class="row"><input placeholder="时间" value="${e(it.period)}" oninput="updateItemField('${id}',${idx},'period',this.value)"></div>
+      <div class="ps-ins-row"><textarea rows="2" placeholder="成就（每行一条）" oninput="updateItemField('${id}',${idx},'desc',this.value.split('\n').map(function(s){return s.trim()}).filter(Boolean))">${Array.isArray(it.desc)?it.desc.join('\n'):e(it.desc)}</textarea></div>`;
+    }else if(type==="education"){
+      html+=`<div class="row"><input placeholder="学校" value="${e(it.school)}" oninput="updateItemField('${id}',${idx},'school',this.value)"><input placeholder="学位/专业" value="${e(it.degree)}" oninput="updateItemField('${id}',${idx},'degree',this.value)"></div>
+      <div class="row"><input placeholder="时间" value="${e(it.period)}" oninput="updateItemField('${id}',${idx},'period',this.value)"></div>`;
+    }else if(type==="stats"){
+      html+=`<div class="row"><input placeholder="数值" value="${e(it.value)}" oninput="updateItemField('${id}',${idx},'value',this.value)"><input placeholder="标签" value="${e(it.label)}" oninput="updateItemField('${id}',${idx},'label',this.value)"></div>`;
+    }else if(type==="services"){
+      html+=`<div class="row"><input placeholder="服务名" value="${e(it.title)}" oninput="updateItemField('${id}',${idx},'title',this.value)"></div><div class="ps-ins-row"><textarea rows="2" placeholder="描述" oninput="updateItemField('${id}',${idx},'desc',this.value)">${e(it.desc)}</textarea></div>`;
+    }else if(type==="testimonials"){
+      html+=`<div class="row"><input placeholder="姓名" value="${e(it.author)}" oninput="updateItemField('${id}',${idx},'author',this.value)"><input placeholder="身份" value="${e(it.role)}" oninput="updateItemField('${id}',${idx},'role',this.value)"></div><div class="ps-ins-row"><textarea rows="2" placeholder="评价" oninput="updateItemField('${id}',${idx},'text',this.value)">${e(it.text)}</textarea></div>`;
+    }
+    html+=`<button class="c-btn c-btn-secondary" style="font-size:.72rem" onclick="removeItem('${id}',${idx})">删除</button></div>`;
+  });
+  html+=`<button class="c-btn c-btn-secondary" style="font-size:.75rem" onclick="addItem('${id}','${type}')">+ 添加项</button>`;
+  return html;
+}
+
+function selectBlock(id){
+  EditorState.selectedBlockId=id;
+  const empty=document.getElementById("inspector-empty");
+  const pane=document.getElementById("inspector-content");
+  if(!id){ empty.style.display="block"; pane.style.display="none"; pane.innerHTML=""; return; }
+  const idx=EditorState.blocks.findIndex(b=>b.id===id);
+  const b=EditorState.blocks[idx];
+  if(!b){ empty.style.display="block"; pane.style.display="none"; return; }
+  empty.style.display="none"; pane.style.display="block";
+  const s=b.style||{layout:"left",variant:"card"};
+  let html=`<div class="ps-ins-actions"><button onclick="moveBlock(${idx},-1)">上移</button><button onclick="moveBlock(${idx},1)">下移</button><button onclick="duplicateBlock(${idx})">复制</button><button class="danger" onclick="removeBlock('${id}')">删除</button></div>`;
+  html+=`<div class="ps-ins-row"><label>区块标题</label><input type="text" value="${(b.title||"").replace(/"/g,"&quot;")}" oninput="updateBlockTitle('${id}',this.value)"></div>`;
+  html+=`<div class="ps-ins-row"><label>布局</label><select onchange="updateBlockStyle('${id}','layout',this.value)"><option value="left" ${s.layout==="left"?"selected":""}>left</option><option value="center" ${s.layout==="center"?"selected":""}>center</option><option value="grid" ${s.layout==="grid"?"selected":""}>grid</option></select></div>`;
+  html+=`<div class="ps-ins-row"><label>样式</label><select onchange="updateBlockStyle('${id}','variant',this.value)"><option value="minimal" ${s.variant==="minimal"?"selected":""}>minimal</option><option value="card" ${s.variant==="card"?"selected":""}>card</option><option value="solid" ${s.variant==="solid"?"selected":""}>solid</option></select></div>`;
+  const c=b.content||{};
+  const e=v=>String(v||"").replace(/"/g,"&quot;");
+  if(b.type==="hero"){
+    html+=`<div class="ps-ins-row"><label>姓名</label><input value="${e(c.name)}" oninput="updateBlockContent('${id}','name',this.value)"></div>
+    <div class="ps-ins-row"><label>副标题</label><input value="${e(c.subtitle)}" oninput="updateBlockContent('${id}','subtitle',this.value)"></div>
+    <div class="ps-ins-row"><label>头像 URL</label><input value="${e(c.avatar)}" oninput="updateBlockContent('${id}','avatar',this.value)"></div>
+    <div class="ps-ins-row"><label>CTA 文字</label><input value="${e((c.cta||{}).text)}" oninput="patchBlock('${id}',function(b){b.content.cta=b.content.cta||{};b.content.cta.text=this.value}.bind(this))"></div>
+    <div class="ps-ins-row"><label>CTA 链接</label><input value="${e((c.cta||{}).url)}" oninput="patchBlock('${id}',function(b){b.content.cta=b.content.cta||{};b.content.cta.url=this.value}.bind(this))"></div>
+    <div class="ps-ins-row"><label>GitHub</label><input value="${e(c.github)}" oninput="updateBlockContent('${id}','github',this.value)"></div>
+    <div class="ps-ins-row"><label>LinkedIn</label><input value="${e(c.linkedin)}" oninput="updateBlockContent('${id}','linkedin',this.value)"></div>`;
+  }else if(b.type==="about"){
+    html+=`<div class="ps-ins-row"><label>内容</label><textarea rows="5" oninput="updateBlockContent('${id}','text',this.value)">${e(c.text)}</textarea></div>`;
+  }else if(["projects","experience","education","stats","services","testimonials"].includes(b.type)){
+    html+=renderArrayEditor(id,b,b.type);
+  }else if(b.type==="skills"){
+    html+=`<div class="ps-ins-row"><label>技能（逗号分隔）</label><textarea rows="4" oninput="updateBlockContent('${id}','items',this.value.split(',').map(function(s){return s.trim()}).filter(Boolean))">${Array.isArray(c.items)?c.items.join(", "):e(c.items)}</textarea></div>`;
+  }else if(b.type==="contact"){
+    ["email","phone","github","linkedin","wechat"].forEach(k=>{ html+=`<div class="ps-ins-row"><label>${k}</label><input value="${e(c[k])}" oninput="updateBlockContent('${id}','${k}',this.value)"></div>`; });
+  }else if(b.type==="cta"){
+    html+=`<div class="ps-ins-row"><label>标题</label><input value="${e(c.title)}" oninput="updateBlockContent('${id}','title',this.value)"></div>
+    <div class="ps-ins-row"><label>描述</label><textarea rows="3" oninput="updateBlockContent('${id}','desc',this.value)">${e(c.desc)}</textarea></div>
+    <div class="ps-ins-row"><label>按钮文案</label><input value="${e(c.button_text)}" oninput="updateBlockContent('${id}','button_text',this.value)"></div>
+    <div class="ps-ins-row"><label>按钮链接</label><input value="${e(c.button_url)}" oninput="updateBlockContent('${id}','button_url',this.value)"></div>`;
+  }else if(b.type==="footer"){
+    html+=`<div class="ps-ins-row"><label>Footer 文案</label><input value="${e(c.text)}" oninput="updateBlockContent('${id}','text',this.value)"></div>`;
+  }
+  pane.innerHTML=html;
+}
+
+async function renderCanvas(){
+  if(EditorState.rendering) return;
+  EditorState.rendering=true;
+  try{
+    const payload={site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},style:EditorState.template_id};
+    const r=await fetch("/api/v1/personal-site/preview",{method:"POST",headers:{"Content-Type":"application/json",...(TOKEN?{"Authorization":"Bearer "+TOKEN}:{})},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.success){
+      const html=d.data.html.replace("</body>",`<style>section[id^="block-"],footer[id^="block-"]{position:relative;cursor:pointer}section[id^="block-"]:hover::after,footer[id^="block-"]:hover::after{content:'';position:absolute;inset:0;border:1px solid rgba(37,99,235,.35);pointer-events:none}section.sel::after,footer.sel::after{content:'';position:absolute;inset:0;border:2px solid #2563eb;pointer-events:none}</style><script>document.querySelectorAll('section[id^="block-"],footer[id^="block-"]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();document.querySelectorAll('section[id^="block-"],footer[id^="block-"]').forEach(function(n){n.classList.remove('sel')});el.classList.add('sel');window.parent.postMessage({type:'ps_sel',id:el.id.replace('block-','')},'*')})});<\/script></body>`);
+      document.getElementById("preview-iframe").srcdoc=html;
+    }
+  }catch(e){}
+  EditorState.rendering=false;
+}
+
+window.addEventListener("message",e=>{ if(e.data && e.data.type==="ps_sel"){ selectBlock(e.data.id); }});
+
+const saveIndicator=document.getElementById("save-indicator");
+function markSaving(){ saveIndicator.textContent="保存中..."; saveIndicator.style.color="var(--c-warning)"; }
+function markSavedCloud(){ saveIndicator.textContent="已云端保存"; saveIndicator.style.color="var(--c-text-muted)"; EditorState.hasUnsavedChanges=false; }
+function markSavedLocal(){ saveIndicator.textContent="已本地保存"; saveIndicator.style.color="var(--c-text-muted)"; EditorState.hasUnsavedChanges=false; }
+function markSaveError(){ saveIndicator.textContent="保存失败（将重试）"; saveIndicator.style.color="var(--c-danger)"; }
+
+function scheduleAutoSave(){
+  if(!TOKEN){ markSavedLocal(); return; }
+  EditorState.hasUnsavedChanges=true;
+  markSaving();
+  clearTimeout(EditorState.autoSaveTimer);
+  EditorState.autoSaveTimer=setTimeout(performAutoSave,1200);
+}
+async function performAutoSave(){
+  if(!TOKEN){ markSavedLocal(); return; }
+  const payload={site_id:currentSiteId,site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},prompt:document.getElementById("prompt-input").value.trim()};
+  try{
+    const r=await fetch("/api/v1/personal-site/auto-save",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+TOKEN},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.success){ currentSiteId=d.data.site_id; const url=new URL(window.location); if(!url.searchParams.get("id")){ url.searchParams.set("id",currentSiteId); window.history.replaceState({}, "", url);} markSavedCloud(); }
+    else markSaveError();
+  }catch(e){ markSaveError(); }
+}
+
+window.onbeforeunload=function(e){ if(EditorState.hasUnsavedChanges){ const m="有未保存更改"; e.returnValue=m; return m; } };
+
+function openPublishModal(){
+  if(!TOKEN){ toast("请先登录后发布","error"); return; }
+  const hero=EditorState.blocks.find(b=>b.type==="hero");
+  document.getElementById("pub-seo-title").value=EditorState.seo.title || ((hero&&hero.content&&hero.content.name)?hero.content.name+" | Personal Site":"Personal Site");
+  document.getElementById("pub-seo-desc").value=EditorState.seo.description || ((hero&&hero.content&&hero.content.subtitle)?hero.content.subtitle:"");
+  document.getElementById("publish-modal").classList.add("show");
+}
+function closePublishModal(){ document.getElementById("publish-modal").classList.remove("show"); }
+
+async function confirmPublish(){
+  const btn=document.getElementById("pub-confirm-btn");
+  btn.disabled=true; btn.textContent="发布中...";
+  EditorState.seo.title=document.getElementById("pub-seo-title").value.trim();
+  EditorState.seo.description=document.getElementById("pub-seo-desc").value.trim();
+  try{
+    const payload={site_id:currentSiteId,site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},slug:document.getElementById("pub-slug").value.trim(),seo_title:EditorState.seo.title,seo_description:EditorState.seo.description};
+    const r=await fetch("/api/v1/personal-site/publish",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+TOKEN},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(d.success){ currentSiteId=d.data.site_id; EditorState.hasUnsavedChanges=false; markSavedCloud(); closePublishModal(); toast("发布成功"); window.open(d.data.url,"_blank"); }
+    else toast(d.message||"发布失败","error");
+  }catch(e){ toast("发布失败","error"); }
+  btn.disabled=false; btn.textContent="立即发布";
+}
+
+async function exportHTML(){
+  try{
+    const payload={site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},style:EditorState.template_id};
+    const r=await fetch("/api/v1/personal-site/export-html",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    if(!r.ok){ toast("导出失败","error"); return; }
+    const blob=await r.blob(); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="personal_site.html"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast("已导出 HTML");
+  }catch(e){ toast("导出失败","error"); }
+}
+
+async function init(){
+  await loadPresets();
+  if(currentSiteId && TOKEN){
+    try{
+      const r=await fetch("/api/v1/personal-site/"+currentSiteId,{headers:{"Authorization":"Bearer "+TOKEN}});
+      const d=await r.json();
+      if(d.success && d.data && d.data.site_data){ applyPresetData(d.data.site_data,false); }
+    }catch(e){}
+  }
+  if(!EditorState.blocks.length){
+    const p=EditorState.presets.find(x=>x.id==="professional");
+    if(p && p.site_data) applyPresetData(p.site_data,false);
+    else { EditorState.blocks=[defaultBlock("hero"),defaultBlock("about"),defaultBlock("projects"),defaultBlock("contact"),defaultBlock("cta"),defaultBlock("footer")]; renderSectionList(); renderCanvas(); }
   }
 }
-
-function handleGenResponse(r) { return r.json().then(processGenResult); }
-function processGenResult(d) {
-    if (!d.success) { toast(d.message || '生成结构失败', 'error'); return; }
-
-    siteData = d.data.site_data;
-    if (avatarB64 && siteData.hero) { siteData.hero.avatar = avatarB64; }
-
-    toast('✅ 结构映射成功', 'success');
-
-    // Unlock advanced tabs & UI elements
-    updateUIStateForDataReady();
-
-    // Switch to Style tab (or keep it as is) to render preview
-    scheduleAutoSave();
-    doPreview();
-}
-function handleGenError(e) { toast('服务器错误: ' + e.message, 'error'); }
-
-/* ══ Builder Data Pipeline ══ */
-function checkBuilderData() {
-  try {
-    var saved = localStorage.getItem('resumeAI_data');
-    if (saved) {
-      var data = JSON.parse(saved);
-      if (data.basic && data.basic.name) {
-        document.getElementById('import-hint').style.display = 'flex';
-      }
-    }
-  } catch(e) {}
-}
-
-function importFromBuilder() {
-  try {
-    var data = JSON.parse(localStorage.getItem('resumeAI_data'));
-    if (!data) return;
-    showOverlay("正在转换结构", "将简历数据解析为网站模块...");
-    fetch('/api/v1/personal-site/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume_data: data })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.success) {
-        siteData = d.data.site_data;
-        document.getElementById('import-hint').style.display = 'none';
-        toast('导入数据成功，开始排版', 'success');
-        updateUIStateForDataReady();
-        doPreview();
-      } else {
-          toast(d.message, 'error');
-      }
-    })
-    .catch(function(e) { toast('转换失败', 'error'); })
-    .finally(function(){ hideOverlay(); });
-  } catch(e) { toast('转换异常', 'error'); hideOverlay();}
-}
-
-/* ══ Core: Theming / Render ══ */
-function updateUIStateForDataReady() {
-    // Fill JSON editor
-    document.getElementById('data-json').value = JSON.stringify(siteData, null, 2);
-    // Enable buttons
-    document.getElementById('btn-save-data').disabled = false;
-    document.getElementById('btn-publish').disabled = false;
-    document.getElementById('btn-export').disabled = false;
-    document.getElementById('btn-apply-style').style.display = '';
-    document.getElementById('refresh-btn').style.display = '';
-    document.getElementById('nav-publish-btn').style.display = '';
-    document.getElementById('style-hint').textContent = "风格支持一键无感切换";
-
-    // Hide blank state
-    document.getElementById('canvas-blank').style.display = 'none';
-}
-
-function applyDataEdit() {
-  try {
-    siteData = JSON.parse(document.getElementById('data-json').value);
-    toast('数据配置已更新', 'success');
-    scheduleAutoSave();
-    doPreview();
-    switchTab('tab-style');
-  } catch(e) {
-    toast('JSON 格式拼写错误', 'error');
-  }
-}
-
-function doPreview() {
-  if (!siteData) { return; }
-
-  showOverlay("渲染排版结果", "应用 " + selectedStyle + " 风格模板...");
-
-  fetch('/api/v1/personal-site/preview', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ site_data: siteData, style: selectedStyle })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.success) {
-      previewHtml = d.data.html;
-      document.getElementById('preview-iframe').srcdoc = previewHtml;
-      scheduleAutoSave();
-    } else {
-      toast(d.message || '画布渲染失败', 'error');
-    }
-  })
-  .catch(function(e) { toast('渲染请求异常', 'error'); })
-  .finally(function() { hideOverlay(); });
-}
-
-/* ══ Core: Publish & Export ══ */
-function openPublishModal() {
-  if(!TOKEN) { toast("请先登录再发布！", "error"); return; }
-  
-  const name = siteData?.hero?.name || '我';
-  document.getElementById('pub-seo-title').value = `${name}的个人主页`;
-  document.getElementById('pub-seo-desc').value = siteData?.hero?.tagline || '';
-  
-  document.getElementById('publish-modal').classList.add('show');
-}
-
-function closePublishModal() {
-  document.getElementById('publish-modal').classList.remove('show');
-}
-
-function closeSuccessModal() {
-  document.getElementById('publish-success-modal').classList.remove('show');
-}
-
-function doPublish() {
-  if (!siteData) return;
-  var btn = document.getElementById('pub-confirm-btn');
-  btn.disabled = true;
-  btn.innerHTML = '发布中...';
-
-  var headers = { 'Content-Type': 'application/json' };
-  if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
-
-  fetch('/api/v1/personal-site/publish', {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify({
-      site_id: currentSiteId,
-      site_data: siteData,
-      site_config: { style: selectedStyle },
-      prompt: document.getElementById('prompt-input').value.trim(),
-      slug: document.getElementById('pub-slug').value.trim(),
-      seo_title: document.getElementById('pub-seo-title').value.trim(),
-      seo_description: document.getElementById('pub-seo-desc').value.trim()
-    })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.success) {
-      currentSiteId = d.data.site_id;
-      hasUnsavedChanges = false;
-      closePublishModal();
-      
-      var url = location.origin + d.data.url;
-      document.getElementById('result-url').value = url;
-      document.getElementById('result-link').href = d.data.url;
-      document.getElementById('publish-result').classList.add('show');
-      
-      document.getElementById('pub-success-url').href = url;
-      document.getElementById('pub-success-url').textContent = url;
-      document.getElementById('publish-success-modal').classList.add('show');
-      
-      toast('🎉 网站发布成功', 'success');
-      
-      // Save version
-      fetch('/api/v1/dashboard/versions/save', {
-        method: 'POST',
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
-        body: JSON.stringify({ project_id: currentSiteId, project_type: 'site', note: '发布版本' })
-      });
-      
-    } else if (d._status === 401 || d.message && d.message.indexOf('登录') >= 0) {
-      toast('请进行后台管理员或用户登录认证', 'error');
-    } else {
-      toast(d.message || '发布服务器错误', 'error');
-    }
-  })
-  .catch(function(e) { toast('网络错误', 'error'); })
-  .finally(function() { btn.disabled = false; btn.innerHTML = '立即发布'; });
-}
-
-function doExport() {
-  if (previewHtml) {
-    downloadHtml(previewHtml);
-    return;
-  }
-  if (!siteData) { toast('请先完成设计排版', 'error'); return; }
-  fetch('/api/v1/personal-site/export-html', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ site_data: siteData, style: selectedStyle })
-  })
-  .then(function(r) { return r.text(); })
-  .then(function(html) { downloadHtml(html); })
-  .catch(function() { toast('代码封包失败', 'error'); });
-}
-
-function downloadHtml(html) {
-  var name = (siteData && siteData.hero && siteData.hero.name) || 'my_personal_site';
-  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name + '.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast('代码离线包就绪', 'success');
-}
-
-function copyUrl() {
-  var input = document.getElementById('result-url');
-  input.select();
-  document.execCommand('copy');
-  toast('链接已存入剪贴板', 'success');
-}
-
-/* Init */
-checkBuilderData();
+init();
 </script>
 </body>
 </html>

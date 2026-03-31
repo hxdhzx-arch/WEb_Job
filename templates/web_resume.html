@@ -3,624 +3,453 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>一键制作简历网站 — 简历 AI</title>
+<title>简历构建台 — System Style</title>
 <link rel="stylesheet" href="/static/style.css">
-<style>
-/* ═══ Web Resume Generator Page ═══ */
-body{background:#0B0F19;color:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif}
-.wr-hero{max-width:720px;margin:0 auto;padding:80px 24px 40px;text-align:center}
-.wr-hero h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.02em;margin-bottom:12px;background:linear-gradient(135deg,#8B5CF6,#3B82F6,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.wr-hero p{font-size:1rem;color:#94A3B8;max-width:500px;margin:0 auto 32px;line-height:1.7}
-
-/* Steps */
-.wr-steps{display:flex;justify-content:center;gap:32px;margin-bottom:48px;flex-wrap:wrap}
-.wr-step{text-align:center;width:120px}
-.wr-step-num{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#8B5CF6,#3B82F6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;margin:0 auto 8px;font-size:1rem}
-.wr-step-label{font-size:.82rem;color:#94A3B8;font-weight:500}
-.wr-step-arrow{display:flex;align-items:center;color:#334155;font-size:1.2rem;padding-top:12px}
-
-/* Main Content */
-.wr-main{max-width:960px;margin:0 auto;padding:0 24px 80px}
-
-/* Mode Tabs */
-.wr-tabs{display:flex;gap:8px;margin-bottom:24px}
-.wr-tab{padding:10px 20px;border-radius:10px;border:1px solid #1E293B;background:#111827;color:#94A3B8;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .25s}
-.wr-tab:hover{border-color:#334155;color:#F1F5F9}
-.wr-tab.active{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:#A78BFA}
-
-/* Panels */
-.wr-panel{display:none;animation:panelIn .3s ease}
-.wr-panel.active{display:block}
-@keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-
-/* Card */
-.wr-card{background:#111827;border:1px solid #1E293B;border-radius:16px;padding:28px;margin-bottom:20px}
-.wr-card h3{font-size:1rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.wr-card h3 .badge{font-size:.68rem;padding:2px 8px;border-radius:6px;background:rgba(139,92,246,.12);color:#A78BFA;font-weight:600}
-
-/* Form */
-.wr-label{display:block;font-size:.82rem;font-weight:600;color:#94A3B8;margin-bottom:6px}
-.wr-input{width:100%;padding:11px 14px;border-radius:8px;border:1px solid #1E293B;background:#1E293B;color:#F1F5F9;font-size:.9rem;outline:none;transition:all .25s;font-family:inherit}
-.wr-input:focus{border-color:#8B5CF6;box-shadow:0 0 0 3px rgba(139,92,246,.12)}
-.wr-input::placeholder{color:#475569}
-textarea.wr-input{resize:vertical;min-height:80px;line-height:1.6}
-.wr-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.wr-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
-.wr-field{margin-bottom:14px}
-
-/* Entry Cards */
-.wr-entry{background:#1E293B;border-radius:10px;padding:16px;margin-bottom:10px;position:relative}
-.wr-entry-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.wr-entry-num{font-size:.75rem;font-weight:700;color:#8B5CF6}
-.wr-entry-del{padding:4px 10px;border:none;border-radius:6px;background:rgba(244,63,94,.1);color:#FB7185;font-size:.75rem;font-weight:600;cursor:pointer}
-.wr-entry-del:hover{background:rgba(244,63,94,.2)}
-.wr-add-btn{padding:10px;border:1.5px dashed #334155;border-radius:10px;background:transparent;color:#64748B;font-size:.85rem;font-weight:600;cursor:pointer;width:100%;transition:all .25s}
-.wr-add-btn:hover{border-color:#8B5CF6;color:#A78BFA}
-
-/* Template Picker */
-.wr-tpl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.wr-tpl-card{border:2px solid #1E293B;border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all .25s;background:#111827}
-.wr-tpl-card:hover{border-color:#334155;transform:translateY(-2px)}
-.wr-tpl-card.selected{border-color:#8B5CF6;background:rgba(139,92,246,.08)}
-.wr-tpl-icon{font-size:1.8rem;margin-bottom:8px}
-.wr-tpl-name{font-size:.85rem;font-weight:700;margin-bottom:2px}
-.wr-tpl-desc{font-size:.72rem;color:#64748B}
-
-/* Theme Colors */
-.wr-color-row{display:flex;gap:10px;margin-top:12px}
-.wr-color-item{display:flex;align-items:center;gap:6px;font-size:.82rem;color:#94A3B8}
-.wr-color-item input[type=color]{width:32px;height:32px;border:2px solid #334155;border-radius:8px;cursor:pointer;background:none;padding:0;-webkit-appearance:none;appearance:none}
-.wr-color-item input[type=color]::-webkit-color-swatch-wrapper{padding:2px}
-.wr-color-item input[type=color]::-webkit-color-swatch{border:none;border-radius:4px}
-
-/* Buttons */
-.wr-btn{padding:14px 28px;border-radius:10px;border:none;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .25s;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
-.wr-btn-primary{background:linear-gradient(135deg,#8B5CF6,#3B82F6);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.25)}
-.wr-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(139,92,246,.35)}
-.wr-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.wr-btn-secondary{background:#1E293B;color:#F1F5F9;border:1px solid #334155}
-.wr-btn-secondary:hover{background:#334155}
-.wr-btn-success{background:linear-gradient(135deg,#10B981,#059669);color:#fff}
-.wr-btn-success:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,.3)}
-.wr-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
-
-/* Preview */
-.wr-preview-frame{border:1px solid #1E293B;border-radius:12px;overflow:hidden;background:var(--bg-card);min-height:400px;position:relative}
-.wr-preview-frame iframe{width:100%;height:700px;border:none}
-.wr-preview-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111827;border-bottom:1px solid #1E293B}
-.wr-preview-bar span{font-size:.82rem;color:#94A3B8;font-weight:600}
-
-/* Result */
-.wr-result{background:#111827;border:1px solid rgba(16,185,129,.25);border-radius:16px;padding:28px;margin-top:24px;display:none}
-.wr-result.show{display:block;animation:panelIn .4s ease}
-.wr-result-url{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#1E293B;border-radius:10px;margin:16px 0}
-.wr-result-url input{flex:1;background:transparent;border:none;color:#F1F5F9;font-size:.9rem;font-family:monospace;outline:none}
-.wr-result-url button{padding:8px 16px;border-radius:8px;border:none;background:#8B5CF6;color:#fff;font-size:.8rem;font-weight:600;cursor:pointer}
-
-/* Loading */
-.wr-loading{text-align:center;padding:60px 20px}
-.wr-spinner{width:40px;height:40px;border:3px solid #1E293B;border-top-color:#8B5CF6;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.wr-loading-text{color:#94A3B8;font-size:.9rem}
-
-/* Toast */
-.wr-toast{position:fixed;top:20px;right:20px;padding:14px 20px;border-radius:10px;font-size:.88rem;font-weight:600;z-index:9999;transform:translateX(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-.wr-toast.show{transform:translateX(0)}
-.wr-toast.success{background:#059669;color:#fff}
-.wr-toast.error{background:#DC2626;color:#fff}
-
-/* Import from builder */
-.wr-import-hint{display:flex;align-items:center;gap:10px;padding:14px 18px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:10px;margin-bottom:20px;font-size:.85rem;color:#A78BFA}
-.wr-import-hint button{padding:6px 14px;border-radius:6px;border:none;background:#8B5CF6;color:#fff;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
-
-@media(max-width:600px){
-  .wr-row,.wr-row-3{grid-template-columns:1fr}
-  .wr-tpl-grid{grid-template-columns:repeat(2,1fr)}
-  .wr-steps{gap:12px}
-  .wr-step-arrow{display:none}
-  .wr-actions{flex-direction:column}
-  .wr-btn{width:100%;justify-content:center}
-}
-</style>
-
-<!-- Theme Init -->
-<script>
-(function(){
-  var theme = localStorage.getItem("resumeAI_theme");
-  if (!theme) {
-    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  document.documentElement.setAttribute('data-theme', theme);
-})();
-function toggleTheme() {
-  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem("resumeAI_theme", t);
-  var icon = document.getElementById("theme-toggle-icon");
-  if(icon) {
-    icon.textContent = t === 'dark' ? '☀️' : '🌙';
-  }
-}
-</script>
-
 </head>
 <body>
 
-<nav class="nav" style="border-bottom:1px solid #1E293B;background:rgba(11,15,25,.85);backdrop-filter:blur(12px)">
-<div class="nav-inner" style="max-width:1080px">
-  <a href="/" class="nav-logo" style="color:#F1F5F9">简历 AI <span>SITE</span></a>
-  <div class="nav-links">
-    <a href="/" class="nav-link" style="color:#94A3B8">首页</a>
-    <a href="/resume" class="nav-link" style="color:#94A3B8">诊断</a>
-    <a href="/builder" class="nav-link" style="color:#94A3B8">生成</a>
-    <a href="/web-resume" class="nav-link active" style="color:#A78BFA">简历站</a>
+<div class="ambient-container"><div class="ambient-glow"></div></div>
+
+<nav class="c-nav glass">
+  <div class="c-nav-brand">
+    <a href="/" class="c-btn c-btn-ghost" style="padding: 4px; font-size: 14px;">← Back</a>
+    履历数据台
+  </div>
+  <div class="c-nav-links">
+    <div id="save-indicator" style="font-size:0.8rem;color:var(--c-text-hint); display:inline-flex; align-items:center;"></div>
+    <select id="theme-selector" class="c-input" style="width:auto; padding: 4px 12px; height:28px; font-size: 0.8rem; border-radius:14px; background:var(--c-bg-sub); border:none;" onchange="updateTheme()">
+      <option value="light">Mac Light</option>
+      <option value="dark">Dark Mode</option>
+    </select>
+    <button class="c-btn c-btn-primary" onclick="openPublishModal()" style="height:28px; font-size: 0.8rem; padding: 0 16px;">发布</button>
+  </div>
+</nav>
+
+<div class="ed-layout">
   
-<button onclick="toggleTheme()" class="nav-link" id="theme-switch" style="background:transparent;border:none;cursor:pointer;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;padding:6px;margin-left:8px;" title="切换显示模式"><span id="theme-toggle-icon">🌙</span></button>
-<script>
-  setTimeout(function(){
-    var t = document.documentElement.getAttribute('data-theme');
-    var icon = document.getElementById("theme-toggle-icon");
-    if (icon) icon.textContent = t === 'dark' ? '☀️' : '🌙';
-  },0);
-</script>
-</div>
-</div></nav>
-
-<!-- Hero -->
-<section class="wr-hero">
-  <h1>一键制作你的简历网站</h1>
-  <p>输入简历信息，3 秒生成专业个人网站。支持 4 套模板、暗色模式、密码保护，一键发布即可分享。</p>
-  <div class="wr-steps">
-    <div class="wr-step"><div class="wr-step-num">1</div><div class="wr-step-label">填写信息</div></div>
-    <div class="wr-step-arrow">→</div>
-    <div class="wr-step"><div class="wr-step-num">2</div><div class="wr-step-label">选择模板</div></div>
-    <div class="wr-step-arrow">→</div>
-    <div class="wr-step"><div class="wr-step-num">3</div><div class="wr-step-label">预览效果</div></div>
-    <div class="wr-step-arrow">→</div>
-    <div class="wr-step"><div class="wr-step-num">4</div><div class="wr-step-label">发布上线</div></div>
-  </div>
-</section>
-
-<!-- Main -->
-<div class="wr-main">
-
-  <!-- Import from builder hint -->
-  <div class="wr-import-hint" id="import-hint" style="display:none">
-    <span>💡 检测到你在简历编辑器中有已保存的数据，可以一键导入！</span>
-    <button onclick="importFromBuilder()">一键导入</button>
+  <!-- Left Panel -->
+  <div class="ed-sidebar glass">
+    <div class="ed-panel-header">工具箱</div>
+    
+    <div class="ed-panel-body" style="padding-top:12px;">
+      <button class="ed-block-btn" onclick="addBlock('hero')"><span class="ed-block-icon">T</span>抬头节点</button>
+      <button class="ed-block-btn" onclick="addBlock('intro')"><span class="ed-block-icon">P</span>执行概要</button>
+      <button class="ed-block-btn" onclick="addBlock('list_work')"><span class="ed-block-icon">W</span>履历轴</button>
+      <button class="ed-block-btn" onclick="addBlock('list_edu')"><span class="ed-block-icon">E</span>学术记录</button>
+      <button class="ed-block-btn" onclick="addBlock('list_projects')"><span class="ed-block-icon">R</span>核心项目</button>
+      <button class="ed-block-btn" onclick="addBlock('skills')"><span class="ed-block-icon">S</span>技能堆栈</button>
+      <button class="ed-block-btn" onclick="addBlock('certs')"><span class="ed-block-icon">C</span>认证</button>
+    </div>
   </div>
 
-  <!-- Mode Tabs -->
-  <div class="wr-tabs">
-    <div class="wr-tab active" data-tab="form" onclick="switchTab('form',this)">📝 手动填写</div>
-    <div class="wr-tab" data-tab="json" onclick="switchTab('json',this)">📋 粘贴 JSON</div>
-  </div>
-
-  <!-- Panel: Form Mode -->
-  <div class="wr-panel active" id="panel-form">
-
-    <!-- 基本信息 -->
-    <div class="wr-card">
-      <h3>👤 基本信息</h3>
-      <div class="wr-row">
-        <div><label class="wr-label">姓名 *</label><input class="wr-input" id="f-name" placeholder="张三"></div>
-        <div><label class="wr-label">目标职位</label><input class="wr-input" id="f-job" placeholder="高级前端工程师"></div>
-      </div>
-      <div class="wr-row-3">
-        <div><label class="wr-label">手机</label><input class="wr-input" id="f-phone" placeholder="138xxxx1234"></div>
-        <div><label class="wr-label">邮箱</label><input class="wr-input" id="f-email" placeholder="you@email.com"></div>
-        <div><label class="wr-label">所在城市</label><input class="wr-input" id="f-city" placeholder="北京"></div>
-      </div>
-      <div class="wr-row">
-        <div><label class="wr-label">工作年限</label><input class="wr-input" id="f-years" placeholder="5年"></div>
-        <div><label class="wr-label">年龄</label><input class="wr-input" id="f-age" placeholder="28"></div>
+  <!-- Center Canvas -->
+  <div class="ed-canvas-wrapper">
+    <!-- device toggle strictly minimalist -->
+    <div style="position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:90; display:flex; gap:8px; background:var(--c-bg-glass); padding:4px; border-radius:var(--r-pill); border:1px solid var(--c-border); backdrop-filter:blur(10px);">
+      <button class="c-btn c-btn-ghost active" style="padding:4px 12px; font-size:0.75rem" onclick="setDevice('desktop', this)">Desk</button>
+      <button class="c-btn c-btn-ghost" style="padding:4px 12px; font-size:0.75rem" onclick="setDevice('mobile', this)">Mobile</button>
+    </div>
+    
+    <div class="ed-canvas-container">
+      <div class="ed-frame" id="canvas-frame">
+        <iframe id="preview-iframe" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
       </div>
     </div>
-
-    <!-- 个人简介 -->
-    <div class="wr-card">
-      <h3>📄 个人简介</h3>
-      <textarea class="wr-input" id="f-intro" rows="3" placeholder="5年互联网大厂经验，专注前端工程化和性能优化..."></textarea>
-    </div>
-
-    <!-- 工作经历 -->
-    <div class="wr-card">
-      <h3>💼 工作经历</h3>
-      <div id="work-entries"></div>
-      <button class="wr-add-btn" onclick="addWork()">+ 添加工作经历</button>
-    </div>
-
-    <!-- 教育背景 -->
-    <div class="wr-card">
-      <h3>🎓 教育背景</h3>
-      <div id="edu-entries"></div>
-      <button class="wr-add-btn" onclick="addEdu()">+ 添加教育经历</button>
-    </div>
-
-    <!-- 技能 & 证书 -->
-    <div class="wr-card">
-      <h3>🛠 技能 & 证书</h3>
-      <div class="wr-field"><label class="wr-label">技能</label><input class="wr-input" id="f-skills" placeholder="JavaScript, React, Vue.js, Node.js..."></div>
-      <div class="wr-field"><label class="wr-label">证书</label><input class="wr-input" id="f-certs" placeholder="PMP, AWS Solutions Architect..."></div>
-    </div>
   </div>
 
-  <!-- Panel: JSON Mode -->
-  <div class="wr-panel" id="panel-json">
-    <div class="wr-card">
-      <h3>📋 粘贴 Resume JSON <span class="badge">同编辑器格式</span></h3>
-      <textarea class="wr-input" id="json-input" rows="16" placeholder='粘贴从简历编辑器导出的 JSON，或按照以下格式：
-{
-  "basic": { "name": "张三", "phone": "138xxxx", "email": "...", "city": "北京", "years": "5年" },
-  "intent": { "job": "高级前端工程师" },
-  "work": [{ "company": "...", "title": "...", "time": "...", "duties": ["..."] }],
-  "education": [{ "school": "...", "major": "...", "degree": "...", "time": "..." }],
-  "skills": "JavaScript, React, ...",
-  "intro": "...",
-  "certs": "..."
-}'></textarea>
+  <!-- Right Inspector -->
+  <div class="ed-sidebar ed-sidebar-right glass" id="inspector-panel">
+    <div class="ed-panel-header" style="justify-content: space-between;">
+      <span>检查器</span>
     </div>
-  </div>
-
-  <!-- Template & Theme -->
-  <div class="wr-card">
-    <h3>🎨 选择模板</h3>
-    <div class="wr-tpl-grid" id="tpl-grid">
-      <div class="wr-tpl-card selected" data-tpl="card" onclick="selectTpl('card',this)">
-        <div class="wr-tpl-icon">🃏</div>
-        <div class="wr-tpl-name">卡片式</div>
-        <div class="wr-tpl-desc">圆角卡片 · 分区清晰</div>
-      </div>
-      <div class="wr-tpl-card" data-tpl="minimal" onclick="selectTpl('minimal',this)">
-        <div class="wr-tpl-icon">📃</div>
-        <div class="wr-tpl-name">极简白</div>
-        <div class="wr-tpl-desc">大留白 · 专注内容</div>
-      </div>
-      <div class="wr-tpl-card" data-tpl="timeline" onclick="selectTpl('timeline',this)">
-        <div class="wr-tpl-icon">📊</div>
-        <div class="wr-tpl-name">时间轴</div>
-        <div class="wr-tpl-desc">时间线 · 经历聚焦</div>
-      </div>
-      <div class="wr-tpl-card" data-tpl="sidebar" onclick="selectTpl('sidebar',this)">
-        <div class="wr-tpl-icon">📐</div>
-        <div class="wr-tpl-name">侧边栏</div>
-        <div class="wr-tpl-desc">左右分栏 · 信息密集</div>
-      </div>
+    <div class="ed-inspector-empty" id="inspector-empty">
+      未选定节点。
     </div>
-    <div class="wr-color-row">
-      <div class="wr-color-item"><span>主色</span><input type="color" id="c-primary" value="#7C3AED"></div>
-      <div class="wr-color-item"><span>背景</span><input type="color" id="c-bg" value="#ffffff"></div>
-      <div class="wr-color-item"><span>文字</span><input type="color" id="c-text" value="#1f2937"></div>
-    </div>
-  </div>
-
-  <!-- Actions -->
-  <div class="wr-actions">
-    <button class="wr-btn wr-btn-primary" id="btn-preview" onclick="doPreview()">👁 预览效果</button>
-    <button class="wr-btn wr-btn-success" id="btn-publish" onclick="doPublish()" style="display:none">🚀 一键发布上线</button>
-    <button class="wr-btn wr-btn-secondary" id="btn-export" onclick="doExport()" style="display:none">⬇ 导出 HTML 文件</button>
-  </div>
-
-  <!-- Preview -->
-  <div id="preview-section" style="display:none;margin-top:24px">
-    <div class="wr-preview-bar">
-      <span>📱 网站预览</span>
-      <button class="wr-btn wr-btn-secondary" style="padding:6px 14px;font-size:.8rem" onclick="doPreview()">🔄 刷新</button>
-    </div>
-    <div class="wr-preview-frame">
-      <iframe id="preview-iframe" sandbox="allow-same-origin"></iframe>
-    </div>
-  </div>
-
-  <!-- Publish Result -->
-  <div class="wr-result" id="publish-result">
-    <h3 style="color:#10B981;margin-bottom:12px">🎉 发布成功！</h3>
-    <p style="color:#94A3B8;font-size:.9rem;margin-bottom:16px">你的简历网站已上线，可以分享以下链接给任何人：</p>
-    <div class="wr-result-url">
-      <input type="text" id="result-url" readonly>
-      <button onclick="copyUrl()">复制</button>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <a id="result-link" href="#" target="_blank" class="wr-btn wr-btn-primary" style="font-size:.85rem;padding:10px 20px;text-decoration:none">🔗 访问网站</a>
-      <button class="wr-btn wr-btn-secondary" style="font-size:.85rem;padding:10px 20px" onclick="doExport()">⬇ 同时下载 HTML</button>
+    <div class="ed-panel-body" id="inspector-content" style="display:none; padding-top:12px;">
+        <!-- Dynamic Settings -->
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="wr-toast" id="wr-toast"></div>
+<!-- Publish Modal -->
+<div class="c-modal-overlay" id="publish-modal">
+  <div class="c-modal glass">
+    <div class="c-modal-header">
+      <h3 class="c-modal-title">推送到发布器</h3>
+      <button class="c-modal-close" onclick="closePublishModal()">×</button>
+    </div>
+    <div class="c-modal-body" style="padding-top:20px;">
+      
+      <div class="ed-grouped-list">
+        <div class="ed-grouped-item">
+          <label>URL Slug</label>
+          <input type="text" id="pub-slug" placeholder="留空自动分配">
+        </div>
+        <div class="ed-grouped-item">
+          <label>访问密码</label>
+          <input type="password" id="pub-password" placeholder="留空为公开">
+        </div>
+      </div>
+      
+      <div class="ed-grouped-list">
+        <div class="ed-grouped-item" style="flex-direction:column; align-items:flex-start; gap:8px;">
+          <label style="font-size: 0.75rem; text-transform:uppercase; color:var(--c-text-muted);">SEO 标签</label>
+          <input type="text" id="pub-seo-title" placeholder="索引标题" style="width:100%; text-align:left; font-size:1rem; color:var(--c-text-main);">
+        </div>
+        <div class="ed-grouped-item">
+          <textarea id="pub-seo-desc" placeholder="简要快照..." class="c-textarea" style="border:none; padding:0; background:transparent; font-size:0.85rem; height:50px; min-height:50px; outline:none; color:var(--c-text-muted);"></textarea>
+        </div>
+      </div>
 
+    </div>
+    <div class="c-modal-footer">
+      <button class="c-btn c-btn-primary w-full" style="padding:14px; font-weight:600;" onclick="confirmPublish()" id="pub-confirm-btn">确认发布</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="c-modal-overlay" id="publish-success-modal">
+  <div class="c-modal glass" style="align-items:center; text-align:center; padding:30px;">
+    <h3 class="c-modal-title" style="margin-bottom:12px;">已成功上线</h3>
+    <p class="c-p" style="font-size:0.9rem;">您的只读简历已被云端容器索引，可通过下方链接访达。</p>
+    <a href="#" id="pub-success-url" target="_blank" style="display:inline-block; margin: 24px 0; font-family:monospace; color:var(--c-accent); text-decoration:underline;"></a>
+    <button class="c-btn c-btn-secondary w-full" onclick="closeSuccessModal()">完成</button>
+  </div>
+</div>
+
+<div class="c-toast" id="wr-toast"></div>
+
+<!-- JS Controller -->
 <script>
-/* ══ State ══ */
-var selectedTpl = 'card';
-var previewHtml = '';
-var TOKEN = localStorage.getItem('admin_token') || '';
-var API = '/api/v1';
+const TOKEN = localStorage.getItem('token') || localStorage.getItem('admin_token');
+let currentResumeId = new URLSearchParams(window.location.search).get('id') || null;
 
-/* ══ Tab Switch ══ */
-function switchTab(tab, el) {
-  document.querySelectorAll('.wr-tab').forEach(function(t){t.classList.remove('active');});
-  el.classList.add('active');
-  document.querySelectorAll('.wr-panel').forEach(function(p){p.classList.remove('active');});
-  document.getElementById('panel-'+tab).classList.add('active');
+const EditorState = {
+    theme: 'light',
+    blocks: [],
+    selectedBlockId: null,
+    hasUnsavedChanges: false,
+    autoSaveTimer: null
+};
+
+// Utils
+function generateId() { return Math.random().toString(36).substr(2, 9); }
+function toast(msg, type='success') {
+  const el = document.getElementById('wr-toast');
+  el.textContent = msg; el.className = 'c-toast ' + type + ' show';
+  clearTimeout(el._t); el._t = setTimeout(()=> el.classList.remove('show'), 2000);
 }
 
-/* ══ Template Select ══ */
-function selectTpl(tpl, el) {
-  selectedTpl = tpl;
-  document.querySelectorAll('.wr-tpl-card').forEach(function(c){c.classList.remove('selected');});
-  el.classList.add('selected');
+function setDevice(type, el) {
+    el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    const frame = document.getElementById('canvas-frame');
+    if(type==='mobile') frame.classList.add('mobile');
+    else frame.classList.remove('mobile');
 }
 
-/* ══ Work Entries ══ */
-var workData = [{ company:'', title:'', time:'', duties:[''] }];
-function renderWork() {
-  var container = document.getElementById('work-entries');
-  container.innerHTML = '';
-  workData.forEach(function(w, i) {
-    var dutiesHtml = w.duties.map(function(d, j) {
-      return '<div style="display:flex;gap:6px;margin-bottom:6px"><input class="wr-input" value="'+escAttr(d)+'" placeholder="STAR法则描述成果" onchange="workData['+i+'].duties['+j+']=this.value" style="flex:1">'
-        + (w.duties.length > 1 ? '<button class="wr-entry-del" onclick="workData['+i+'].duties.splice('+j+',1);renderWork()">×</button>' : '')
-        + '</div>';
-    }).join('');
-    container.innerHTML += '<div class="wr-entry"><div class="wr-entry-header"><span class="wr-entry-num">#'+(i+1)+'</span>'
-      + (workData.length > 1 ? '<button class="wr-entry-del" onclick="workData.splice('+i+',1);renderWork()">删除</button>' : '')
-      + '</div><div class="wr-row"><div><label class="wr-label">公司</label><input class="wr-input" value="'+escAttr(w.company)+'" onchange="workData['+i+'].company=this.value" placeholder="字节跳动"></div>'
-      + '<div><label class="wr-label">职位</label><input class="wr-input" value="'+escAttr(w.title)+'" onchange="workData['+i+'].title=this.value" placeholder="高级前端工程师"></div></div>'
-      + '<div class="wr-row"><div><label class="wr-label">时间</label><input class="wr-input" value="'+escAttr(w.time)+'" onchange="workData['+i+'].time=this.value" placeholder="2022.06-至今"></div><div></div></div>'
-      + '<label class="wr-label">工作成就</label>' + dutiesHtml
-      + '<button class="wr-add-btn" style="padding:6px;font-size:.78rem;margin-top:4px" onclick="workData['+i+'].duties.push(\'\');renderWork()">+ 添加成就</button>'
-      + '</div>';
-  });
+// Init
+window.onload = async () => {
+    if(currentResumeId && TOKEN) {
+        try {
+            const res = await fetch('/api/v1/resume/' + currentResumeId, {headers: {'Authorization': 'Bearer '+TOKEN}});
+            const d = await res.json();
+            if(d.success && d.data.resume_data) {
+                if(d.data.resume_data.blocks) { EditorState.blocks = d.data.resume_data.blocks; } 
+                else { EditorState.blocks = [{ id: generateId(), type: 'hero', visible: true, style:{layout:'left', variant:'minimal'}, content:{name:'系统待载入', job:'配置空缺'} }]; }
+                if(d.data.web_config && d.data.web_config.theme) { EditorState.theme = d.data.web_config.theme; }
+            }
+        } catch(e) { }
+    } else {
+        EditorState.blocks = [
+            { id: generateId(), type: 'hero', visible: true, style: { layout: 'left', variant: 'minimal' }, content: { name: '您的姓名', job: '您的角色头衔' } }
+        ];
+    }
+    document.getElementById('theme-selector').value = EditorState.theme;
+    renderCanvas();
+};
+
+function updateTheme() {
+    EditorState.theme = document.getElementById('theme-selector').value;
+    scheduleAutoSave(); renderCanvas();
 }
-function addWork() { workData.push({company:'',title:'',time:'',duties:['']}); renderWork(); }
 
-/* ══ Education Entries ══ */
-var eduData = [{ school:'', major:'', degree:'', time:'' }];
-function renderEdu() {
-  var container = document.getElementById('edu-entries');
-  container.innerHTML = '';
-  eduData.forEach(function(ed, i) {
-    container.innerHTML += '<div class="wr-entry"><div class="wr-entry-header"><span class="wr-entry-num">#'+(i+1)+'</span>'
-      + (eduData.length > 1 ? '<button class="wr-entry-del" onclick="eduData.splice('+i+',1);renderEdu()">删除</button>' : '')
-      + '</div><div class="wr-row"><div><label class="wr-label">学校</label><input class="wr-input" value="'+escAttr(ed.school)+'" onchange="eduData['+i+'].school=this.value" placeholder="北京大学"></div>'
-      + '<div><label class="wr-label">专业</label><input class="wr-input" value="'+escAttr(ed.major)+'" onchange="eduData['+i+'].major=this.value" placeholder="计算机科学"></div></div>'
-      + '<div class="wr-row"><div><label class="wr-label">学历</label><select class="wr-input" onchange="eduData['+i+'].degree=this.value">'
-      + '<option value="">选择</option><option'+(ed.degree==='大专'?' selected':'')+'>大专</option><option'+(ed.degree==='本科'?' selected':'')+'>本科</option><option'+(ed.degree==='硕士'?' selected':'')+'>硕士</option><option'+(ed.degree==='博士'?' selected':'')+'>博士</option></select></div>'
-      + '<div><label class="wr-label">时间</label><input class="wr-input" value="'+escAttr(ed.time)+'" onchange="eduData['+i+'].time=this.value" placeholder="2016-2020"></div></div></div>';
-  });
+function addBlock(type) {
+    const b = { id: generateId(), type, visible: true, style: { layout: 'left', variant: 'card' }, content: {} };
+    if(type==='hero') b.content = {name:'Your Name', job:'Your Role', meta:['Location']};
+    if(type==='intro') { b.title='个人简介'; b.content={text:'Write something...'}; }
+    if(type==='list_work') { b.title='工作经历'; b.content={items:[{title:'Company', subtitle:'Role', time:'2022-Present', desc:['Did something awesome']}]}; }
+    if(type==='list_edu') { b.title='教育背景'; b.content={items:[{title:'University', subtitle:'Major', time:'2018-2022', desc:['Bachelor']}]}; }
+    if(type==='list_projects') { b.title='项目经验'; b.content={items:[{title:'Project', subtitle:'Role', time:'2023', desc:['Built X']}]}; }
+    if(type==='skills') { b.title='技能清单'; b.content={tags:['A', 'B']}; }
+    
+    EditorState.blocks.push(b);
+    selectBlock(b.id);
+    scheduleAutoSave();
+    renderCanvas();
 }
-function addEdu() { eduData.push({school:'',major:'',degree:'',time:''}); renderEdu(); }
 
-function escAttr(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function duplicateBlock(idx) {
+    const copy = JSON.parse(JSON.stringify(EditorState.blocks[idx]));
+    copy.id = generateId();
+    EditorState.blocks.splice(idx+1, 0, copy);
+    selectBlock(copy.id); scheduleAutoSave(); renderCanvas();
+}
 
-/* ══ Collect Data ══ */
-function collectFormData() {
-  return {
-    basic: {
-      name: v('f-name'), age: v('f-age'), phone: v('f-phone'),
-      email: v('f-email'), city: v('f-city'), years: v('f-years'), photo: ''
-    },
-    intent: { job: v('f-job'), salary: '' },
-    education: eduData,
-    work: workData,
-    skills: v('f-skills'),
-    intro: v('f-intro'),
-    certs: v('f-certs')
+function deleteBlock(id) {
+    EditorState.blocks = EditorState.blocks.filter(b => b.id !== id);
+    if(EditorState.selectedBlockId === id) selectBlock(null);
+    scheduleAutoSave(); renderCanvas();
+}
+
+// --- Render ---
+let isRendering = false;
+async function renderCanvas() {
+    if(isRendering) return;
+    isRendering = true;
+    
+    const payload = { resume_data: { blocks: EditorState.blocks }, web_config: { theme: EditorState.theme } };
+    
+    try {
+        const res = await fetch('/api/v1/resume/render-preview', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', ...(TOKEN ? {'Authorization': 'Bearer '+TOKEN} : {}) },
+            body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if(d.success) {
+            const html = d.data.html.replace('</body>', `
+            <style>
+              .wr2-block { position:relative; cursor:pointer; }
+              .wr2-block:hover::after { content:''; position:absolute; inset:0; border:1px solid rgba(0,0,0,0.1); border-radius:inherit; pointer-events:none; }
+              .wr2-block.selected::after { content:''; position:absolute; inset:0; border:2px solid #0066CC; border-radius:inherit; pointer-events:none; box-shadow: 0 4px 12px rgba(0,102,204,0.1); }
+            </style>
+            <script>
+                document.querySelectorAll('.wr2-block').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // remove selected
+                        document.querySelectorAll('.wr2-block').forEach(node => node.classList.remove('selected'));
+                        el.classList.add('selected');
+                        const id = el.id.replace('wr2-block-', '');
+                        window.parent.postMessage({ type: 'block_selected', id }, '*');
+                    });
+                });
+            <\/script>
+            </body>`);
+            document.getElementById('preview-iframe').srcdoc = html;
+        }
+    } catch(e) { } finally { isRendering = false; }
+}
+
+window.addEventListener('message', (e) => {
+    if(e.data?.type === 'block_selected') {
+        selectBlock(e.data.id);
+    }
+});
+
+// --- Inspector (Apple Style Grouped) ---
+function selectBlock(id) {
+    EditorState.selectedBlockId = id;
+    const inspector = document.getElementById('inspector-content');
+    const empty = document.getElementById('inspector-empty');
+    if(!id) { inspector.style.display = 'none'; empty.style.display = 'block'; return; }
+    
+    empty.style.display = 'none'; inspector.style.display = 'block';
+    
+    const idx = EditorState.blocks.findIndex(b => b.id === id);
+    const b = EditorState.blocks[idx];
+    if(!b) return;
+    
+    let html = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <div style="display:flex; gap:4px;">
+              <button class="c-btn c-btn-secondary" style="padding:4px 8px;" onclick="moveBlock(${idx}, -1)" ${idx===0?'disabled':''}>↑</button>
+              <button class="c-btn c-btn-secondary" style="padding:4px 8px;" onclick="moveBlock(${idx}, 1)" ${idx===EditorState.blocks.length-1?'disabled':''}>↓</button>
+            </div>
+            <div style="display:flex; gap:4px;">
+              <button class="c-btn c-btn-secondary" style="padding:4px 8px;" onclick="duplicateBlock(${idx})">⧉</button>
+              <button class="c-btn c-btn-primary" style="padding:4px 8px;background:var(--c-danger);" onclick="deleteBlock('${id}')">销毁</button>
+            </div>
+        </div>
+
+        <div class="ed-grouped-list">
+            <div class="ed-grouped-item" style="border-bottom:none; padding-bottom:8px;">
+                <label style="font-size: 0.75rem; text-transform:uppercase; color:var(--c-text-muted);">排版对齐</label>
+            </div>
+            <div style="padding: 0 16px 12px;">
+                <div class="ed-segmented">
+                    <label class="ed-seg-btn ${b.style.layout!=='center'&&b.style.layout!=='right'?'active':''}"><input type="radio" value="left" style="display:none;" ${b.style.layout!=='center'&&b.style.layout!=='right'?'checked':''} onchange="updateBlockStyle('${id}','layout',this.value)">流式靠边</label>
+                    <label class="ed-seg-btn ${b.style.layout==='center'?'active':''}"><input type="radio" value="center" style="display:none;" ${b.style.layout==='center'?'checked':''} onchange="updateBlockStyle('${id}','layout',this.value)">严格居中</label>
+                </div>
+            </div>
+
+            <div class="ed-grouped-item" style="border-bottom:none; border-top:1px solid var(--c-border); padding-bottom:8px; padding-top:12px;">
+                <label style="font-size: 0.75rem; text-transform:uppercase; color:var(--c-text-muted);">视觉隔离度</label>
+            </div>
+            <div style="padding: 0 16px 16px;">
+                <div class="ed-segmented">
+                    <label class="ed-seg-btn ${b.style.variant!=='card'&&b.style.variant!=='outline'&&b.style.variant!=='solid'?'active':''}"><input type="radio" value="minimal" style="display:none;" onchange="updateBlockStyle('${id}','variant',this.value)">纯净</label>
+                    <label class="ed-seg-btn ${b.style.variant==='card'?'active':''}"><input type="radio" value="card" style="display:none;" onchange="updateBlockStyle('${id}','variant',this.value)">投影</label>
+                    <label class="ed-seg-btn ${b.style.variant==='outline'?'active':''}"><input type="radio" value="outline" style="display:none;" onchange="updateBlockStyle('${id}','variant',this.value)">素边</label>
+                    <label class="ed-seg-btn ${b.style.variant==='solid'?'active':''}"><input type="radio" value="solid" style="display:none;" onchange="updateBlockStyle('${id}','variant',this.value)">强涂</label>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Dynamic props mapped to grouped items
+    let innerFields = '';
+    if(b.title !== undefined) innerFields += renderGroupedRow(id, 'title', '标头名称', b.title);
+    
+    if(b.type === 'hero') {
+        innerFields += renderGroupedRow(id, 'name', '主标识', b.content.name||'');
+        innerFields += renderGroupedRow(id, 'job', '职级设定', b.content.job||'');
+        innerFields += renderGroupedRow(id, 'avatar', '图层 URL', b.content.avatar||'');
+    } else if(b.type === 'intro' || b.type === 'certs') {
+        innerFields += `<div class="ed-grouped-item" style="flex-direction:column; align-items:stretch; gap:6px; border-bottom:none;"><label style="font-size: 0.75rem; color:var(--c-text-muted);">内容束</label><textarea class="c-textarea" style="border:none;background:transparent;padding:0;font-size:0.85rem;" oninput="updateBlockContent('${id}','text',this.value)">${b.content.text||''}</textarea></div>`;
+    } else if(b.type === 'skills') {
+        innerFields += `<div class="ed-grouped-item" style="flex-direction:column; align-items:stretch; gap:6px; border-bottom:none;"><label style="font-size: 0.75rem; color:var(--c-text-muted);">技能栈逗号组合</label><textarea class="c-textarea" style="border:none;background:transparent;padding:0;font-size:0.85rem;" oninput="updateBlockContent('${id}','tags',this.value.split(',').map(s=>s.trim()))">${(b.content.tags||[]).join(', ')}</textarea></div>`;
+    }
+
+    if(innerFields) html += `<div class="ed-grouped-list">${innerFields}</div>`;
+
+    if (['list_work', 'list_edu', 'list_projects'].includes(b.type)) {
+        html += `<div style="font-size: 0.75rem; text-transform:uppercase; color:var(--c-text-muted); margin-bottom:8px; padding-left:4px;">阵列记录</div>`;
+        html += `<div class="ed-list-ui">`;
+        (b.content.items || []).forEach((item, j) => {
+            html += `
+            <div class="ed-list-row">
+                <button class="ed-list-close" onclick="removeListItem('${id}', ${j})">×</button>
+                <input placeholder="主标题" style="font-weight:600; color:var(--c-text-main);" value="${item.title||''}" oninput="updateListItem('${id}',${j},'title',this.value)">
+                <input placeholder="副说明" value="${item.subtitle||''}" oninput="updateListItem('${id}',${j},'subtitle',this.value)">
+                <input placeholder="轨迹线如: 2023 - 2024" value="${item.time||''}" oninput="updateListItem('${id}',${j},'time',this.value)">
+                <textarea placeholder="描述点 (多行数组)" oninput="updateListItem('${id}',${j},'desc',this.value)" rows="3" style="border:none; margin-top:4px;">${(item.desc||[]).join('\\n')}</textarea>
+            </div>`;
+        });
+        html += `</div>`;
+        html += `<button class="c-btn c-btn-ghost w-full" style="border:1px dashed var(--c-border); color:var(--c-text-muted);" onclick="addListItem('${id}')">+ 新增容器</button>`;
+    }
+    
+    inspector.innerHTML = html;
+}
+
+function renderGroupedRow(id, propKey, label, val) {
+    if(propKey === 'title') {
+        return `<div class="ed-grouped-item"><label>${label}</label><input type="text" value="${val}" oninput="updateBlockProp('${id}','${propKey}',this.value)"></div>`;
+    }
+    return `<div class="ed-grouped-item"><label>${label}</label><input type="text" value="${val}" oninput="updateBlockContent('${id}','${propKey}',this.value)"></div>`;
+}
+
+// Interacting with state
+function updateBlockProp(id, key, val) { const b = EditorState.blocks.find(b=>b.id===id); if(b) { b[key] = val; scheduleAutoSave(); renderCanvas(); } }
+function updateBlockStyle(id, key, val) { const b = EditorState.blocks.find(b=>b.id===id); if(b) { b.style[key] = val; scheduleAutoSave(); renderCanvas(); } }
+function updateBlockContent(id, key, val) { const b = EditorState.blocks.find(b=>b.id===id); if(b) { b.content[key] = val; scheduleAutoSave(); renderCanvas(); } }
+function moveBlock(idx, dir) {
+    if(idx+dir < 0 || idx+dir >= EditorState.blocks.length) return;
+    const temp = EditorState.blocks[idx]; EditorState.blocks[idx] = EditorState.blocks[idx+dir]; EditorState.blocks[idx+dir] = temp;
+    scheduleAutoSave(); renderCanvas(); selectBlock(EditorState.selectedBlockId);
+}
+function updateListItem(blockId, idx, key, val) {
+    const b = EditorState.blocks.find(b=>b.id===blockId);
+    if(b && b.content.items && b.content.items[idx]) {
+        if(key==='desc') b.content.items[idx][key] = val.split('\\n').filter(Boolean);
+        else b.content.items[idx][key] = val;
+        scheduleAutoSave(); renderCanvas();
+    }
+}
+function addListItem(blockId) {
+    const b = EditorState.blocks.find(b=>b.id===blockId);
+    if(b) {
+        if(!b.content.items) b.content.items = [];
+        b.content.items.push({});
+        scheduleAutoSave(); renderCanvas(); selectBlock(blockId);
+    }
+}
+function removeListItem(blockId, idx) {
+    const b = EditorState.blocks.find(b=>b.id===blockId);
+    if(b && b.content.items) {
+        b.content.items.splice(idx, 1);
+        scheduleAutoSave(); renderCanvas(); selectBlock(blockId);
+    }
+}
+
+// --- AUTO SAVE ---
+function scheduleAutoSave() {
+    EditorState.hasUnsavedChanges = true;
+    const ind = document.getElementById('save-indicator');
+    ind.textContent = '队列中...'; ind.style.color='var(--c-warning)';
+    clearTimeout(EditorState.autoSaveTimer); EditorState.autoSaveTimer = setTimeout(performAutoSave, 1500);
+}
+
+async function performAutoSave() {
+    if(!TOKEN) return;
+    const payload = {
+        resume_id: currentResumeId, project_id: currentResumeId,
+        resume_data: { blocks: EditorState.blocks },
+        web_config: { theme: EditorState.theme }
+    };
+    try {
+        const res = await fetch('/api/v1/resume/auto-save', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+            body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if(d.success) {
+            currentResumeId = d.data.resume_id;
+            const url = new URL(window.location);
+            if(!url.searchParams.get('id')) { url.searchParams.set('id', currentResumeId); window.history.replaceState({}, '', url); }
+            EditorState.hasUnsavedChanges = false;
+            const ind = document.getElementById('save-indicator');
+            ind.textContent = '已保存'; ind.style.color='var(--c-text-muted)';
+        }
+    } catch(e) { }
+}
+window.onbeforeunload = function(e){ if(EditorState.hasUnsavedChanges){ const msg="未保存。"; e.returnValue=msg; return msg; } };
+
+// --- PUBLISH ---
+function openPublishModal() {
+  if(!TOKEN) { toast("无授权。", "error"); return; }
+  const hero = EditorState.blocks.find(b=>b.type==='hero');
+  const name = hero?.content?.name || '履历';
+  document.getElementById('pub-seo-title').value = `${name}的工作履历协议`;
+  document.getElementById('publish-modal').classList.add('show');
+}
+function closePublishModal() { document.getElementById('publish-modal').classList.remove('show'); }
+function closeSuccessModal() { document.getElementById('publish-success-modal').classList.remove('show'); }
+
+async function confirmPublish() {
+  const btn = document.getElementById('pub-confirm-btn');
+  btn.disabled = true; btn.textContent = '执行中...';
+  
+  const payload = {
+    resume_id: currentResumeId,
+    resume_data: { blocks: EditorState.blocks },
+    web_config: { theme: EditorState.theme },
+    slug: document.getElementById('pub-slug').value.trim(),
+    password: document.getElementById('pub-password').value,
+    seo_title: document.getElementById('pub-seo-title').value.trim(),
+    seo_description: document.getElementById('pub-seo-desc').value.trim()
   };
-}
-function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-
-function collectJsonData() {
-  var raw = document.getElementById('json-input').value.trim();
-  if (!raw) return null;
+  
   try {
-    var d = JSON.parse(raw);
-    // Support both {resumeData:...} and direct format
-    return d.resumeData || d;
-  } catch(e) {
-    toast('JSON 格式错误: ' + e.message, 'error');
-    return null;
-  }
-}
-
-function getResumeData() {
-  var activeTab = document.querySelector('.wr-tab.active').dataset.tab;
-  if (activeTab === 'json') return collectJsonData();
-  return collectFormData();
-}
-
-function getWebConfig() {
-  return {
-    template: selectedTpl,
-    theme: {
-      primaryColor: document.getElementById('c-primary').value,
-      bgColor: document.getElementById('c-bg').value,
-      textColor: document.getElementById('c-text').value,
-    },
-    meta: { showFooterBrand: true }
-  };
-}
-
-/* ══ API Calls ══ */
-function apiCall(path, body) {
-  var headers = { 'Content-Type': 'application/json' };
-  if (TOKEN) headers['Authorization'] = 'Bearer ' + TOKEN;
-  return fetch(API + path, { method: 'POST', headers: headers, body: JSON.stringify(body) })
-    .then(function(r) { return r.json().then(function(d) { d._status = r.status; return d; }); });
-}
-
-/* ══ Preview ══ */
-function doPreview() {
-  var data = getResumeData();
-  if (!data) return;
-  if (!data.basic || !data.basic.name) { toast('请至少填写姓名', 'error'); return; }
-
-  var btn = document.getElementById('btn-preview');
-  btn.disabled = true; btn.textContent = '⏳ 生成中...';
-
-  // Client-side: directly call render API or render locally
-  var body = { resume_data: data, web_config: getWebConfig(), template: selectedTpl };
-
-  // Try API first (needs auth), fallback to local render
-  apiCall('/resume/render-preview', body)
-    .then(function(d) {
-      if (d.success) {
-        showPreview(d.data.html);
-      } else if (d._status === 401) {
-        // No auth — do local render via direct POST without auth
-        localRender(data);
-      } else {
-        toast(d.message || '预览失败', 'error');
-      }
-    })
-    .catch(function() { localRender(data); })
-    .finally(function() { btn.disabled = false; btn.textContent = '👁 预览效果'; });
-}
-
-function localRender(data) {
-  // Fallback: post to a public preview endpoint
-  fetch('/api/web-resume/preview-public', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resume_data: data, web_config: getWebConfig(), template: selectedTpl })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(d) {
-    if (d.success) showPreview(d.data.html);
-    else toast('预览失败', 'error');
-  })
-  .catch(function() { toast('网络错误', 'error'); });
-}
-
-function showPreview(html) {
-  previewHtml = html;
-  var section = document.getElementById('preview-section');
-  section.style.display = 'block';
-  var iframe = document.getElementById('preview-iframe');
-  iframe.srcdoc = html;
-  document.getElementById('btn-publish').style.display = '';
-  document.getElementById('btn-export').style.display = '';
-  section.scrollIntoView({ behavior: 'smooth' });
-  toast('预览已生成！', 'success');
-}
-
-/* ══ Publish ══ */
-function doPublish() {
-  var data = getResumeData();
-  if (!data) return;
-  if (!data.basic || !data.basic.name) { toast('请至少填写姓名', 'error'); return; }
-
-  var btn = document.getElementById('btn-publish');
-  btn.disabled = true; btn.textContent = '⏳ 发布中...';
-
-  apiCall('/resume/publish', { resume_data: data, web_config: getWebConfig() })
-    .then(function(d) {
-      if (d.success) {
-        var url = location.origin + d.data.url;
-        document.getElementById('result-url').value = url;
-        document.getElementById('result-link').href = d.data.url;
-        document.getElementById('publish-result').classList.add('show');
-        document.getElementById('publish-result').scrollIntoView({ behavior: 'smooth' });
-        toast('🎉 发布成功！', 'success');
-      } else if (d._status === 401) {
-        toast('请先登录后再发布（登录后数据自动保留）', 'error');
-      } else {
-        toast(d.message || '发布失败', 'error');
-      }
-    })
-    .catch(function() { toast('网络错误', 'error'); })
-    .finally(function() { btn.disabled = false; btn.textContent = '🚀 一键发布上线'; });
-}
-
-/* ══ Export ══ */
-function doExport() {
-  var data = getResumeData();
-  if (!data) return;
-  if (!data.basic || !data.basic.name) { toast('请至少填写姓名', 'error'); return; }
-
-  // If we already have preview HTML, download it directly
-  if (previewHtml) {
-    downloadHtml(previewHtml, data.basic.name);
-    return;
-  }
-
-  apiCall('/resume/export-html', { resume_data: data, web_config: getWebConfig(), template: selectedTpl })
-    .then(function(d) {
-      // export-html returns raw HTML in a special way; handle via blob
-      toast('请先预览再导出', 'error');
+    const res = await fetch('/api/v1/resume/publish', {
+      method: 'POST', headers: { "Content-Type": "application/json", "Authorization": "Bearer " + TOKEN },
+      body: JSON.stringify(payload)
     });
+    const d = await res.json();
+    if(d.success) {
+      currentResumeId = d.data.resume_id;
+      EditorState.hasUnsavedChanges = false;
+      closePublishModal();
+      const fullUrl = window.location.origin + d.data.url;
+      document.getElementById('pub-success-url').href = fullUrl;
+      document.getElementById('pub-success-url').textContent = fullUrl;
+      document.getElementById('publish-success-modal').classList.add('show');
+    } else { toast(d.message || "挂载失败", 'error'); }
+  } catch(e) { toast("网络超时断层", 'error'); } 
+  finally { btn.disabled = false; btn.textContent = '确认发布'; }
 }
-
-function downloadHtml(html, name) {
-  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = (name || 'resume') + '_website.html';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast('HTML 文件已下载', 'success');
-}
-
-/* ══ Copy URL ══ */
-function copyUrl() {
-  var input = document.getElementById('result-url');
-  input.select();
-  document.execCommand('copy');
-  toast('链接已复制！', 'success');
-}
-
-/* ══ Import from Builder ══ */
-function checkBuilderData() {
-  try {
-    var saved = localStorage.getItem('resumeAI_data');
-    if (saved) {
-      var data = JSON.parse(saved);
-      if (data.basic && data.basic.name) {
-        document.getElementById('import-hint').style.display = 'flex';
-      }
-    }
-  } catch(e) {}
-}
-
-function importFromBuilder() {
-  try {
-    var data = JSON.parse(localStorage.getItem('resumeAI_data'));
-    if (!data) return;
-    // Fill form fields
-    if (data.basic) {
-      setV('f-name', data.basic.name);
-      setV('f-age', data.basic.age);
-      setV('f-phone', data.basic.phone);
-      setV('f-email', data.basic.email);
-      setV('f-city', data.basic.city);
-      setV('f-years', data.basic.years);
-    }
-    if (data.intent) setV('f-job', data.intent.job);
-    if (data.intro) setV('f-intro', data.intro);
-    if (data.skills) setV('f-skills', data.skills);
-    if (data.certs) setV('f-certs', data.certs);
-    if (data.work && data.work.length) { workData = data.work; renderWork(); }
-    if (data.education && data.education.length) { eduData = data.education; renderEdu(); }
-    document.getElementById('import-hint').style.display = 'none';
-    toast('已从编辑器导入数据！', 'success');
-  } catch(e) { toast('导入失败', 'error'); }
-}
-function setV(id, val) { var el = document.getElementById(id); if (el && val) el.value = val; }
-
-/* ══ Toast ══ */
-function toast(msg, type) {
-  var el = document.getElementById('wr-toast');
-  el.textContent = msg;
-  el.className = 'wr-toast ' + (type || 'success') + ' show';
-  clearTimeout(el._timer);
-  el._timer = setTimeout(function() { el.classList.remove('show'); }, 3000);
-}
-
-/* ══ Init ══ */
-renderWork();
-renderEdu();
-checkBuilderData();
 </script>
 </body>
 </html>
