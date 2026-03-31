@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - AI 简历生成器</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .legal-container {
+            max-width: 800px;
+            margin: 80px auto;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .legal-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .legal-header h1 { margin-bottom: 10px; font-weight: 600; }
+        .legal-header p { color: #888; font-size: 0.9em; }
+        .legal-content h2 { margin-top: 30px; font-size: 1.2rem; font-weight: 500; }
+        .legal-content p { color: #C4C4CC; line-height: 1.6; margin-bottom: 15px; }
+        .legal-content ul { margin-left: 20px; color: #C4C4CC; margin-bottom: 20px; }
+        .legal-content li { margin-bottom: 8px; }
+    </style>
+</head>
+<body class="dark bg-black text-white">
+    <div class="legal-container">
+        <div class="legal-header">
+            <h1>服务条款 (Terms of Service)</h1>
+            <p>最近更新: {% now 'yyyy-MM-dd' %} | 生效日期: 注册即生效</p>
+        </div>
+        <div class="legal-content">
+            <h2>1. 服务说明</h2>
+            <p>在您使用本 AI 简历生成与托管平台（以下简称“本服务”）之前，请仔细阅读本用户协议。一旦注册并在平台上产生行为，即视为同意本协议。我们通过前沿 AI 为您提供智能排版与优化服务。</p>
+            
+            <h2>2. 账号与责任</h2>
+            <ul>
+                <li>您保证注册所用的邮箱是您本人持有，严禁盗用他人信息注册。</li>
+                <li>请妥善保管您的账号密码，如有异常盗用情况请立即联系 Support。</li>
+            </ul>
+
+            <h2>3. 服务中断与修改</h2>
+            <p>我们保留随时修改产品特定功能的权利；如果您处在活跃的专业订阅期内因重大版本变动损失，我们将会提供等价顺延。对于遭遇黑客攻击引发的服务中断我们不承担连带赔偿。</p>
+
+            <h2>4. 内容合规</h2>
+            <p>严禁使用我们的系统制作或发布涉及诽谤、欺诈、色情或其他一切违法行为的在线站点。一经发现，我们将立即进行封号并永久清除所有数据。</p>
+        </div>
+    </div>
+</body>
+</html>

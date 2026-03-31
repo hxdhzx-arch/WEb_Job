@@ -60,6 +60,7 @@ def create_blueprint():
     @bp.route("/users/<int:user_id>/plan", methods=["PUT"])
     @admin_required()
     def update_user_plan(user_id, **kwargs):
+        current_admin = kwargs["current_user"]
         user = User.query.get(user_id)
         if not user:
             return error("用户不存在", 404)
@@ -84,12 +85,15 @@ def create_blueprint():
                                current_period_start=now,
                                current_period_end=now + timedelta(days=days))
             db.session.add(sub)
+            
+        AuditLog.log(current_admin.id, "update_plan", str(user.id), {"plan_id": plan.id, "days": days}, request.remote_addr)
         db.session.commit()
         return success(sub.to_dict(), "套餐已调整")
 
     @bp.route("/users/<int:user_id>/credits", methods=["PUT"])
     @admin_required()
     def update_user_credits(user_id, **kwargs):
+        current_admin = kwargs["current_user"]
         user = User.query.get(user_id)
         if not user:
             return error("用户不存在", 404)
@@ -98,6 +102,8 @@ def create_blueprint():
             return error("请提供额度信息")
         action = data.get("action", "set")
         amount = data.get("amount", 0)
+        
+        old_credits = user.credits_left
         if action == "set":
             user.credits_left = max(0, amount)
         elif action == "add":
@@ -106,7 +112,9 @@ def create_blueprint():
             user.credits_left = max(0, user.credits_left - amount)
         else:
             return error("action 必须是 set / add / deduct")
+            
         user.updated_at = datetime.now(timezone.utc)
+        AuditLog.log(current_admin.id, "update_credits", str(user.id), {"old": old_credits, "new": user.credits_left, "action": action, "amount": amount}, request.remote_addr)
         db.session.commit()
         return success({"credits_left": user.credits_left}, "额度已调整")
 
@@ -157,24 +165,60 @@ def create_blueprint():
             "total_calls": sum(c for _, c in daily_stats),
         })
 
-    @bp.route("/analytics/overview", methods=["GET"])
+    @bp.route("/dashboard/stats", methods=["GET"])
     @admin_required()
     def analytics_overview(**kwargs):
+        from backend.models.resume import Resume
+        from backend.models.personal_site import PersonalSite
         now = datetime.now(timezone.utc)
         thirty_days_ago = now - timedelta(days=30)
         seven_days_ago = now - timedelta(days=7)
+        
+        # 用户指标
         total_users = User.query.count()
         new_users_7d = User.query.filter(User.created_at >= seven_days_ago).count()
         new_users_30d = User.query.filter(User.created_at >= thirty_days_ago).count()
+        active_users_30d = User.query.filter(User.last_login_at >= thirty_days_ago).count()
+        
+        # 订阅/支付指标
         active_subs = Subscription.query.filter_by(status="active").count()
         total_revenue = db.session.query(func.sum(Order.amount)).filter_by(status="paid").scalar() or 0
         paid_users = db.session.query(func.count(func.distinct(Order.user_id))).filter_by(status="paid").scalar() or 0
         conversion_rate = (paid_users / total_users * 100) if total_users > 0 else 0
+        
+        # 支付成功率
+        total_orders = Order.query.filter(Order.status != "pending").count()
+        paid_orders = Order.query.filter(Order.status == "paid").count()
+        payment_success_rate = (paid_orders / total_orders * 100) if total_orders > 0 else 0
+        
+        # UGC 内容产生率
+        resume_published = Resume.query.filter_by(is_published=True).count()
+        site_published = PersonalSite.query.filter_by(is_published=True).count()
+        
+        # 质量告警
+        error_count_30d = ErrorLog.query.filter(ErrorLog.created_at >= thirty_days_ago).count()
+        
         return success({
-            "total_users": total_users, "new_users_7d": new_users_7d,
-            "new_users_30d": new_users_30d, "active_subscriptions": active_subs,
-            "total_revenue": float(total_revenue), "paid_users": paid_users,
-            "conversion_rate": round(conversion_rate, 2),
+            "users": {
+                "total": total_users,
+                "new_7d": new_users_7d,
+                "new_30d": new_users_30d,
+                "active_30d": active_users_30d,
+                "paid_users": paid_users,
+                "conversion_rate": round(conversion_rate, 2),
+            },
+            "revenue": {
+                "total": float(total_revenue),
+                "active_subscriptions": active_subs,
+                "success_rate": round(payment_success_rate, 2),
+            },
+            "content": {
+                "published_resumes": resume_published,
+                "published_sites": site_published
+            },
+            "health": {
+                "recent_errors_30d": error_count_30d
+            }
         })
 
     @bp.route("/analytics/conversion", methods=["GET"])

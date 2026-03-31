@@ -12,9 +12,12 @@ from backend.models.review import Review
 from backend.models.verify_code import VerifyCode
 from backend.models.contact_lead import ContactLead
 from backend.models.error_log import ErrorLog
+from backend.models.audit_log import AuditLog
 from backend.models.analytics import AnalyticsEvent
 from backend.models.personal_site import PersonalSite
 from backend.models.project_version import ProjectVersion
+from backend.models.token_blocklist import TokenBlocklist
+from backend.models.user_session import UserSession
 
 __all__ = [
     "User", "Plan", "Subscription",
@@ -24,4 +27,6 @@ __all__ = [
     "Resume", "Review", "VerifyCode",
     "ContactLead", "ErrorLog", "AnalyticsEvent",
     "PersonalSite", "ProjectVersion",
+    "TokenBlocklist", "UserSession",
+    "AuditLog",
 ]

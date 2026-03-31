@@ -32,9 +32,14 @@ class User(db.Model):
     # 试用期
     trial_ends_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
-    # 时间戳
+    # 时间戳与安全
     last_login_at = db.Column(db.DateTime(timezone=True), nullable=True)
     login_count = db.Column(db.Integer, default=0)
+    failed_login_attempts = db.Column(db.Integer, default=0)
+    locked_until = db.Column(db.DateTime(timezone=True), nullable=True)
+    password_updated_at = db.Column(db.DateTime(timezone=True), nullable=False,
+                                    default=lambda: datetime.now(timezone.utc))
+                                    
     created_at = db.Column(db.DateTime(timezone=True), nullable=False,
                            default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True), nullable=False,
@@ -49,11 +54,26 @@ class User(db.Model):
 
     def set_password(self, password: str):
         self.password_hash = generate_password_hash(password, method="pbkdf2:sha256")
+        self.password_updated_at = datetime.now(timezone.utc)
 
     def check_password(self, password: str) -> bool:
         if not self.password_hash:
             return False
         return check_password_hash(self.password_hash, password)
+
+    def is_locked(self) -> bool:
+        if self.locked_until and self.locked_until > datetime.now(timezone.utc):
+            return True
+        return False
+        
+    def reset_failed_attempts(self):
+        self.failed_login_attempts = 0
+        self.locked_until = None
+        
+    def increase_failed_attempts(self, max_attempts=5, lockout_minutes=15):
+        self.failed_login_attempts = (self.failed_login_attempts or 0) + 1
+        if self.failed_login_attempts >= max_attempts:
+            self.locked_until = datetime.now(timezone.utc) + timedelta(minutes=lockout_minutes)
 
     @property
     def is_admin(self) -> bool:

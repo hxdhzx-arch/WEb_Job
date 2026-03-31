@@ -18,6 +18,12 @@ def create_blueprint():
     @jwt_required_custom()
     def create_subscription(**kwargs):
         current_user = kwargs["current_user"]
+        
+        # 安全修复：禁止通过 API 直接伪造订阅状态
+        import os
+        if os.getenv("FLASK_ENV") == "production":
+            return error("生产环境安全限制：禁止越过真实支付闭环直接强制激活订阅。请回到原页面进行支付。")
+
         data = request.get_json()
         if not data:
             return error("请选择套餐")

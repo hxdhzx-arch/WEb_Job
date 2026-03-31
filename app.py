@@ -20,15 +20,25 @@ def create_app():
     """Flask 应用工厂"""
     app = Flask(__name__)
 
+    # ── 接入 Sentry 或错误监控平台 ──
+    import os
+    sentry_dsn = os.getenv("SENTRY_DSN")
+    if sentry_dsn:
+        import sentry_sdk
+        from sentry_sdk.integrations.flask import FlaskIntegration
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            integrations=[FlaskIntegration()],
+            traces_sample_rate=1.0,
+            environment=os.getenv("FLASK_ENV", "development")
+        )
+
     # ── 加载配置 ──
+    import os
     import config as cfg
-    app.config["SECRET_KEY"] = cfg.JWT_SECRET_KEY
-    app.config["SQLALCHEMY_DATABASE_URI"] = cfg.SQLALCHEMY_DATABASE_URI
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = cfg.SQLALCHEMY_TRACK_MODIFICATIONS
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = cfg.SQLALCHEMY_ENGINE_OPTIONS
-    app.config["JWT_SECRET_KEY"] = cfg.JWT_SECRET_KEY
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = cfg.JWT_ACCESS_TOKEN_EXPIRES
-    app.config["JWT_REFRESH_TOKEN_EXPIRES"] = cfg.JWT_REFRESH_TOKEN_EXPIRES
+    env_name = os.getenv("FLASK_ENV", "development")
+    app.config.from_object(cfg.config.get(env_name, cfg.config["default"])())
+    app.config["SECRET_KEY"] = app.config.get("JWT_SECRET_KEY", "dev-secret")
 
     # ── 初始化扩展 ──
     from backend.extensions import db, jwt, limiter, cors, migrate
@@ -36,8 +46,23 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     limiter.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    
+    # ── 跨域控制收紧 ──
+    allowed_origins = [o.strip() for o in app.config.get("ALLOWED_ORIGINS", "*").split(",") if o.strip()]
+    cors.init_app(app, resources={r"/api/*": {"origins": allowed_origins}})
+    
     migrate.init_app(app, db)
+    
+    # ── 增加基础安全响应头 ──
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # 基础 CSP 支持现有逻辑
+        response.headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: https: wss:;"
+        return response
 
     # ── JWT 错误处理 ──
     @jwt.expired_token_loader
@@ -51,6 +76,25 @@ def create_app():
     @jwt.unauthorized_loader
     def missing_token(error_msg):
         return jsonify({"success": False, "message": "请先登录"}), 401
+        
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        from backend.models.token_blocklist import TokenBlocklist
+        from backend.models.user import User
+        jti = jwt_payload["jti"]
+        user_id = jwt_payload.get("sub")
+        
+        # 1. 显式黑名单拦截（登出产生的 jti）
+        if db.session.query(TokenBlocklist.id).filter_by(jti=jti).scalar():
+            return True
+            
+        # 2. 密码重置拦截机制：颁发时间早于最后密码修改时间的令牌全盘作废
+        if user_id:
+            user_pwd_updated = db.session.query(User.password_updated_at).filter_by(id=int(user_id)).scalar()
+            if user_pwd_updated and jwt_payload["iat"] < int(user_pwd_updated.timestamp()):
+                return True
+                
+        return False
 
     # ── 注册 SaaS API Blueprint ──
     from backend.api import register_blueprints
@@ -64,7 +108,12 @@ def create_app():
     with app.app_context():
         # 导入所有模型以注册
         import backend.models  # noqa
-        db.create_all()
+        if env_name == "development":
+            db.create_all()
+
+    def _template_exists(name):
+        import os
+        return os.path.exists(os.path.join(app.template_folder or "templates", name))
 
     # ── 全局错误处理（写入 ErrorLog）──
     @app.errorhandler(500)
@@ -80,7 +129,9 @@ def create_app():
             )
         except Exception:
             pass
-        return jsonify({"success": False, "message": "服务器内部错误"}), 500
+        if request.path.startswith("/api/"):
+            return jsonify({"success": False, "message": "服务器内部错误"}), 500
+        return render_template("500.html") if _template_exists("500.html") else "服务器内部错误", 500
 
     @app.errorhandler(404)
     def handle_404(e):
@@ -91,6 +142,33 @@ def create_app():
     @app.errorhandler(429)
     def handle_429(e):
         return jsonify({"success": False, "message": "请求过于频繁，请稍后再试"}), 429
+        
+    @app.route("/healthz")
+    def health_check():
+        import os
+        from backend.extensions import db
+        from datetime import datetime, timezone
+        
+        status = "ok"
+        components = {
+            "database": "ok",
+            "email": "ok" if app.config.get("SMTP_HOST") else "not_configured",
+            "payment": "ok" if app.config.get("STRIPE_SECRET_KEY") else "not_configured"
+        }
+        
+        # 探测数据库真实连通能力
+        try:
+            db.session.execute(db.text("SELECT 1"))
+        except Exception:
+            status = "degraded"
+            components["database"] = "failed"
+            
+        return jsonify({
+            "status": status, 
+            "env": os.getenv("FLASK_ENV", "development"),
+            "components": components,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 200 if status == "ok" else 503
 
     # ── 定时任务 ──
     _setup_scheduler(app)
@@ -160,6 +238,13 @@ def create_app():
     @app.route("/personal-site")
     def personal_site_page():
         return render_template("personal_site.html")
+
+    @app.route("/legal/<doc_type>")
+    def legal_page(doc_type):
+        valid_docs = ["terms", "privacy", "refund", "contact"]
+        if doc_type not in valid_docs:
+            return "文件不存在", 404
+        return render_template(f"legal_{doc_type}.html")
 
     # ── AI 个人网站公开路由 ──
     @app.route("/site/<slug>")
@@ -235,10 +320,6 @@ def create_app():
             token = _generate_page_token(slug)
             return jsonify({"success": True, "data": {"token": token}})
         return jsonify({"success": False, "message": "密码错误"}), 403
-
-    def _template_exists(name):
-        import os
-        return os.path.exists(os.path.join(app.template_folder or "templates", name))
 
     def _generate_page_token(slug):
         import hashlib, time as _t
@@ -786,5 +867,15 @@ def _setup_scheduler(app):
 app = create_app()
 
 if __name__ == "__main__":
-    print("服务启动于: http://localhost:%d" % PORT)
-    app.run(host="0.0.0.0", port=PORT, debug=DEBUG)
+    import os
+    env = os.getenv("FLASK_ENV", "development")
+    port = app.config.get("PORT", 5000)
+    
+    if env == "production":
+        print("【错误】生产环境中禁止使用 Flask 内置开发服务器启动！")
+        print("【提示】请使用 gunicorn -c gunicorn.conf.py app:app 部署。")
+        import sys
+        sys.exit(1)
+        
+    print(f"🔥 开发服务器启动于: http://localhost:{port} (环境={env})")
+    app.run(host="0.0.0.0", port=port, debug=app.config.get("DEBUG", True))
