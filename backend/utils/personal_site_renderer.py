@@ -379,10 +379,190 @@ def _normalize_template(site_data, site_config, style):
     return "professional"
 
 
+def _motion_css(motion):
+    """Generate CSS for the selected motion preset."""
+    if not isinstance(motion, dict) or not motion.get("enabled"):
+        return ""
+    preset = motion.get("preset", "none")
+    if preset == "none":
+        return ""
+    intensity = max(0, min(1, float(motion.get("intensity", 0.5))))
+    speed = max(0, min(1, float(motion.get("speed", 0.5))))
+    respect = motion.get("respect_reduced_motion", True)
+
+    dist = int(8 + intensity * 32)
+    dur = 0.3 + (1 - speed) * 0.9
+
+    css = ""
+
+    # --- Reveal base (all animated presets share this) ---
+    transform = f"translateY({dist}px)"
+    if preset == "reveal-on-scroll":
+        transform = f"translateY({dist}px) scale(0.{95 + int(intensity * 4)})"
+
+    css += f"""
+.pb-reveal,.pb-proj-card{{opacity:0;transform:{transform};transition:opacity {dur:.2f}s cubic-bezier(.25,.1,.25,1),transform {dur:.2f}s cubic-bezier(.25,.1,.25,1)}}
+.pb-revealed{{opacity:1!important;transform:translateY(0) scale(1)!important}}
+"""
+
+    if preset == "soft-parallax":
+        css += f".pb-hero .pb-container{{transition:transform .1s linear;will-change:transform}}\n"
+
+    if preset == "ambient-gradient":
+        css += f".pb-ambient-bg{{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:{0.12 + intensity * 0.18:.2f}}}\n"
+
+    if preset == "flow-lines-lite":
+        css += "#pb-flow-canvas{position:fixed;inset:0;z-index:-1;pointer-events:none}\n"
+
+    # Card hover lift — works WITH .pb-revealed (no !important conflict now)
+    lift = int(2 + intensity * 4)
+    css += f".pb-revealed.pb-proj-card:hover,.pb-revealed.pb-srv-card:hover,.pb-revealed.pb-tst-card:hover{{transform:translateY(-{lift}px)!important}}\n"
+
+    # Reduced-motion: disable all animation
+    if respect:
+        css += """@media(prefers-reduced-motion:reduce){
+.pb-reveal,.pb-proj-card{opacity:1!important;transform:none!important;transition:none!important}
+.pb-revealed.pb-proj-card:hover,.pb-revealed.pb-srv-card:hover,.pb-revealed.pb-tst-card:hover{transform:none!important}
+.pb-ambient-bg,#pb-flow-canvas{display:none!important}
+}
+"""
+
+    # Override the default pbReveal keyframe so it doesn't fight scroll-reveal
+    css += "@keyframes pbReveal{from{opacity:1;transform:none}to{opacity:1;transform:none}}\n"
+
+    return css
+
+
+def _motion_js(motion, theme):
+    """Generate JS for the selected motion preset — production-safe."""
+    if not isinstance(motion, dict) or not motion.get("enabled"):
+        return ""
+    preset = motion.get("preset", "none")
+    if preset == "none":
+        return ""
+    intensity = max(0, min(1, float(motion.get("intensity", 0.5))))
+    speed = max(0, min(1, float(motion.get("speed", 0.5))))
+    respect = motion.get("respect_reduced_motion", True)
+    delay_step = 0.06 + (1 - speed) * 0.1
+
+    js_parts = []
+
+    # Reduced-motion check
+    rm_check = "window.matchMedia('(prefers-reduced-motion:reduce)').matches" if respect else "false"
+    js_parts.append(f"var _rm={rm_check};")
+
+    # --- Scroll reveal (all presets) ---
+    js_parts.append(f"""
+(function(){{
+  var els=document.querySelectorAll('.pb-reveal,.pb-proj-card');
+  if(!els.length)return;
+  if(_rm||!('IntersectionObserver' in window)){{els.forEach(function(el){{el.classList.add('pb-revealed');el.style.transition='none'}});return}}
+  var obs=new IntersectionObserver(function(entries){{
+    entries.forEach(function(entry){{
+      if(entry.isIntersecting){{
+        var siblings=entry.target.parentElement.querySelectorAll('.pb-reveal,.pb-proj-card');
+        var idx=0;siblings.forEach(function(s,i){{if(s===entry.target)idx=i}});
+        entry.target.style.transitionDelay=(idx*{delay_step:.3f})+'s';
+        entry.target.classList.add('pb-revealed');
+        obs.unobserve(entry.target);
+      }}
+    }});
+  }},{{threshold:0.08,rootMargin:'0px 0px -30px 0px'}});
+  els.forEach(function(el){{obs.observe(el)}});
+}})();
+""")
+
+    # --- Soft parallax ---
+    if preset == "soft-parallax":
+        parallax_factor = 0.15 + intensity * 0.2
+        js_parts.append(f"""
+(function(){{
+  if(_rm)return;
+  var hero=document.querySelector('.pb-hero .pb-container');
+  if(!hero)return;
+  var ticking=false;
+  function onScroll(){{
+    if(!ticking){{ticking=true;requestAnimationFrame(function(){{
+      var y=window.scrollY;
+      hero.style.transform=y<window.innerHeight?'translateY('+y*{parallax_factor:.2f}+'px)':'';
+      ticking=false;
+    }})}}
+  }}
+  window.addEventListener('scroll',onScroll,{{passive:true}});
+}})();
+""")
+
+    # --- Ambient gradient ---
+    if preset == "ambient-gradient":
+        accent = theme.get("primaryColor", "#4f46e5")
+        cycle_dur = int(12 + (1 - speed) * 18)
+        js_parts.append(f"""
+(function(){{
+  if(_rm)return;
+  if(document.querySelector('.pb-ambient-bg'))return;
+  var d=document.createElement('div');d.className='pb-ambient-bg';
+  d.style.background='linear-gradient(135deg,transparent,color-mix(in srgb,{accent} 30%,transparent),transparent,color-mix(in srgb,{accent} 15%,transparent))';
+  d.style.backgroundSize='400% 400%';
+  d.style.animation='pbAmbient {cycle_dur}s ease infinite';
+  document.body.prepend(d);
+  if(!document.getElementById('pb-ambient-kf')){{
+    var s=document.createElement('style');s.id='pb-ambient-kf';
+    s.textContent='@keyframes pbAmbient{{0%{{background-position:0% 50%}}50%{{background-position:100% 50%}}100%{{background-position:0% 50%}}}}';
+    document.head.appendChild(s);
+  }}
+}})();
+""")
+
+    # --- Flow lines lite (with full perf hardening) ---
+    if preset == "flow-lines-lite":
+        line_count = int(10 + intensity * 14)
+        line_opacity = 0.04 + intensity * 0.06
+        anim_speed = 0.00012 + speed * 0.00016
+        js_parts.append(f"""
+(function(){{
+  if(_rm)return;
+  if(document.getElementById('pb-flow-canvas'))return;
+  var c=document.createElement('canvas');c.id='pb-flow-canvas';c.setAttribute('aria-hidden','true');
+  document.body.prepend(c);
+  var ctx=c.getContext('2d'),W,H,lines,time=0,rafId=0,pageVis=true;
+  var FPS_INT=1000/30,lastF=0;
+  var perm=[];(function(){{var p=[];for(var i=0;i<256;i++)p[i]=i;for(var i=255;i>0;i--){{var j=Math.floor(Math.random()*(i+1));var t=p[i];p[i]=p[j];p[j]=t}};for(var i=0;i<512;i++)perm[i]=p[i&255]}})();
+  function fd(t){{return t*t*t*(t*(t*6-15)+10)}}function lp(a,b,t){{return a+t*(b-a)}}
+  function gr(h,x,y){{var g=h&3,u=g<2?x:y,v=g<2?y:x;return((g&1)?-u:u)+((g&2)?-v:v)}}
+  function ns(x,y){{var xi=Math.floor(x)&255,yi=Math.floor(y)&255,xf=x-Math.floor(x),yf=y-Math.floor(y),u=fd(xf),v=fd(yf);var aa=perm[perm[xi]+yi],ab=perm[perm[xi]+yi+1],ba=perm[perm[xi+1]+yi],bb=perm[perm[xi+1]+yi+1];return lp(lp(gr(aa,xf,yf),gr(ba,xf-1,yf),u),lp(gr(ab,xf,yf-1),gr(bb,xf-1,yf-1),u),v)}}
+  function mk(ra){{return{{x:Math.random()*W,y:Math.random()*H,ho:Math.random()*60-30,age:ra?Math.floor(Math.random()*600):0,w:0.4+Math.random()*1.2}}}}
+  function init(){{var dpr=Math.min(window.devicePixelRatio||1,2);W=window.innerWidth;H=window.innerHeight;c.width=W*dpr;c.height=H*dpr;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);lines=[];var n=W<768?Math.round({line_count}*0.5):{line_count};for(var i=0;i<n;i++)lines.push(mk(true))}}
+  function start(){{if(!rafId&&pageVis)rafId=requestAnimationFrame(draw)}}
+  function stop(){{if(rafId){{cancelAnimationFrame(rafId);rafId=0}}}}
+  function draw(ts){{
+    rafId=0;
+    if(!pageVis)return;
+    if(ts-lastF<FPS_INT){{rafId=requestAnimationFrame(draw);return}}
+    lastF=ts;time+={anim_speed};ctx.clearRect(0,0,W,H);
+    var segs=W<768?30:50;
+    for(var i=0;i<lines.length;i++){{var l=lines[i];l.age++;if(l.age>600){{lines[i]=mk(false);continue}}
+    var lf=l.age/600,f2=lf<0.1?lf/0.1:lf>0.85?(1-lf)/0.15:1;
+    var px=l.x,py=l.y;ctx.beginPath();ctx.moveTo(px,py);
+    for(var s=0;s<segs;s++){{var n2=ns(px*0.001,py*0.001+time);var a2=n2*Math.PI*1.8;px+=Math.cos(a2)*3.5;py+=Math.sin(a2)*3.5;ctx.lineTo(px,py)}}
+    var ef=140,ax=Math.min(l.x/ef,(W-l.x)/ef,1),ay=Math.min(l.y/ef,(H-l.y)/ef,1);
+    var ea=Math.max(0,Math.min(1,ax))*Math.max(0,Math.min(1,ay));
+    ctx.strokeStyle='hsla('+(200+l.ho)+',38%,52%,'+({line_opacity}*f2*ea)+')';ctx.lineWidth=l.w;ctx.lineCap='round';ctx.stroke();
+    var on=ns(l.x*0.0005+100,l.y*0.0005+time),oa=on*Math.PI*1.8;l.x+=Math.cos(oa)*0.15;l.y+=Math.sin(oa)*0.15}}
+    rafId=requestAnimationFrame(draw)}}
+  document.addEventListener('visibilitychange',function(){{pageVis=!document.hidden;if(pageVis)start();else stop()}});
+  var rt;window.addEventListener('resize',function(){{clearTimeout(rt);rt=setTimeout(init,250)}});
+  init();start();
+}})();
+""")
+
+    return "<script>" + "".join(js_parts) + "</script>"
+
+
 def render_personal_site(site_data, site_config=None, style=None):
     blocks = site_data.get("blocks", []) if isinstance(site_data, dict) else []
     theme = site_data.get("theme", {}) if isinstance(site_data, dict) else {}
     seo = site_data.get("seo", {}) if isinstance(site_data, dict) else {}
+    motion = site_data.get("motion", {}) if isinstance(site_data, dict) else {}
     template_id = _normalize_template(site_data or {}, site_config or {}, style)
 
     if not blocks:
@@ -409,6 +589,9 @@ def render_personal_site(site_data, site_config=None, style=None):
         except Exception as ex:
             body.append(f"<!-- block render error {E(b.get('id',''))}: {E(str(ex))} -->")
 
+    motion_css = _motion_css(motion)
+    motion_js = _motion_js(motion, theme)
+
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -419,10 +602,11 @@ def render_personal_site(site_data, site_config=None, style=None):
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 {f'<meta property="og:image" content="{og_image}">' if og_image else ''}
-<style>{_base_css(theme, template_id)}</style>
+<style>{_base_css(theme, template_id)}{motion_css}</style>
 </head>
 <body class="pb-template-{template_id}">
 {''.join(body)}
+{motion_js}
 </body>
 </html>"""
 

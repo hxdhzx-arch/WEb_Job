@@ -301,12 +301,24 @@ def _default_theme(template_id):
     return mapping.get(template_id, mapping["professional"])
 
 
+def _default_motion(template_id):
+    """Return the recommended default motion config for each template."""
+    mapping = {
+        "professional": {"enabled": True, "preset": "reveal-on-scroll", "intensity": 0.45, "speed": 0.55, "respect_reduced_motion": True},
+        "developer":    {"enabled": True, "preset": "soft-parallax",    "intensity": 0.55, "speed": 0.50, "respect_reduced_motion": True},
+        "creator":      {"enabled": True, "preset": "ambient-gradient", "intensity": 0.50, "speed": 0.45, "respect_reduced_motion": True},
+        "minimal":      {"enabled": True, "preset": "subtle-fade",     "intensity": 0.30, "speed": 0.60, "respect_reduced_motion": True},
+    }
+    return mapping.get(template_id, mapping["professional"])
+
+
 def _preset_site_data(template_id):
     tid = template_id if template_id in TEMPLATE_IDS else "professional"
     if tid == "developer":
         return {
             "template_id": tid,
             "theme": _default_theme(tid),
+            "motion": _default_motion(tid),
             "seo": {"title": "Dev Portfolio", "description": "Developer portfolio and engineering work"},
             "blocks": [
                 {"id": _get_uuid(), "type": "hero", "visible": True, "style": {"layout": "left", "variant": "card"}, "content": {"name": "Alex Chen", "subtitle": "Full-stack Engineer | Building reliable products", "cta": {"text": "View Projects", "url": "#block-projects"}, "github": "https://github.com/example", "linkedin": "https://linkedin.com/in/example"}},
@@ -331,6 +343,7 @@ def _preset_site_data(template_id):
         return {
             "template_id": tid,
             "theme": _default_theme(tid),
+            "motion": _default_motion(tid),
             "seo": {"title": "Creator Brand Page", "description": "Personal brand and creator profile"},
             "blocks": [
                 {"id": _get_uuid(), "type": "hero", "visible": True, "style": {"layout": "center", "variant": "card"}, "content": {"name": "Mia Lin", "subtitle": "Content Creator · Visual Storyteller · Brand Strategist", "cta": {"text": "See My Work", "url": "#block-projects"}}},
@@ -358,6 +371,7 @@ def _preset_site_data(template_id):
         return {
             "template_id": tid,
             "theme": _default_theme(tid),
+            "motion": _default_motion(tid),
             "seo": {"title": "Minimal Landing", "description": "Minimal single-page personal site"},
             "blocks": [
                 {"id": _get_uuid(), "type": "hero", "visible": True, "style": {"layout": "left", "variant": "minimal"}, "content": {"name": "Jordan Wu", "subtitle": "Product Designer & Frontend Partner", "cta": {"text": "Contact Me", "url": "mailto:jordan@example.com"}}},
@@ -375,6 +389,7 @@ def _preset_site_data(template_id):
     return {
         "template_id": "professional",
         "theme": _default_theme("professional"),
+        "motion": _default_motion("professional"),
         "seo": {"title": "Professional Resume Site", "description": "Professional profile for job opportunities"},
         "blocks": [
             {"id": _get_uuid(), "type": "hero", "visible": True, "style": {"layout": "left", "variant": "card"}, "content": {"name": "Ethan Zhang", "subtitle": "Senior Product Manager | AI & SaaS", "cta": {"text": "View Resume", "url": "#block-experience"}, "linkedin": "https://linkedin.com/in/example"}},

@@ -99,6 +99,15 @@
       <div class="ps-ins-row"><label>背景</label><input type="color" id="g-bg" onchange="updateTheme()"></div>
       <div class="ps-ins-row"><label>文字</label><input type="color" id="g-text" onchange="updateTheme()"></div>
       <div class="ps-ins-row"><label>圆角</label><select id="g-radius" onchange="updateTheme()"><option value="8px">8px</option><option value="10px">10px</option><option value="14px">14px</option><option value="18px">18px</option></select></div>
+      <div style="margin:14px 0 6px;font-size:.75rem;color:var(--c-text-muted);font-weight:700;border-top:1px solid var(--c-border);padding-top:14px">动态效果</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span id="m-rec-info" style="font-size:.7rem;color:var(--c-accent);font-weight:600"></span><button id="m-reset-btn" class="c-btn c-btn-secondary" style="display:none;font-size:.68rem;padding:3px 8px;height:auto" onclick="applyRecommendedMotion()">恢复模板推荐</button></div>
+      <div class="ps-ins-row"><label>启用动效</label><select id="m-enabled" onchange="updateMotion()"><option value="true">开启</option><option value="false">关闭</option></select></div>
+      <div class="ps-ins-row"><label>预设风格</label><select id="m-preset" onchange="updateMotion()"><option value="none">无动效</option><option value="subtle-fade">Subtle Fade 柔和淡入</option><option value="soft-parallax">Soft Parallax 轻视差</option><option value="reveal-on-scroll">Reveal on Scroll 滚动揭示</option><option value="ambient-gradient">Ambient Gradient 氛围渐变</option><option value="flow-lines-lite">Flow Lines Lite 流动线条</option></select></div>
+      <div class="ps-ins-row"><label>强度 <span id="m-intensity-val" style="color:var(--c-accent)">50%</span></label><input type="range" id="m-intensity" min="0" max="100" value="50" oninput="document.getElementById('m-intensity-val').textContent=this.value+'%';updateMotion()"></div>
+      <div class="ps-ins-row"><label>速度 <span id="m-speed-val" style="color:var(--c-accent)">50%</span></label><input type="range" id="m-speed" min="0" max="100" value="50" oninput="document.getElementById('m-speed-val').textContent=this.value+'%';updateMotion()"></div>
+      <div class="ps-ins-row"><label>尊重系统减弱动效</label><select id="m-reduced" onchange="updateMotion()"><option value="true">是（推荐）</option><option value="false">否</option></select></div>
+
+      <div style="margin:14px 0 6px;font-size:.75rem;color:var(--c-text-muted);font-weight:700;border-top:1px solid var(--c-border);padding-top:14px">SEO</div>
       <div class="ps-ins-row"><label>SEO 标题</label><input type="text" id="seo-title" oninput="updateSEO('title',this.value)"></div>
       <div class="ps-ins-row"><label>SEO 描述</label><textarea id="seo-desc" rows="3" oninput="updateSEO('description',this.value)"></textarea></div>
       <div class="ps-ins-row"><label>OG 图片 URL</label><input type="text" id="seo-og" oninput="updateSEO('og_image',this.value)"></div>
@@ -148,6 +157,8 @@ const EditorState = {
   blocks: [],
   theme: { primaryColor:"#2563eb", bgColor:"#f8fafc", textColor:"#0f172a", radius:"14px" },
   seo: { title:"", description:"", og_image:"" },
+  motion: { enabled:true, preset:"subtle-fade", intensity:0.5, speed:0.5, respect_reduced_motion:true },
+  motionLocked: false,
   template_id: "professional",
   selectedBlockId: null,
   hasUnsavedChanges: false,
@@ -194,16 +205,26 @@ function migrateLegacyToBlocks(d){
   if(!blocks.length) blocks.push(defaultBlock("hero"));
   if(!blocks.some(b=>b.type==="cta")) blocks.push(defaultBlock("cta"));
   if(!blocks.some(b=>b.type==="footer")) blocks.push(defaultBlock("footer"));
-  return { blocks, template_id: d && d.template_id ? d.template_id : "professional", theme: d && d.theme ? d.theme : undefined, seo: d && d.seo ? d.seo : undefined };
+  return { blocks, template_id: d && d.template_id ? d.template_id : "professional", theme: d && d.theme ? d.theme : undefined, seo: d && d.seo ? d.seo : undefined, motion: d && d.motion ? d.motion : undefined };
 }
 
 function applyPresetData(siteData, schedule){
   const migrated = migrateLegacyToBlocks(siteData || {});
+  const prevTemplateId = EditorState.template_id;
   EditorState.blocks = migrated.blocks || [];
   EditorState.template_id = migrated.template_id || "professional";
   if(migrated.theme) EditorState.theme = migrated.theme;
   if(migrated.seo) EditorState.seo = migrated.seo;
+  /* Motion: use data's motion if present, otherwise apply template default */
+  if(migrated.motion){
+    EditorState.motion = migrated.motion;
+  } else if(!EditorState.motionLocked){
+    EditorState.motion = Object.assign({}, TEMPLATE_MOTION_DEFAULTS[EditorState.template_id] || TEMPLATE_MOTION_DEFAULTS.professional);
+  }
+  /* Reset lock when switching to a different template (user chose a new template) */
+  if(prevTemplateId !== EditorState.template_id) EditorState.motionLocked = false;
   updateThemeUI();
+  updateMotionUI();
   renderPresetGrid();
   renderSectionList();
   renderCanvas();
@@ -219,6 +240,19 @@ async function loadPresets(){
   renderPresetGrid();
 }
 
+const TEMPLATE_MOTION_DEFAULTS = {
+  professional: { enabled:true, preset:"reveal-on-scroll", intensity:0.45, speed:0.55, respect_reduced_motion:true },
+  developer:    { enabled:true, preset:"soft-parallax",    intensity:0.55, speed:0.50, respect_reduced_motion:true },
+  creator:      { enabled:true, preset:"ambient-gradient", intensity:0.50, speed:0.45, respect_reduced_motion:true },
+  minimal:      { enabled:true, preset:"subtle-fade",      intensity:0.30, speed:0.60, respect_reduced_motion:true },
+};
+const TEMPLATE_MOTION_TAGS = {
+  professional: "Scroll Reveal",
+  developer:    "Soft Parallax",
+  creator:      "Ambient Background",
+  minimal:      "Minimal Motion",
+};
+
 function renderPresetGrid(){
   const g=document.getElementById("preset-grid");
   g.innerHTML="";
@@ -228,7 +262,8 @@ function renderPresetGrid(){
     const item=document.createElement("div");
     item.className="ps-thumb"+(EditorState.template_id===id?" active":"");
     item.onclick=()=>applyPreset(id);
-    item.innerHTML=`<div class="ps-mini ${id==='professional'?'prof':id}"><div class="a"></div><div class="b"></div></div><div class="ps-name">${labels[id]}</div>`;
+    const tag=TEMPLATE_MOTION_TAGS[id]||"";
+    item.innerHTML=`<div class="ps-mini ${id==='professional'?'prof':id}"><div class="a"></div><div class="b"></div></div><div class="ps-name">${labels[id]}</div>${tag?`<div style="font-size:.66rem;color:var(--c-accent);margin-top:2px;font-weight:600;letter-spacing:.02em">${tag}</div>`:''}`;
     g.appendChild(item);
   });
 }
@@ -302,6 +337,10 @@ function updateThemeUI(){
 }
 function updateTheme(){ EditorState.theme.primaryColor=document.getElementById("g-primary").value; EditorState.theme.bgColor=document.getElementById("g-bg").value; EditorState.theme.textColor=document.getElementById("g-text").value; EditorState.theme.radius=document.getElementById("g-radius").value; scheduleAutoSave(); renderCanvas(); }
 function updateSEO(k,v){ EditorState.seo[k]=v; scheduleAutoSave(); renderCanvas(); }
+function updateMotion(){ EditorState.motionLocked=true; EditorState.motion.enabled=document.getElementById("m-enabled").value==="true"; EditorState.motion.preset=document.getElementById("m-preset").value; EditorState.motion.intensity=parseInt(document.getElementById("m-intensity").value)/100; EditorState.motion.speed=parseInt(document.getElementById("m-speed").value)/100; EditorState.motion.respect_reduced_motion=document.getElementById("m-reduced").value==="true"; scheduleAutoSave(); renderCanvas(); updateMotionLockUI(); }
+function applyRecommendedMotion(){ var rec=TEMPLATE_MOTION_DEFAULTS[EditorState.template_id]; if(!rec) return; EditorState.motion=Object.assign({},rec); EditorState.motionLocked=false; updateMotionUI(); scheduleAutoSave(); renderCanvas(); toast("已恢复模板推荐动效"); }
+function updateMotionUI(){ var m=EditorState.motion||{}; document.getElementById("m-enabled").value=m.enabled!==false?"true":"false"; document.getElementById("m-preset").value=m.preset||"subtle-fade"; var iv=Math.round((m.intensity||0.5)*100); document.getElementById("m-intensity").value=iv; document.getElementById("m-intensity-val").textContent=iv+"%"; var sv=Math.round((m.speed||0.5)*100); document.getElementById("m-speed").value=sv; document.getElementById("m-speed-val").textContent=sv+"%"; document.getElementById("m-reduced").value=m.respect_reduced_motion!==false?"true":"false"; updateMotionLockUI(); }
+function updateMotionLockUI(){ var btn=document.getElementById("m-reset-btn"); if(!btn) return; btn.style.display=EditorState.motionLocked?"block":"none"; var tag=TEMPLATE_MOTION_TAGS[EditorState.template_id]||""; var info=document.getElementById("m-rec-info"); if(info) info.textContent=tag?"模板推荐: "+tag:""; }
 
 function patchBlock(id,fn){ const b=EditorState.blocks.find(x=>x.id===id); if(!b)return; fn(b); scheduleAutoSave(); renderCanvas(); }
 function updateBlockTitle(id,v){ patchBlock(id,b=>{ b.title=v; }); }
@@ -400,16 +439,28 @@ function selectBlock(id){
   pane.innerHTML=html;
 }
 
-async function renderCanvas(){
+/* Debounced preview render — prevents rapid iframe rewrites from stacking
+   rAF loops, IntersectionObservers, and event listeners inside the iframe. */
+var _renderDebounce=null;
+function renderCanvas(){
+  clearTimeout(_renderDebounce);
+  _renderDebounce=setTimeout(_doRenderCanvas, 180);
+}
+async function _doRenderCanvas(){
   if(EditorState.rendering) return;
   EditorState.rendering=true;
   try{
-    const payload={site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},style:EditorState.template_id};
+    const payload={site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,motion:EditorState.motion,template_id:EditorState.template_id},style:EditorState.template_id};
     const r=await fetch("/api/v1/personal-site/preview",{method:"POST",headers:{"Content-Type":"application/json",...(TOKEN?{"Authorization":"Bearer "+TOKEN}:{})},body:JSON.stringify(payload)});
     const d=await r.json();
     if(d.success){
-      const html=d.data.html.replace("</body>",`<style>section[id^="block-"],footer[id^="block-"]{position:relative;cursor:pointer}section[id^="block-"]:hover::after,footer[id^="block-"]:hover::after{content:'';position:absolute;inset:0;border:1px solid rgba(37,99,235,.35);pointer-events:none}section.sel::after,footer.sel::after{content:'';position:absolute;inset:0;border:2px solid #2563eb;pointer-events:none}</style><script>document.querySelectorAll('section[id^="block-"],footer[id^="block-"]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();document.querySelectorAll('section[id^="block-"],footer[id^="block-"]').forEach(function(n){n.classList.remove('sel')});el.classList.add('sel');window.parent.postMessage({type:'ps_sel',id:el.id.replace('block-','')},'*')})});<\/script></body>`);
-      document.getElementById("preview-iframe").srcdoc=html;
+      const iframe=document.getElementById("preview-iframe");
+      /* Selection overlay + click handler injected once per srcdoc write */
+      const inject=`<style>section[id^="block-"],footer[id^="block-"]{position:relative;cursor:pointer}section[id^="block-"]:hover::after,footer[id^="block-"]:hover::after{content:'';position:absolute;inset:0;border:1px solid rgba(37,99,235,.35);pointer-events:none}section.sel::after,footer.sel::after{content:'';position:absolute;inset:0;border:2px solid #2563eb;pointer-events:none}</style><script>document.querySelectorAll('section[id^="block-"],footer[id^="block-"]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();document.querySelectorAll('section[id^="block-"],footer[id^="block-"]').forEach(function(n){n.classList.remove('sel')});el.classList.add('sel');window.parent.postMessage({type:'ps_sel',id:el.id.replace('block-','')},'*')})});<\/script>`;
+      const html=d.data.html.replace("</body>",inject+"</body>");
+      /* Reuse same iframe — browser tears down previous document's JS context
+         when srcdoc changes, preventing listener/rAF leaks. */
+      iframe.srcdoc=html;
     }
   }catch(e){}
   EditorState.rendering=false;
@@ -432,7 +483,7 @@ function scheduleAutoSave(){
 }
 async function performAutoSave(){
   if(!TOKEN){ markSavedLocal(); return; }
-  const payload={site_id:currentSiteId,site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},prompt:document.getElementById("prompt-input").value.trim()};
+  const payload={site_id:currentSiteId,site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,motion:EditorState.motion,template_id:EditorState.template_id},prompt:document.getElementById("prompt-input").value.trim()};
   try{
     const r=await fetch("/api/v1/personal-site/auto-save",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+TOKEN},body:JSON.stringify(payload)});
     const d=await r.json();
@@ -458,7 +509,7 @@ async function confirmPublish(){
   EditorState.seo.title=document.getElementById("pub-seo-title").value.trim();
   EditorState.seo.description=document.getElementById("pub-seo-desc").value.trim();
   try{
-    const payload={site_id:currentSiteId,site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},slug:document.getElementById("pub-slug").value.trim(),seo_title:EditorState.seo.title,seo_description:EditorState.seo.description};
+    const payload={site_id:currentSiteId,site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,motion:EditorState.motion,template_id:EditorState.template_id},slug:document.getElementById("pub-slug").value.trim(),seo_title:EditorState.seo.title,seo_description:EditorState.seo.description};
     const r=await fetch("/api/v1/personal-site/publish",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+TOKEN},body:JSON.stringify(payload)});
     const d=await r.json();
     if(d.success){ currentSiteId=d.data.site_id; EditorState.hasUnsavedChanges=false; markSavedCloud(); closePublishModal(); toast("发布成功"); window.open(d.data.url,"_blank"); }
@@ -469,7 +520,7 @@ async function confirmPublish(){
 
 async function exportHTML(){
   try{
-    const payload={site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,template_id:EditorState.template_id},style:EditorState.template_id};
+    const payload={site_data:{blocks:EditorState.blocks,theme:EditorState.theme,seo:EditorState.seo,motion:EditorState.motion,template_id:EditorState.template_id},style:EditorState.template_id};
     const r=await fetch("/api/v1/personal-site/export-html",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     if(!r.ok){ toast("导出失败","error"); return; }
     const blob=await r.blob(); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="personal_site.html"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); toast("已导出 HTML");

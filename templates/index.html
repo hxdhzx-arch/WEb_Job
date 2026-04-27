@@ -318,87 +318,173 @@ window.addEventListener('DOMContentLoaded', function() {
 </footer>
 
 <!-- ═══════════════════════════════════════════
-     Canvas Flow Field — Soft RGB Flowing Lines
+     Canvas Flow Field — Multi-Preset Background System
+     Presets: soft-rgb-flow | airy-waves | calm-aurora-lines
      ═══════════════════════════════════════════ -->
 <script>
 (function() {
   'use strict';
 
-  /* ──────────────────────────────────────────
-   *  CONFIGURABLE PARAMETERS
-   *  Adjust these to change the visual feel
-   * ────────────────────────────────────────── */
-  const CONFIG = {
-    /* Line count — more lines = denser field */
-    lineCount:       40,
+  /* ══════════════════════════════════════════════════
+   *  PRESET SYSTEM
+   *  Switch preset by changing ACTIVE_PRESET below.
+   *  Or call: _flowField.setPreset('airy-waves')
+   * ══════════════════════════════════════════════════ */
 
-    /* How many segments per line (longer = smoother curves) */
-    lineSegments:    90,
+  var PRESETS = {
 
-    /* Speed of line movement — lower = slower drift */
-    speed:           0.0004,
+    /* ── Preset 1: Soft RGB Flow ──
+       Gentle full-spectrum color cycling, like a calm screensaver.
+       Wider hue range, moderate saturation. */
+    'soft-rgb-flow': {
+      lineCount:        36,           /* total flowing lines */
+      lineSegments:     80,           /* path length per line */
+      speed:            0.00025,      /* noise time advancement per frame */
+      noiseScale:       0.0012,       /* spatial frequency — lower = broader curves */
+      angleMultiplier:  2.2,          /* curvature intensity — lower = gentler */
+      segStep:          3.5,          /* pixel distance per segment step */
+      lineOpacity:      0.10,         /* base alpha (0–1) */
+      lineWidthMin:     0.4,          /* thinnest line */
+      lineWidthMax:     1.6,          /* thickest line */
+      colorCycleSpeed:  0.00006,      /* hue rotation speed */
+      hueRange:         [0, 360],     /* full spectrum */
+      saturation:       48,           /* HSL saturation % */
+      lightnessLight:   60,           /* lightness on light theme */
+      lightnessDark:    48,           /* lightness on dark theme */
+      edgeFade:         140,          /* edge fade distance (px) */
+      lineLife:         700,          /* frames before line resets */
+      driftSpeed:       0.20,         /* origin wander speed */
+      trailFade:        0,            /* 0 = clear each frame, >0 = ghosting (0–1) */
+    },
 
-    /* Noise scale — lower = larger/smoother curves; higher = tighter curls */
-    noiseScale:      0.0015,
+    /* ── Preset 2: Airy Waves ──
+       Blue-teal palette, very low opacity, wide smooth curves.
+       Like looking through frosted glass at a calm sea. */
+    'airy-waves': {
+      lineCount:        28,
+      lineSegments:     100,
+      speed:            0.00018,
+      noiseScale:       0.0008,
+      angleMultiplier:  1.6,
+      segStep:          4,
+      lineOpacity:      0.07,
+      lineWidthMin:     0.6,
+      lineWidthMax:     2.2,
+      colorCycleSpeed:  0.00003,
+      hueRange:         [180, 240],   /* teal to blue */
+      saturation:       40,
+      lightnessLight:   58,
+      lightnessDark:    44,
+      edgeFade:         180,
+      lineLife:         900,
+      driftSpeed:       0.15,
+      trailFade:        0,
+    },
 
-    /* Line opacity (0–1) — keep low for subtlety */
-    lineOpacity:     0.12,
-
-    /* Line width range [min, max] */
-    lineWidthRange:  [0.5, 1.8],
-
-    /* Color cycle speed — how fast RGB shifts */
-    colorCycleSpeed: 0.00008,
-
-    /* Color saturation (0–100) and lightness (0–100) for HSL */
-    saturation:      55,
-    lightnessLight:  62,   /* lightness on light theme */
-    lightnessDark:   50,   /* lightness on dark theme */
-
-    /* Fade-out distance from edges (px) */
-    edgeFade:        120,
-
-    /* How often lines reset (frames) — larger = longer lived lines */
-    lineLife:        600,
+    /* ── Preset 3: Calm Aurora Lines ──
+       Green-cyan-purple banding, slightly more visible, like a muted aurora.
+       Uses narrower hue offsets per line for banding effect. */
+    'calm-aurora-lines': {
+      lineCount:        32,
+      lineSegments:     70,
+      speed:            0.00022,
+      noiseScale:       0.001,
+      angleMultiplier:  1.8,
+      segStep:          3.8,
+      lineOpacity:      0.09,
+      lineWidthMin:     0.5,
+      lineWidthMax:     2.0,
+      colorCycleSpeed:  0.00004,
+      hueRange:         [120, 300],   /* green → cyan → purple */
+      saturation:       42,
+      lightnessLight:   56,
+      lightnessDark:    45,
+      edgeFade:         150,
+      lineLife:         800,
+      driftSpeed:       0.18,
+      trailFade:        0,
+    },
   };
 
-  const canvas = document.getElementById('flowCanvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H, lines, time = 0, colorTime = 0;
-  let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  /* ═══ ACTIVE PRESET — change this to switch style ═══ */
+  var ACTIVE_PRESET = 'airy-waves';
 
-  /* ── Simplex-like noise (lightweight Perlin noise) ── */
-  const permutation = [];
-  (function initPerm() {
-    const p = [];
-    for (let i = 0; i < 256; i++) p[i] = i;
-    for (let i = 255; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [p[i], p[j]] = [p[j], p[i]];
+  /* Deep-copy the chosen preset into working CONFIG */
+  var CONFIG = {};
+  function applyPreset(name) {
+    var src = PRESETS[name] || PRESETS['airy-waves'];
+    ACTIVE_PRESET = name;
+    var keys = Object.keys(src);
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      if (Array.isArray(src[key])) {
+        CONFIG[key] = src[key].slice();
+      } else {
+        CONFIG[key] = src[key];
+      }
     }
-    for (let i = 0; i < 512; i++) permutation[i] = p[i & 255];
+  }
+  applyPreset(ACTIVE_PRESET);
+
+  /* ═══ MOBILE DETECTION & AUTO-DOWNGRADE ═══ */
+  var isMobile = window.innerWidth < 768;
+  var mobileFactor = isMobile ? 0.5 : 1;   /* halve lines & segments on mobile */
+
+  function effectiveLineCount() {
+    return Math.max(8, Math.round(CONFIG.lineCount * mobileFactor));
+  }
+  function effectiveSegments() {
+    return Math.max(30, Math.round(CONFIG.lineSegments * mobileFactor));
+  }
+
+  /* ═══ REDUCED MOTION ═══ */
+  var prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ═══ CANVAS SETUP ═══ */
+  var canvas = document.getElementById('flowCanvas');
+  var ctx    = canvas.getContext('2d');
+  var W, H, lines;
+  var time = 0, colorTime = 0;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  /* Target 30 fps to save battery — skip frames on 60/120hz displays */
+  var TARGET_INTERVAL = 1000 / 30;
+  var lastFrame = 0;
+  var rafId = 0;         /* guard: prevent duplicate rAF loops */
+  var isPageVisible = true;
+
+  /* ── Perlin noise ── */
+  var permutation = [];
+  (function initPerm() {
+    var p = [];
+    for (var i = 0; i < 256; i++) p[i] = i;
+    for (var i = 255; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = p[i]; p[i] = p[j]; p[j] = tmp;
+    }
+    for (var i = 0; i < 512; i++) permutation[i] = p[i & 255];
   })();
 
   function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
   function lerp(a, b, t) { return a + t * (b - a); }
   function grad(hash, x, y) {
-    const h = hash & 3;
-    const u = h < 2 ? x : y;
-    const v = h < 2 ? y : x;
+    var h = hash & 3;
+    var u = h < 2 ? x : y;
+    var v = h < 2 ? y : x;
     return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
   }
 
   function noise(x, y) {
-    const xi = Math.floor(x) & 255;
-    const yi = Math.floor(y) & 255;
-    const xf = x - Math.floor(x);
-    const yf = y - Math.floor(y);
-    const u = fade(xf);
-    const v = fade(yf);
-    const aa = permutation[permutation[xi] + yi];
-    const ab = permutation[permutation[xi] + yi + 1];
-    const ba = permutation[permutation[xi + 1] + yi];
-    const bb = permutation[permutation[xi + 1] + yi + 1];
+    var xi = Math.floor(x) & 255;
+    var yi = Math.floor(y) & 255;
+    var xf = x - Math.floor(x);
+    var yf = y - Math.floor(y);
+    var u = fade(xf);
+    var v = fade(yf);
+    var aa = permutation[permutation[xi] + yi];
+    var ab = permutation[permutation[xi] + yi + 1];
+    var ba = permutation[permutation[xi + 1] + yi];
+    var bb = permutation[permutation[xi + 1] + yi + 1];
     return lerp(
       lerp(grad(aa, xf, yf),     grad(ba, xf - 1, yf),     u),
       lerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u),
@@ -411,22 +497,23 @@ window.addEventListener('DOMContentLoaded', function() {
     return {
       x: Math.random() * W,
       y: Math.random() * H,
-      hueOffset: Math.random() * 360,
+      hueOffset: Math.random() * (CONFIG.hueRange[1] - CONFIG.hueRange[0]),
       age: randomAge ? Math.floor(Math.random() * CONFIG.lineLife) : 0,
-      width: CONFIG.lineWidthRange[0] + Math.random() * (CONFIG.lineWidthRange[1] - CONFIG.lineWidthRange[0]),
+      width: CONFIG.lineWidthMin + Math.random() * (CONFIG.lineWidthMax - CONFIG.lineWidthMin),
     };
   }
 
   function initLines() {
+    var count = effectiveLineCount();
     lines = [];
-    for (let i = 0; i < CONFIG.lineCount; i++) {
+    for (var i = 0; i < count; i++) {
       lines.push(createLine(true));
     }
   }
 
   /* ── Resize ── */
   function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth;
     H = window.innerHeight;
     canvas.width  = W * dpr;
@@ -434,86 +521,166 @@ window.addEventListener('DOMContentLoaded', function() {
     canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    isMobile = W < 768;
+    mobileFactor = isMobile ? 0.5 : 1;
     initLines();
   }
 
-  /* ── Edge fade alpha ── */
+  /* ── Edge fade ── */
   function edgeAlpha(x, y) {
-    const ef = CONFIG.edgeFade;
-    const ax = Math.min(x / ef, (W - x) / ef, 1);
-    const ay = Math.min(y / ef, (H - y) / ef, 1);
+    var ef = CONFIG.edgeFade;
+    var ax = Math.min(x / ef, (W - x) / ef, 1);
+    var ay = Math.min(y / ef, (H - y) / ef, 1);
     return Math.max(0, Math.min(1, ax)) * Math.max(0, Math.min(1, ay));
   }
 
-  /* ── Draw ── */
-  function draw() {
+  /* ── Map hue into preset range ── */
+  function mapHue(rawHue) {
+    var lo = CONFIG.hueRange[0];
+    var hi = CONFIG.hueRange[1];
+    if (lo === 0 && hi === 360) return rawHue % 360;
+    var range = hi - lo;
+    return lo + (rawHue % range);
+  }
+
+  /* ═══ STATIC FALLBACK for reduced-motion ═══
+     Draws a single still frame with very faint lines, then stops. */
+  function drawStatic() {
+    resize();
+    var lightness = isDark ? CONFIG.lightnessDark : CONFIG.lightnessLight;
+    var segs = effectiveSegments();
+    ctx.clearRect(0, 0, W, H);
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var px = line.x, py = line.y;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+
+      for (var s = 0; s < segs; s++) {
+        var n = noise(px * CONFIG.noiseScale, py * CONFIG.noiseScale);
+        var angle = n * Math.PI * CONFIG.angleMultiplier;
+        px += Math.cos(angle) * CONFIG.segStep;
+        py += Math.sin(angle) * CONFIG.segStep;
+        ctx.lineTo(px, py);
+      }
+
+      var hue = mapHue(line.hueOffset + i * 12);
+      var alpha = CONFIG.lineOpacity * 0.5 * edgeAlpha(line.x, line.y);
+      ctx.strokeStyle = 'hsla(' + hue + ', ' + CONFIG.saturation + '%, ' + lightness + '%, ' + alpha + ')';
+      ctx.lineWidth = line.width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
+  }
+
+  /* ═══ ANIMATED DRAW LOOP ═══ */
+  function startLoop() {
+    if (rafId || prefersReduced) return; /* guard: one loop only */
+    rafId = requestAnimationFrame(draw);
+  }
+  function stopLoop() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+  }
+
+  function draw(timestamp) {
+    rafId = 0; /* clear before re-requesting */
+
+    /* Pause when tab hidden */
+    if (!isPageVisible) return;
+
+    /* Frame-rate throttle */
+    if (timestamp - lastFrame < TARGET_INTERVAL) {
+      rafId = requestAnimationFrame(draw);
+      return;
+    }
+    lastFrame = timestamp;
+
     time += CONFIG.speed;
     colorTime += CONFIG.colorCycleSpeed;
 
-    ctx.clearRect(0, 0, W, H);
+    /* Trail fade or clear */
+    if (CONFIG.trailFade > 0) {
+      ctx.fillStyle = isDark
+        ? 'rgba(0,0,0,' + (1 - CONFIG.trailFade) + ')'
+        : 'rgba(251,251,253,' + (1 - CONFIG.trailFade) + ')';
+      ctx.fillRect(0, 0, W, H);
+    } else {
+      ctx.clearRect(0, 0, W, H);
+    }
 
-    const lightness = isDark ? CONFIG.lightnessDark : CONFIG.lightnessLight;
+    var lightness = isDark ? CONFIG.lightnessDark : CONFIG.lightnessLight;
+    var segs = effectiveSegments();
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
       line.age++;
 
-      /* Reset line when it expires */
       if (line.age > CONFIG.lineLife) {
         lines[i] = createLine(false);
         continue;
       }
 
-      /* Life-based fade in/out */
-      const lifeFrac = line.age / CONFIG.lineLife;
-      const lifeFade = lifeFrac < 0.1
-        ? lifeFrac / 0.1
-        : lifeFrac > 0.85
-          ? (1 - lifeFrac) / 0.15
-          : 1;
+      /* Life fade in/out */
+      var lifeFrac = line.age / CONFIG.lineLife;
+      var lifeFade;
+      if (lifeFrac < 0.1) {
+        lifeFade = lifeFrac / 0.1;
+      } else if (lifeFrac > 0.85) {
+        lifeFade = (1 - lifeFrac) / 0.15;
+      } else {
+        lifeFade = 1;
+      }
 
-      let px = line.x;
-      let py = line.y;
-
+      var px = line.x;
+      var py = line.y;
       ctx.beginPath();
       ctx.moveTo(px, py);
 
-      const segStep = 3; /* pixels per segment step */
-      for (let s = 0; s < CONFIG.lineSegments; s++) {
-        const n = noise(px * CONFIG.noiseScale, py * CONFIG.noiseScale + time);
-        const angle = n * Math.PI * 4;
-        px += Math.cos(angle) * segStep;
-        py += Math.sin(angle) * segStep;
-
+      for (var s = 0; s < segs; s++) {
+        var n = noise(px * CONFIG.noiseScale, py * CONFIG.noiseScale + time);
+        var angle = n * Math.PI * CONFIG.angleMultiplier;
+        px += Math.cos(angle) * CONFIG.segStep;
+        py += Math.sin(angle) * CONFIG.segStep;
         ctx.lineTo(px, py);
       }
 
-      /* Hue shifts slowly across the palette */
-      const hue = ((colorTime * 360) + line.hueOffset + i * (360 / CONFIG.lineCount)) % 360;
-      const alpha = CONFIG.lineOpacity * lifeFade * edgeAlpha(line.x, line.y);
+      var hue = mapHue((colorTime * 360) + line.hueOffset + i * ((CONFIG.hueRange[1] - CONFIG.hueRange[0]) / lines.length));
+      var alpha = CONFIG.lineOpacity * lifeFade * edgeAlpha(line.x, line.y);
 
-      ctx.strokeStyle = `hsla(${hue}, ${CONFIG.saturation}%, ${lightness}%, ${alpha})`;
+      ctx.strokeStyle = 'hsla(' + hue + ', ' + CONFIG.saturation + '%, ' + lightness + '%, ' + alpha + ')';
       ctx.lineWidth = line.width;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.stroke();
 
-      /* Slowly drift the line origin */
-      const originNoise = noise(line.x * CONFIG.noiseScale * 0.5 + 100, line.y * CONFIG.noiseScale * 0.5 + time);
-      const originAngle = originNoise * Math.PI * 4;
-      line.x += Math.cos(originAngle) * 0.25;
-      line.y += Math.sin(originAngle) * 0.25;
+      /* Drift origin */
+      var originN = noise(line.x * CONFIG.noiseScale * 0.5 + 100, line.y * CONFIG.noiseScale * 0.5 + time);
+      var originA = originN * Math.PI * CONFIG.angleMultiplier;
+      line.x += Math.cos(originA) * CONFIG.driftSpeed;
+      line.y += Math.sin(originA) * CONFIG.driftSpeed;
     }
 
-    requestAnimationFrame(draw);
+    rafId = requestAnimationFrame(draw);
   }
 
-  /* ── Public API for theme switching ── */
+  /* ── Public API ── */
   window._flowField = {
     updatePalette: function() {
       isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (prefersReduced) drawStatic();
     },
-    config: CONFIG
+    config: CONFIG,
+    presets: PRESETS,
+    activePreset: function() { return ACTIVE_PRESET; },
+    /** Switch preset at runtime: _flowField.setPreset('calm-aurora-lines') */
+    setPreset: function(name) {
+      if (!PRESETS[name]) return;
+      applyPreset(name);
+      initLines();
+      if (prefersReduced) drawStatic();
+    },
   };
 
   /* ── Init ── */
@@ -521,21 +688,53 @@ window.addEventListener('DOMContentLoaded', function() {
     clearTimeout(window._flowResize);
     window._flowResize = setTimeout(resize, 200);
   });
+
+  /* Pause canvas when tab is hidden — saves CPU/battery */
+  document.addEventListener('visibilitychange', function() {
+    isPageVisible = !document.hidden;
+    if (isPageVisible && !prefersReduced) {
+      startLoop();
+    } else {
+      stopLoop();
+    }
+  });
+
   resize();
-  draw();
+
+  if (prefersReduced) {
+    drawStatic();
+  } else {
+    startLoop();
+  }
+
+  /* Listen for system motion preference changes */
+  try {
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', function(e) {
+      prefersReduced = e.matches;
+      if (prefersReduced) {
+        stopLoop();
+        drawStatic();
+      } else {
+        startLoop();
+      }
+    });
+  } catch(_) { /* older browsers without addEventListener on matchMedia */ }
 
 
   /* ═══════════════════════════════════════════
    *  Scroll Reveal — IntersectionObserver
+   *  Reduced-motion: skip animation, show all
    * ═══════════════════════════════════════════ */
-  const revealEls = document.querySelectorAll('[data-reveal]');
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry, idx) {
+  var revealEls = document.querySelectorAll('[data-reveal]');
+  if (prefersReduced) {
+    /* Immediately show all — no transition delay, no animation */
+    revealEls.forEach(function(el) { el.classList.add('revealed'); el.style.transition = 'none'; });
+  } else if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
         if (entry.isIntersecting) {
-          /* Stagger delay for sibling items */
-          const siblings = entry.target.parentElement.querySelectorAll('[data-reveal]');
-          let index = 0;
+          var siblings = entry.target.parentElement.querySelectorAll('[data-reveal]');
+          var index = 0;
           siblings.forEach(function(sib, i) { if (sib === entry.target) index = i; });
           entry.target.style.transitionDelay = (index * 0.12) + 's';
           entry.target.classList.add('revealed');
@@ -546,7 +745,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
     revealEls.forEach(function(el) { observer.observe(el); });
   } else {
-    /* Fallback: just show everything */
     revealEls.forEach(function(el) { el.classList.add('revealed'); });
   }
 
